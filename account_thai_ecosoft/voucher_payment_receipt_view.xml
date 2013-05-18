@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="view_vendor_receipt_form_ext" model="ir.ui.view">
+		    <field name="name">view.vendor.receipt.form.ext</field>
+		    <field name="model">account.voucher</field>
+		    <field name="type">form</field>
+		    <field name="inherit_id" ref="account_voucher.view_vendor_receipt_form"/>
+		    <field name="arch" type="xml">
+		        <page string="Payment Information" position="after">
+		            <page string="Other Info">
+		                <field name="tax_line">
+		                    <tree editable="bottom" string="Taxes">
+		                        <field name="name"/>
+		                        <field name="account_id" groups="account.group_account_user"/>
+		                        <field name="base" on_change="base_change(base,parent.currency_id,parent.company_id,parent.date_invoice)" readonly="1"/>
+		                        <field name="amount" on_change="amount_change(amount,parent.currency_id,parent.company_id,parent.date_invoice)"/>
+		                        <field invisible="True" name="base_amount"/>
+		                        <field invisible="True" name="tax_amount"/>
+		                        <field name="factor_base" invisible="True"/>
+		                        <field name="factor_tax" invisible="True"/>
+		                    </tree>
+		                </field>
+		                <div>
+	                        <label for="amount_tax"/>
+	                        <button name="button_reset_taxes" states="draft,proforma2"
+	                            string="(update)" class="oe_link oe_edit_only"
+	                            type="object" help="Recompute taxes and total"/>
+	                    </div>
+					</page>	        
+				</page>
+			</field>
+		</record>
+        <record id="view_vendor_payment_form_ext" model="ir.ui.view">
+		    <field name="name">view.vendor.payment.form.ext</field>
+		    <field name="model">account.voucher</field>
+		    <field name="type">form</field>
+		    <field name="inherit_id" ref="account_voucher.view_vendor_payment_form"/>
+		    <field name="arch" type="xml">
+		        <page string="Payment Information" position="after">
+		            <page string="Other Info">
+		                <field name="tax_line">
+		                    <tree editable="bottom" string="Taxes">
+		                        <field name="name"/>
+		                        <field name="account_id" groups="account.group_account_user"/>
+		                        <field name="base" on_change="base_change(base,parent.currency_id,parent.company_id,parent.date_invoice)" readonly="1"/>
+		                        <field name="amount" on_change="amount_change(amount,parent.currency_id,parent.company_id,parent.date_invoice)"/>
+		                        <field invisible="True" name="base_amount"/>
+		                        <field invisible="True" name="tax_amount"/>
+		                        <field name="factor_base" invisible="True"/>
+		                        <field name="factor_tax" invisible="True"/>
+		                    </tree>
+		                </field>
+		                <div>
+	                        <label for="amount_tax"/>
+	                        <button name="button_reset_taxes" states="draft,proforma2"
+	                            string="(update)" class="oe_link oe_edit_only"
+	                            type="object" help="Recompute taxes and total"/>
+	                    </div>
+					</page>	        
+				</page>
+			</field>
+		</record>
+		<record id="view_tax_tree_ext" model="ir.ui.view">
+		    <field name="name">view.tax.tree.ext</field>
+		    <field name="model">account.tax</field>
+		    <field name="type">tree</field>
+		    <field name="inherit_id" ref="account.view_tax_tree"/>
+		    <field name="arch" type="xml">
+		        <field name="description" position="after">
+		            <field name="is_wht"/>
+		        </field>
+		    </field>
+		</record>    
+	</data>
+</openerp>
