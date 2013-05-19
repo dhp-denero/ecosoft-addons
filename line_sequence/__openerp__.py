@@ -25,7 +25,9 @@
     'author' : 'Ecosoft',
     'summary': "Fixing some line order to be more natural",
     'description': """
+    
 The re-adjustment of the order includes,
+
 * Ordering of Sale Order LIne
 
     """,
