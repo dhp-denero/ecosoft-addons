@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,7 +21,7 @@
 
 {
     'name' : "Split Quotation A/B",
-    'author' : 'Kitti U.',
+    'author' : 'Ecosoft',
     'summary': 'This addon will split 1 quotation into 2 quotations, one for Service Quote and another for Product Quote.',
     'description': """
 For cases when user want to split a quotation to A and B with the same number, for example,

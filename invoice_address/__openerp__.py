@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,12 +20,12 @@
 ##############################################################################
 
 {
-    'name' : 'Adding Invoice Address on Invoice',
+    'name' : 'Invoice Address on Invoice Document',
     'version' : '1.0',
-    'author' : 'Kitti U.',
-    'summary': '',
+    'author' : 'Ecosoft',
+    'summary': 'Adding Invoice Address on Invoice Document, that passed from Order / Delivery',
     'description': """
-In Customer and Supplier Invoice -- Adding "Invoice Address". This data is carried from SO / DO.
+In Customer and Supplier Invoice -- Adding "Invoice Address". This data is carried from Order / Delivery.
     """,
     'category': 'Accounting & Finance',
     'sequence': 4,

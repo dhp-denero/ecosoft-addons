@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//account_billing/__openerp__.py=utf-8
 encoding//account_thai_ecosoft/__init__.py=utf-8
 encoding//account_thai_ecosoft/__openerp__.py=utf-8
 encoding//account_thai_ecosoft/account.py=utf-8
@@ -43,6 +44,7 @@ encoding//product_code_extension/__init__.py=utf-8
 encoding//product_code_extension/__openerp__.py=utf-8
 encoding//product_code_extension/product.py=utf-8
 encoding//product_code_extension/res_partner.py=utf-8
+encoding//product_flexible_search/__openerp__.py=utf-8
 encoding//product_flexible_search/product.py=utf-8
 encoding//product_price_limit/__init__.py=utf-8
 encoding//product_price_limit/__openerp__.py=utf-8

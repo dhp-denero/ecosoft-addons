@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -22,12 +22,10 @@
 {
     'name' : 'Product UOM by Category',
     'version' : '1.0',
-    'author' : 'Kitti U.',
+    'author' : 'Ecosoft',
     'summary': "In Document's Line, display UOM in the same category of product.",
     'description': """
-
 Objects included in this addons,
-
 * sale.order.line
 * purchase.order.line
 

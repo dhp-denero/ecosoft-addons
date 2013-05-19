@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,16 +20,20 @@
 ##############################################################################
 
 {
-    'name' : "Accounting for Thai (based on Rev8852)",
-    'author' : 'Kitti U.',
-    'summary': '',
+    'name' : "Thai Withholding Tax",
+    'version' : '0.1',
+    'author' : 'Ecosoft',
+    'summary': 'Patch for some Thai Accounting standard',
     'description': """
-    
-    Note: This module need careful merge with the core code. It has many complete overwrite of methods.
-    
+This module consist of important patch for Thai Accounting Standards, ie., Withholding of Tax.
+
     * Supplier/Customer Withholding Tax
     * Supplier/Customer Undue Tax
-    * Account Posting According to good accounting practice.
+    * Correct Account Posting According to withholding rules.
+    
+In the future version, we will cover forms that match Thai Tax Regulations
+
+Note: This module need careful merge with the core code. It has many methods overwrite.
 
 """,
     'category': 'Accounting & Finance',

@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -22,8 +22,8 @@
 {
     'name' : 'Billing Process',
     'version' : '1.0',
-    'author' : 'Kitti U.',
-    'summary': 'Adding billing process before payment',
+    'author' : 'Ecosoft',
+    'summary': 'Group invoice as billing before payment',
     'description': """
 Billing Process
 ======================================================
@@ -37,10 +37,6 @@ The customer will be paying based on the payable amount shown in Billing Documen
     'sequence': 4,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [
-                #'images/customer_payment.jpeg',
-                #'images/journal_voucher.jpeg',
-                #'images/sales_receipt.jpeg',
-                #'images/supplier_voucher.jpeg'
                 ],
     'depends' : ['account','account_voucher','account_check_writing'],
     'demo' : [],
@@ -53,17 +49,6 @@ The customer will be paying based on the payable amount shown in Billing Documen
         'account_billing_data.xml',
     ],
     'test' : [
-        #'test/case5_suppl_usd_usd.yml',
-        #'test/account_voucher.yml',
-        #'test/sales_receipt.yml',
-        #'test/sales_payment.yml',
-        #'test/account_voucher_report.yml',
-        #'test/case1_usd_usd.yml',
-        #'test/case2_usd_eur_debtor_in_eur.yml',
-        #'test/case2_usd_eur_debtor_in_usd.yml',
-        #'test/case3_eur_eur.yml',
-        #'test/case4_cad_chf.yml',
-        #'test/case_eur_usd.yml',
     ],
     'auto_install': False,
     'application': True,

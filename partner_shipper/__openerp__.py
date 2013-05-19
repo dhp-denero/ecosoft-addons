@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,10 +21,10 @@
 
 {
     'name' : "Partner's shipper",
-    'author' : 'Kitti U.',
-    'summary': '',
+    'author' : 'Ecosoft',
+    'summary': 'Additional Shipper Information for Partners',
     'description': """
-    
+This module add new shipper information,
 * Adding available shipper for a partner. 
 * This shipper information will be available in Other Info tabs in Customer's SO/DO/INV.
 * The first shipper of a partner will be used as default shipper in Sales Order

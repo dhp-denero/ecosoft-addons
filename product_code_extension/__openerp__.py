@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -22,19 +22,19 @@
 {
     'name' : 'Product Code Extension',
     'version' : '1.0',
-    'author' : 'Kitti U.',
+    'author' : 'Ecosoft',
     'summary': 'Dynamic Product Code based on referenced information',
     'description': """
 
 Based on available information, product code (default_code) will be dynamically generated from,
 
-<product_code>-<partner_code>-<product_sub_code>
+<product_code>/<partner_code>/<product_sub_code>
 
 If that information is not available, will be replaced with 0.
 
 Sample of Dynamic Product Code
-* 081-MV6001-571-01, 081-MV6001-571-02
-* 000-MV6001-000-00
+* 081/MV6001/01, 081/MV6001/02
+* 000/MV6001/00
 
     """,
     'category': 'Sales',

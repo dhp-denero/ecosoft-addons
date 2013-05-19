@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -22,7 +22,7 @@
 {
     'name' : 'Product Serial Mandatory',
     'version' : '1.0',
-    'author' : 'Kitti U.',
+    'author' : 'Ecosoft',
     'summary': 'Setup mandatory serial number for certain transaction stage',
     'description': """
 Based on the new setting in product Category, Serial number will be required and warning will be shown,

@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,15 +20,15 @@
 ##############################################################################
 
 {
-    'name' : 'Create Invoice Line by Percentage (based on addons revision 8852)',
+    'name' : 'Create Invoice Line by Percentage (based on Rev8852)',
     'version' : '1.0',
-    'author' : 'Kitti U.',
-    'summary': '',
+    'author' : 'Ecosoft',
+    'summary': 'New method to creating invoice based on Sales Order line by percentage',
     'description': """
 
 This module add an additional method in creating Invoice from Sales Order.
-It is similar to existing "Percentage" method, but instead of using the whole net amount,
-it goes into each line of SO to create new Invoice.
+It is similar to existing "Percentage" method, but instead of using the whole net amount, 
+it goes into each line of Sales Order to create new Invoice.
 
     """,
     'category': 'Sales Management',
