@@ -31,7 +31,7 @@ Can be used instead of Customer Payment and Supplier Payment in order to Net AR/
     'category': 'Accounting & Finance',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ["base", "account", "account_voucher"],
+    'depends' : ["base", "account", "account_voucher", "account_billing"],
     'demo' : [],
     'data' : ["customer_supplier_voucher.xml"],
     'test' : [],
