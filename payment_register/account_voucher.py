@@ -79,7 +79,9 @@ class account_voucher(osv.osv):
 
         self.create_payment_register(cr, uid, ids, context=context)
         super(account_voucher, self).action_move_line_create(cr, uid, ids, context=context)
-        return True
+        
+        return super(account_voucher, self).proforma_voucher(cr, uid, ids, context=context)
+
 
     def create_payment_register(self, cr, uid, ids, context=None):
         

@@ -30,7 +30,7 @@
     'category': 'Accounting & Finance',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account_voucher','customer_supplier_voucher'],
+    'depends' : ['account_voucher','account_billing','customer_supplier_voucher'],
     'demo' : [],
     'data' : [
             'security/ir.model.access.csv',
