@@ -43,7 +43,7 @@ class sale_order_line(osv.osv):
         # Getting sales uom of product
         if product:
             product = self.pool.get('product.product').browse(cr, uid, product, context=context)
-            if product.uom_so_id:
+            if product.uom_so_id and not context.get('is_uom_change'):
                 res.get('value').update({'product_uom': product.uom_so_id.id})
 
         return res

@@ -21,7 +21,7 @@
 
 {
     'name' : 'Product Sales Unit of Measure',
-    'version' : '1.0',
+    'version' : '1.1',
     'author' : 'Ecosoft',
     'summary': "Set default sales UOM for sales operation",
     'description': """
@@ -32,7 +32,8 @@
     'images' : [],
     'depends' : ['sale'],
     'demo' : [],
-    'data' : ['product_view.xml'],
+    'data' : ['product_view.xml',
+              'sale_view.xml'],
     'test' : [],
     'auto_install': False,
     'application': True,
