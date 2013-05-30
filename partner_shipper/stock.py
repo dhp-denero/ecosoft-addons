@@ -22,23 +22,18 @@ import netsvc
 from osv import osv, fields
 from tools.translate import _
 
-class stock_picking_out(osv.osv):
-
-    _inherit = 'stock.picking.out'  
-    _columns = {
-        'shipper_id': fields.many2one('partner.shipper', 'Shipper', domain="[('partner_ids','in',partner_id)]"),
-    }
-
-stock_picking_out()
-
 class stock_picking(osv.osv):
     
     _inherit = 'stock.picking'
-
+    
+    _columns = {
+        'shipper_id': fields.many2one('partner.shipper', 'Shipper', domain="[('partner_ids','in',partner_id)]"),
+    }
+    
     def action_invoice_create(self, cr, uid, ids, journal_id=False,
                               group=False, type='out_invoice', context=None):
-        res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id=journal_id,
-                                                               group=group, type=type, context=context)
+        res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id,
+                                                               group, type, context=context)
         
         if type=='out_invoice':
             picking_obj = self.pool.get('stock.picking.out')
@@ -63,4 +58,14 @@ class stock_picking(osv.osv):
         return res
 
 stock_picking()
+
+class stock_picking_out(osv.osv):
+
+    _inherit = 'stock.picking.out'  
+    _columns = {
+        'shipper_id': fields.many2one('partner.shipper', 'Shipper', domain="[('partner_ids','in',partner_id)]"),
+    }
+
+stock_picking_out()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

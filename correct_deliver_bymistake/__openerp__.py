@@ -41,7 +41,7 @@ User will be able to come back re-deliver it.
     'category': 'Warehouse Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['stock',],
+    'depends' : ['stock'],
     'demo' : [],
     'data' : ['stock_view.xml',
               'wizard/correct_delivery_bymistake_view.xml'],

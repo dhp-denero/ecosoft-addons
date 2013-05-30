@@ -21,6 +21,19 @@
 
 from openerp.osv import fields, osv
 
+
+class stock_picking(osv.osv):
+    
+    _inherit = 'stock.picking'
+    _columns = {
+        'mistake_delivery': fields.boolean('Mistake Delivery', help="This is a mistake delivery that need correction."),
+    }
+    _defaults = {  
+        'mistake_delivery': False
+    }
+        
+stock_picking()
+
 class stock_picking_out(osv.osv):
     _inherit = 'stock.picking.out'
     _columns = {
