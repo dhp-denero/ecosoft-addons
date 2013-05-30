@@ -32,7 +32,7 @@ class product_product(osv.osv):
     
     def _check_so_uom(self, cursor, user, ids, context=None):
         for product in self.browse(cursor, user, ids, context=context):
-            if product.uom_id.category_id.id <> product.uom_so_id.category_id.id:
+            if product.uom_so_id and (product.uom_id.category_id.id <> product.uom_so_id.category_id.id):
                 return False
         return True
         
