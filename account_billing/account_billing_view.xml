@@ -89,7 +89,7 @@
                                     <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
                                         required="1" readonly="1"
                                         groups="account.group_account_user"/>
-                                    <field name="reference" string="RJC Reference"/>
+                                    <field name="reference" />
                                     <field name="account_id"  groups="base.group_no_one" domain="[('type','=','receivable')]" readonly="1"/>
                                     <field name="date_original" readonly="1"/>
                                     <field name="date_due" readonly="1"/>

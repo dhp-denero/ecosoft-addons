@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='account_id']" position="before">
-                    	<field name="reference" string="RJC Reference"/>
+                    	<field name="reference" />
                     </xpath>
                 </data>
             </field>
