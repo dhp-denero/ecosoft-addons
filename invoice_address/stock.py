@@ -28,8 +28,8 @@ class stock_picking(osv.osv):
     
     def action_invoice_create(self, cr, uid, ids, journal_id=False,
                               group=False, type='out_invoice', context=None):
-        res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id=journal_id,
-                                                               group=group, type=type, context=context)
+        res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id,
+                                                               group, type, context=context)
         # Getting partner_invoice_id from DO's Order
         if type in ['out_invoice','out_refund']:
             picking_obj = self.pool.get('stock.picking.out')

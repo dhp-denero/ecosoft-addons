@@ -26,8 +26,8 @@ class sale_order(osv.osv):
 
     _inherit = 'sale.order'
 
-    def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
-        res = super(sale_order, self).action_invoice_create(cr, uid, ids, grouped=grouped, states=states, date_invoice = date_invoice, context=context)
+    def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice=False, context=None):
+        res = super(sale_order, self).action_invoice_create(cr, uid, ids, grouped, states, date_invoice, context=context)
         inv_obj = self.pool.get('account.invoice')
         for order_id in ids:
             order = self.browse(cr, uid, order_id)
