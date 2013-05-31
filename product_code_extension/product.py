@@ -60,7 +60,7 @@ class product_product(osv.osv):
     _order = 'name_template'
     _columns = {
         'default_code': fields.function(_dynamic_product_code, type='char', store=True, string='Internal Reference'),
-        'product_main_code': fields.char('Main Code', size=10, required=True, help="Main Code Max Size = 10 characters"),
+        'product_main_code': fields.char('Main Code', size=20, required=True, help="Main Code Max Size = 10 characters"),
         'product_sub_code': fields.char('Sub Code', size=2, help="Sub Code Max Size = 2 characters"),
         'partner_id': fields.many2one('res.partner', 'Product Customer'),
     }
