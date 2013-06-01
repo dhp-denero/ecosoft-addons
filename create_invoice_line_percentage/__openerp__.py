@@ -34,7 +34,7 @@ it goes into each line of Sales Order to create new Invoice.
     'category': 'Sales Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['sale','additional_discount'],
+    'depends' : ['sale','advance_and_additional_discount'],
     'demo' : [],
     'data' : ['wizard/sale_make_invoice_advance.xml'],
     'test' : [],

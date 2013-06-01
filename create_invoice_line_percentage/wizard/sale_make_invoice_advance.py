@@ -57,7 +57,10 @@ class sale_advance_payment_inv(osv.osv_memory):
             context.update({'active_ids': order_line_ids})
             context.update({'line_percent': wizard.line_percent})
             sale_order_line_make_invoice_obj = self.pool.get('sale.order.line.make.invoice')
-            return sale_order_line_make_invoice_obj.make_invoices(cr, uid, ids, context=context)
+            res = sale_order_line_make_invoice_obj.make_invoices(cr, uid, ids, context=context)
+            # Update invoice
+            self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
+            return res
         
         return super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
     
