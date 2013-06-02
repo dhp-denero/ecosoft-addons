@@ -33,13 +33,18 @@ class sale_order_line(osv.osv):
         res = dict.fromkeys(ids, False)
         uom_obj = self.pool.get('product.uom')
         for this in self.browse(cr, uid, ids, context=context):
-            oline_qty = uom_obj._compute_qty(cr, uid, this.product_uom.id, this.product_uom_qty, this.product_id.uom_id.id)
-            iline_qty = 0.0
-            for iline in this.invoice_lines:
-                if iline.invoice_id.state != 'cancel':
-                    iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
-            # Test quantity
-            res[this.id] = iline_qty >= oline_qty
+            # kittiu, if product line, we need to calculate carefully
+            if this.product_id:
+                oline_qty = uom_obj._compute_qty(cr, uid, this.product_uom.id, this.product_uom_qty, this.product_id.uom_id.id)
+                iline_qty = 0.0
+                for iline in this.invoice_lines:
+                    if iline.invoice_id.state != 'cancel':
+                        iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
+                # Test quantity
+                res[this.id] = iline_qty >= oline_qty
+            else:
+                res[this.id] = this.invoice_lines and \
+                all(iline.invoice_id.state != 'cancel' for iline in this.invoice_lines) 
         return res
     
     # A complete overwrite method. We need it hear because it is called from a function field.
