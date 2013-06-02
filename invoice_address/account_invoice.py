@@ -28,7 +28,7 @@ class account_invoice(osv.osv):
     _inherit = 'account.invoice'
     
     _columns = {
-        'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=True, states={'draft': [('readonly', False)]}, help="Invoice address for current invoice."),
+        'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)]}, help="Invoice address for current invoice."),
     }
     
     def _prepare_refund(self, cr, uid, invoice, date=None, period_id=None, description=None, journal_id=None, context=None):
