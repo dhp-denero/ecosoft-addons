@@ -36,7 +36,8 @@ class res_partner(osv.osv):
             view_load=True,
             domain="[('type', '=', 'payable')]",
             help="This account will be used instead of the default one as the advance account for the current partner",
-            required=True),
+            required=True,
+            readonly=True),
         'property_account_advance_supplier': fields.property(
             'account.account',
             type='many2one',
@@ -45,7 +46,8 @@ class res_partner(osv.osv):
             view_load=True,
             domain="[('type', '=', 'receivable')]",
             help="This account will be used instead of the default one as the advance account for the current partner",
-            required=True),
+            required=True,
+            readonly=True),
     }
 
 res_partner()

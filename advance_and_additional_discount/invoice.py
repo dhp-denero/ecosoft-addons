@@ -70,13 +70,22 @@ class account_invoice(AdditionalDiscountable, osv.Model):
 
     _defaults={
                'add_disc': 0.0,
-               }
+               'is_advance': False
+    }
     
 account_invoice()
 
 class account_invoice_line(osv.osv):
 
     _inherit = 'account.invoice.line'
+    
+    _columns = {
+        'is_advance': fields.boolean('Advance'),
+    }
+    
+    _defaults = {
+        'is_advance': False,             
+    }
     
     def move_line_get_item(self, cr, uid, line, context=None):
         res = super(account_invoice_line, self).move_line_get_item(cr, uid, line, context=context)
@@ -101,7 +110,7 @@ class account_invoice_line(osv.osv):
 
         res.append({
             'type':'src',
-            'name': 'Advance Amount',
+            'name': _('Advance Amount'),
             'price_unit':sign * inv.amount_advance,
             'quantity': 1,
             'price':sign * inv.amount_advance,

@@ -9,13 +9,10 @@
                 <data>
 					<xpath expr="/form/group/field[@name='advance_payment_method']" position="attributes">
 						<attribute name="on_change">onchange_method(advance_payment_method, product_id, context)</attribute>
-					</xpath>   
-					<xpath expr="/form/group/div/field[@name='amount']" position="attributes">
-						<attribute name="attrs">{'required': [('advance_payment_method', 'in', ('fixed','percentage'))], 'invisible': [('advance_payment_method', 'in', ('percentage'))]}</attribute>
+					</xpath>   		
+					<xpath expr="/form/group/field[@name='product_id']" position="attributes">
+						<attribute name="attrs">{'invisible': True}</attribute>
 					</xpath>
-					<xpath expr="/form/group/div/field[@name='amount']" position="after">
-						<field name="label_adv_percentage" attrs="{'invisible': [('advance_payment_method', 'not in', ('percentage'))]}" class="oe_inline"/>
-					</xpath>				
 				</data>
            </field>
         </record>

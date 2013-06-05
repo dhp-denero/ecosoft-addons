@@ -17,7 +17,7 @@
 					</field>
 					<xpath expr="/form/sheet/notebook/page[@string='Other Information']" position="inside">
 	                    <group>
-	                        <field name="advance_percentage"/>
+	                        <field name="advance_percentage" readonly="True"/>
 	                    </group>
 					</xpath>  
 				</data> 

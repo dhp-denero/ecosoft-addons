@@ -26,19 +26,47 @@ class sale_advance_payment_inv(osv.osv_memory):
     
     _inherit = "sale.advance.payment.inv"
     
+    def _get_advance_payment_method(self, cr, uid, context=None):
+        
+        res = [('all', 'Invoice the whole sales order'), ('lines', 'Some order lines')]
+        
+        sale_id = context.get('active_id', False)
+        if sale_id:
+            sale = self.pool.get('sale.order').browse(cr, uid, context.get('active_id', False))
+            if not len(sale.invoice_ids):
+                res.append(('percentage','Percentage'))
+                res.append(('fixed','Fixed price (deposit)'))
+        
+        return res
+    
     _columns = {
-        'label_adv_percentage':fields.float('Advance Percent', digits=(16,2), readonly=True),
+        'advance_payment_method':fields.selection(_get_advance_payment_method,
+            'What do you want to invoice?', required=True,
+            help="""Use All to create the final invoice.
+                Use Percentage to invoice a percentage of the total amount.
+                Use Fixed Price to invoice a specific amound in advance.
+                Use Some Order Lines to invoice a selection of the sales order lines."""),
     }
- 
-    def onchange_method(self, cr, uid, ids, advance_payment_method, product_id, context=None):
-        if advance_payment_method == 'percentage':
-            sale_ids = context.get('active_ids', [])
-            sale_obj=self.pool.get('sale.order')
-            for sale in sale_obj.browse(cr, uid, sale_ids, context=context):
-                return {'value': {'amount':sale.advance_percentage, 'label_adv_percentage':sale.advance_percentage, 'product_id':False }}
-
-        return super(sale_advance_payment_inv, self).onchange_method(cr, uid, ids, advance_payment_method, product_id, context=context)
-
+               
+    def create_invoices(self, cr, uid, ids, context=None):
+        res = super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
+        wizard = self.browse(cr, uid, ids[0], context)
+        sale_obj= self.pool.get('sale.order')
+        advance_percent = 0.0
+        sale_id = context.get('active_id', False)
+        if sale_id:
+            # calculate the percentage of advancement
+            if wizard.advance_payment_method == 'percentage':
+                advance_percent = wizard.amount
+            elif wizard.advance_payment_method == 'fixed':
+                sale = sale_obj.browse(cr, uid, context.get('active_id', False))            
+                advance_percent = (wizard.amount / sale.amount_net) * 100
+            
+            # write back to sale_order
+            sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
+        
+        return res               
+               
     # This is a complete overwrite method of sale/wizard/sale_make_invoice_advance (rev8852)
     # How ever we might not need to double check it, as it only relate to type = percentage and fixed amount.
     # Which is completely changed.
@@ -124,6 +152,9 @@ class sale_advance_payment_inv(osv.osv_memory):
                 'product_id': wizard.product_id.id,
                 'invoice_line_tax_id': res.get('invoice_line_tax_id'),
                 'account_analytic_id': sale.project_id.id or False,
+                # kittiu
+                'is_advance': True
+                # -- kittiu            
             }
             inv_values = {
                 'name': sale.client_order_ref or sale.name,

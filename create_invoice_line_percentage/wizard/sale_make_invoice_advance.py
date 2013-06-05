@@ -24,15 +24,16 @@ import openerp.addons.decimal_precision as dp
 
 class sale_advance_payment_inv(osv.osv_memory):
     _inherit = "sale.advance.payment.inv"
-
+    
+    def _get_advance_payment_method(self, cr, uid, context=None):
+        res = super(sale_advance_payment_inv, self)._get_advance_payment_method(cr, uid, context=context)
+        res.append( ('line_percentage','Line Percentage') )
+        return res
+    
     _columns = {
         'line_percent':fields.float('Installment', digits_compute= dp.get_precision('Account'),
             help="The % of installment to be used to calculate the quantity to invoice"),
-        'advance_payment_method':fields.selection(
-            [('all', 'Invoice the whole sales order'), ('percentage','Percentage'),
-             ('line_percentage','Line Percentage'),
-             ('fixed','Fixed price (deposit)'),
-                ('lines', 'Some order lines')],
+        'advance_payment_method':fields.selection(_get_advance_payment_method,
             'What do you want to invoice?', required=True,
             help="""Use All to create the final invoice.
                 Use Percentage to invoice a percentage of the total amount.

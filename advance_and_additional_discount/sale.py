@@ -27,7 +27,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Total',
                                             store = True,multi='sums', help="The total amount."),
             # Advance Feature
-            'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=False),
+            'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
         }
 
     _defaults = {
@@ -47,4 +47,14 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                           context)
         inv_obj.button_compute(cr, uid, [inv_id])
         return inv_id
+    
 
+    def _prepare_invoice(self, cr, uid, order, lines, context=None):
+        invoice_line_obj = self.pool.get('account.invoice.line')
+        results = invoice_line_obj.read(cr, uid, lines, ['id', 'is_advance'])
+        for result in results:
+            if result['is_advance']: # If created for advance, remove it.
+                lines.remove(result['id'])
+                
+        res = super(sale_order, self)._prepare_invoice(cr, uid, order, lines, context=context)
+        return res
