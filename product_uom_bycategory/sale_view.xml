@@ -8,18 +8,18 @@
             <field name="model">sale.order</field>
             <field name="arch" type="xml">
                 <data>
-                    <xpath expr="/form/sheet/notebook/page/field/form/group//field[@name='product_uom']" position="replace">
+                    <xpath expr="/form/sheet/notebook/page/field/form/group//field[@name='product_uom']" position="before">
 						<field name="product_uom_category_id" invisible="1"/>
-	                    <field name="product_uom" groups="product.group_uom" class="oe_inline oe_no_button"
-	                    	domain="[('category_id', '=', product_uom_category_id)]"
-	                        on_change="product_uom_change(parent.pricelist_id,product_id,product_uom_qty,product_uom,product_uos_qty,product_uos,name,parent.partner_id, False, False, parent.date_order, context)"/>
 					</xpath>
-                    <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='product_uom']" position="replace">
+                    <xpath expr="/form/sheet/notebook/page/field/form/group//field[@name='product_uom']" position="attributes">
+						<attribute name="context">[('category_id', '=', product_uom_category_id)]</attribute>						
+					</xpath>
+					
+                    <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='product_uom']" position="before">
 						<field name="product_uom_category_id" invisible="1"/>
-						<field name="product_uom"
-							domain="[('category_id', '=', product_uom_category_id)]"
-						    on_change="product_uom_change(parent.pricelist_id, product_id, product_uom_qty, product_uom, product_uos_qty, product_uos, name, parent.partner_id, False, False, parent.date_order, context)"
-						    groups="product.group_uom" options='{"no_open": True}'/>
+					</xpath>
+                    <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='product_uom']" position="attributes">
+						<attribute name="context">[('category_id', '=', product_uom_category_id)]</attribute>						
 					</xpath>
 				</data>
             </field>

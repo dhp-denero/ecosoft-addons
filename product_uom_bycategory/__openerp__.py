@@ -21,7 +21,7 @@
 
 {
     'name' : 'Product UOM by Category',
-    'version' : '1.0',
+    'version' : '1.0.1',
     'author' : 'Ecosoft',
     'summary': "In Document's Line, display UOM in the same category of product.",
     'description': """
