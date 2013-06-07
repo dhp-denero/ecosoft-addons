@@ -87,24 +87,27 @@ class stock_fill_move(osv.osv_memory):
         move_obj.unlink(cr, uid, move_ids)
 
         # Create new move lines
-        cr.execute("select product_id, name, product_uom, sum(product_qty) product_qty \
+        cr.execute("select product_id, name, product_uom, factor, sum(product_qty) product_qty \
                         from \
                         (select sm.product_id, '[' || pp.default_code || '] ' || pt.name as name, \
-                        sm.product_uom, sm.product_qty  from stock_move sm \
+                        sm.product_uom, uom.factor, sm.product_qty  from stock_move sm \
                         inner join stock_location sl on sl.id = sm.location_dest_id \
                         inner join product_product pp on pp.id = sm.product_id \
                         inner join product_template pt on pt.id = sm.product_id \
+                        inner join product_uom uom on uom.id = sm.product_uom \
                         left outer join stock_picking sp on sp.id = sm.picking_id \
                         where (picking_id is null or sl.usage in ('customer','supplier')) \
                         and (sm.picking_id is not null and sp.type = 'out') \
                         and sm.state in ('assigned','confirmed','waiting') \
                         and sm.location_id = %s \
-                        order by product_id \
                         ) move \
-                        group by product_id, name, product_uom", (location_out_id,))
+                        group by product_id, name, product_uom, factor \
+                        order by product_id, factor ", (location_out_id,))
         
         moves = cr.dictfetchall()
 
+        prev_product_id = 0
+        
         for move in moves:
             if fill_move.set_qty_zero:
                 move.update({'product_qty': 0})
@@ -113,7 +116,7 @@ class stock_fill_move(osv.osv_memory):
                 c = context.copy()
                 c.update({'uom': move['product_uom'], 'location': fill_move.location_out_id.id})
                 product = product_obj.browse(cr, uid, move['product_id'], context=c)
-                move_qty = move['product_qty'] - product.qty_available
+                move_qty = round(- product.virtual_available,0) # movement equal to what is lacking
                 move.update({'product_qty': move_qty > 0.0 and move_qty or 0.0})
             
             res = {
@@ -126,8 +129,10 @@ class stock_fill_move(osv.osv_memory):
                 'location_dest_id': fill_move.location_out_id.id,
             }
             
-            if res.get('product_qty') > 0:
+            if res.get('product_qty') > 0 and res.get('product_id') != prev_product_id:
                 move_obj.create(cr, uid, res)
+                
+            prev_product_id = res.get('product_id')
 
         return {'type': 'ir.actions.act_window_close'}
 

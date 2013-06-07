@@ -7,10 +7,10 @@
             <field name="inherit_id" ref="stock.view_picking_form" />
             <field name="model">stock.picking</field>
             <field name="arch" type="xml">
-                <data>
-                    <xpath expr="/form/sheet/h1" position="after">
+                <data>     
+					<xpath expr="/form/sheet/h1" position="after">
 	                    <div class="oe_right oe_button_box">
-	                        <button name="%(action_view_stock_fill_move)d" string="Fill Move Lines" states="draft,confirmed" type="action" context="{'move_type':'out'}"/>
+	                        <button name="%(action_view_stock_fill_move)d" string="Fill Move Lines" states="draft" type="action" context="{'move_type':'out'}"/>
 	                    </div>                    
 					</xpath>
                 </data>
@@ -24,7 +24,7 @@
                 <data>
                     <xpath expr="/tree/field[@name='product_uos']" position="after">
                     	<field name="location_stock_real"/>
-                    	<field name="location_dest_stock_real"/>
+                    	<field name="location_dest_stock_real" invisible="1"/>
 					</xpath>
                 </data>
             </field>

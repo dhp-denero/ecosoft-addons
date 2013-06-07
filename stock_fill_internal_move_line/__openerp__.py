@@ -34,9 +34,7 @@ In MH, step before deliver product is as following
 
 Modification List:
 
-* Adding new "Location Delivery Source" in Warehouse
-* If DO is created by Sales Order, force Source location to "Location Delivery Source".
-* In Internal Move window, add a feature to automatically list all the pending move finished goods.
+* In Internal Move window, add a feature to automatically list all the required move based on virtual stock and pending delivery order.
 * 2 new fields 1) Stock at Origin and 2) Stock at Destination
 
     """,
