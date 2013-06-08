@@ -271,7 +271,7 @@ class account_billing(osv.osv):
 #        'writeoff_acc_id': fields.many2one('account.account', 'Counterpart Account', readonly=True, states={'draft': [('readonly', False)]}),
         'comment': fields.char('Counterpart Comment', size=64, required=True, readonly=True, states={'draft': [('readonly', False)]}),
 #        'analytic_id': fields.many2one('account.analytic.account','Write-Off Analytic Account', readonly=True, states={'draft': [('readonly', False)]}),
-        'billing_amount': fields.function(_get_billing_amount, string='Billing Amount', type='float', readonly=True, help="Computed as the difference between the amount stated in the billing and the sum of allocation on the billing lines."),
+        'billing_amount': fields.function(_get_billing_amount, string='Billing Amount', type='float', store=True, readonly=True, help="Computed as the difference between the amount stated in the billing and the sum of allocation on the billing lines."),
         'payment_rate_currency_id': fields.many2one('res.currency', 'Payment Rate Currency', required=True, readonly=True, states={'draft':[('readonly',False)]}),
         'payment_rate': fields.float('Exchange Rate', digits=(12,6), required=True, readonly=True, states={'draft': [('readonly', False)]},
             help='The specific rate that will be used, in this billing, between the selected currency (in \'Payment Rate Currency\' field)  and the billing currency.'),
