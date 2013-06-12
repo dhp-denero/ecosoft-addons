@@ -12,14 +12,14 @@
 						<field name="product_uom_category_id" invisible="1"/>
 					</xpath>
                     <xpath expr="/form/sheet/notebook/page/field/form/group//field[@name='product_uom']" position="attributes">
-						<attribute name="context">[('category_id', '=', product_uom_category_id)]</attribute>						
+						<attribute name="domain">[('category_id', '=', product_uom_category_id)]</attribute>						
 					</xpath>
 					
                     <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='product_uom']" position="before">
 						<field name="product_uom_category_id" invisible="1"/>
 					</xpath>
                     <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='product_uom']" position="attributes">
-						<attribute name="context">[('category_id', '=', product_uom_category_id)]</attribute>						
+						<attribute name="domain">[('category_id', '=', product_uom_category_id)]</attribute>						
 					</xpath>
 				</data>
             </field>
