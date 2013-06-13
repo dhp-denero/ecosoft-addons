@@ -26,20 +26,10 @@ class stock_fill_move(osv.osv_memory):
     _name = "stock.fill.move"
     _description = "Fill Move Lines"
 
-    def _default_location(self, cr, uid, ids, context=None):
-        try:
-            loc_model, location_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'stock', 'stock_location_stock')
-        except ValueError, e:
-            return False
-        return location_id or False
-
     _columns = {
         'location_in_id': fields.many2one('stock.location', 'Inside Location', required=True),
         'location_out_id': fields.many2one('stock.location', 'Outside Location', required=True),
         'set_qty_zero': fields.boolean("Set move quantity to zero",help="If checked, all product quantities will be set to zero to help ensure a real move is done"),
-    }
-    _defaults = {
-        'location_in_id': _default_location,
     }
 
     def view_init(self, cr, uid, fields_list, context=None):
