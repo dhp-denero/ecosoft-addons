@@ -7,7 +7,7 @@
     "author": "Ecosoft",
     "category": "Sales",
     "description": """
-This module add 2 new features, Additional Discount and Advance Amount.
+This module add 2 new features, Additional Discount and Advance Amount (Advance and Deposit).
 
 For Additional Discount, it is the same as additional_discount module, and quite easy to use by self.
 
@@ -16,13 +16,17 @@ For Advance Amount, following are how it works,
 * First, Accounting or Advancement need to be assigned in Settings > Configurations > Accounting
 * Once this module, Create Invoice options on Sales Order will list Advance Method (Fixed and Percentage) only for the first invoice creation (was freely available without this module).
 * If user select the first invoice as Advance invoice with percentage or fixed amount, the percentage will be kept in Advance Percentage field in that Sales Order.
-* All the followings invoices from that Sales Order will be deducted with the percentage specified on Sales order
+* For Advance, all the followings invoices from that Sales Order will be deducted with the percentage specified on Sales order
+* For Deposit, the full amount will be deducted in the 2nd invoice.
+* Applicable for both Sales and Purchases Order.
 * Accounting for invoice will be posted in regards to the deducted amount.
 
     """,
     "init_xml": [],
-    'update_xml': ['all_view.xml','partner_view.xml','res_config_view.xml',
-                   'wizard/sale_make_invoice_advance.xml'],
+    'update_xml': ['wizard/sale_make_invoice_advance.xml',
+                   'wizard/purchase_make_invoice_advance.xml',
+                   'all_view.xml','partner_view.xml','res_config_view.xml',
+                   ],
     'demo_xml': [],
     'test': [
         'test/scenario1.yml',

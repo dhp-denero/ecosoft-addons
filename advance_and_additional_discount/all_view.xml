@@ -26,7 +26,7 @@
 							<field name="advance_percentage" readonly="True" attrs="{'invisible': [('order_policy', 'not in', ('picking','manual'))]}"/>
 	                        <field name="num_invoice" attrs="{'invisible': [('order_policy', 'not in', ('picking','manual'))]}"/>                   
 						</group>
-					</xpath>  
+					</xpath> 				
 				</data> 
             </field>
        </record>
@@ -37,11 +37,25 @@
             <field name="type">form</field>
             <field name="inherit_id" ref="purchase.purchase_order_form"/>
             <field name="arch" type="xml">
-                <field name="amount_untaxed" position="after">
+				<xpath expr="/form/header/button[@name='view_invoice']" position="after">
+                    <button name="%(action_view_purchase_advance_payment_inv)d" string="Receive Advance Invoice"
+                    	attrs="{'invisible': ['|','|',('state', 'not in', ('approved')),('advance_type', '=', False),('num_invoice', '&gt;', 0)]}"
+                        type="action" class="oe_highlight" groups="base.group_user"
+                    	context="{'advance_type':advance_type}"/>
+				</xpath>                
+				<field name="amount_untaxed" position="after">
                     <field name="add_disc" colspan="2"/>
                     <field name="add_disc_amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     <field name="amount_net" sum="Net Amount" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                </field>
+                </field>  
+				<xpath expr="/form/sheet/notebook/page[@string='Incoming Shipments &amp; Invoices']/group" position="inside">
+                    <group>
+                        <field name="advance_type" />
+						<field name="amount_deposit" />
+						<field name="advance_percentage" readonly="True" />
+                        <field name="num_invoice" />                   
+					</group>
+				</xpath> 
             </field>
         </record>
         
@@ -58,7 +72,7 @@
                 	<field name="amount_net" sum="Net Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     <field name="amount_advance" sum="Advance Amt" colspan="2" attrs="{'invisible':[('amount_advance', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     <field name="amount_deposit" sum="Deposit Amt" colspan="2" attrs="{'invisible':[('amount_deposit', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                    <field name="amount_beforetax" sum="Before Taxes" colspan="2" attrs="{'invisible':[('amount_advance', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_beforetax" sum="Before Taxes" colspan="2" attrs="{'invisible':[('amount_advance', '=', 0.0),('amount_deposit', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 </field>
             </field>
         </record>
@@ -74,9 +88,9 @@
                   <field name="add_disc" />
                 	<field name="add_disc_amt"  widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 	<field name="amount_net" sum="Net Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                    <field name="amount_advance" sum="Advance Amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                    <field name="amount_deposit" sum="Deposit Amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                    <field name="amount_beforetax" sum="Before Taxes" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_advance" sum="Advance Amt" colspan="2" attrs="{'invisible':[('amount_advance', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_deposit" sum="Deposit Amt" colspan="2" attrs="{'invisible':[('amount_deposit', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_beforetax" sum="Before Taxes" colspan="2" attrs="{'invisible':[('amount_advance', '=', 0.0),('amount_deposit', '=', 0.0)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 </field>
             </field>
         </record>

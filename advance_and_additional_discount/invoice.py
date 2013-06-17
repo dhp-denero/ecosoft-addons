@@ -109,8 +109,9 @@ class account_invoice_line(osv.osv):
         if inv.amount_advance > 0.0:        
             sign = inv.type in ('out_invoice','out_refund') and -1 or 1
             # account code for advance
-            prop = self.pool.get('ir.property').get(cr, uid,
-                        'property_account_advance_customer', 'res.partner', context=context)
+            prop = inv.type in ('out_invoice','out_refund') \
+                        and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
+                        or self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_supplier', 'res.partner', context=context)
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
     
@@ -130,8 +131,11 @@ class account_invoice_line(osv.osv):
         if inv.amount_deposit > 0.0:        
             sign = inv.type in ('out_invoice','out_refund') and -1 or 1
             # account code for advance
-            prop = self.pool.get('ir.property').get(cr, uid,
-                        'property_account_deposit_customer', 'res.partner', context=context)
+            prop = inv.type in ('out_invoice','out_refund') \
+                        and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
+                        or self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_supplier', 'res.partner', context=context)
+
+                        
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
     
@@ -169,14 +173,24 @@ class account_invoice_tax(osv.Model):
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
         add_disc = invoice.add_disc
         cur = invoice.currency_id
-        advance_percentage = invoice.is_advance == False and invoice.sale_order_ids and invoice.sale_order_ids[0].advance_percentage or 0.0
+        # Getting Order Object (SO/PO)
+        order_ids = invoice.sale_order_ids or invoice.purchase_order_ids
+        advance_percent = not invoice.is_advance and order_ids and (order_ids[0].advance_percentage / 100) or 0.0
+        deposit_amount = not invoice.is_deposit and order_ids and order_ids[0].num_invoice == 2 \
+                                and order_ids[0].amount_deposit or 0.0
         for line in tax_grouped:
-            #for key in ('base_amount', 'amount', 'base'): #FIXME?
-            for key in ('tax_amount', 'base_amount', 'amount', 'base'): #FIXME?
-                val = tax_grouped[line][key]
-                val_after_disco = val * (1.0 - (add_disc / 100.0))
-                val_before_tax = val_after_disco * (1.0 - (advance_percentage / 100.0))
-                tax_grouped[line][key] = cur_pool.round(cr, uid, cur, val_before_tax)
+            # Get new base
+            base = tax_grouped[line]['base']
+            val_after_disco = base * (1.0 - (add_disc / 100.0))
+            advance_amount_tax = val_after_disco * advance_percent
+            val_before_tax = val_after_disco - advance_amount_tax - deposit_amount
+            new_base = cur_pool.round(cr, uid, cur, val_before_tax)
+            tax_grouped[line]['base'] = new_base
+            ratio = new_base / base
+            # Adjust others
+            tax_grouped[line]['amount'] = tax_grouped[line]['amount'] * ratio
+            tax_grouped[line]['base_amount'] = tax_grouped[line]['base_amount'] * ratio
+            tax_grouped[line]['tax_amount'] = tax_grouped[line]['tax_amount'] * ratio
 
         return tax_grouped
 

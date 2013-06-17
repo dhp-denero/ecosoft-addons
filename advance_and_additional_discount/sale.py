@@ -25,22 +25,22 @@ class sale_order(AdditionalDiscountable, osv.osv):
     _columns = {
             # Additional Discount Feature
             'add_disc':fields.float('Additional Discount(%)',digits=(4,6), readonly=True, states={'draft': [('readonly', False)]}),
-            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Additional Disc Amt',
+            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',
                                             store =True,multi='sums', help="The additional discount on untaxed amount."),
-            'amount_untaxed': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Untaxed Amount',
+            'amount_untaxed': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
                                               store = True,multi='sums', help="The amount without tax."),
-            'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Net Amount',
+            'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Net Amount',
                                               store = True,multi='sums', help="The amount after additional discount."),
-            'amount_tax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Taxes',
+            'amount_tax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Taxes',
                                           store = True,multi='sums', help="The tax amount."),
-            'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Total',
+            'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Total',
                                             store = True,multi='sums', help="The total amount."),
             # Advance Feature
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
-            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Sale Price'))
+            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account'))
         }
 
     _defaults = {

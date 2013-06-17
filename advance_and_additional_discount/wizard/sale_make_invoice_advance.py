@@ -65,12 +65,12 @@ class sale_advance_payment_inv(osv.osv_memory):
                 if wizard.advance_payment_method == 'percentage':
                     advance_percent = wizard.amount
                 elif wizard.advance_payment_method == 'fixed':
-                    sale = sale_obj.browse(cr, uid, context.get('active_id', False))            
+                    sale = sale_obj.browse(cr, uid, sale_id)            
                     advance_percent = (wizard.amount / sale.amount_net) * 100
             if advance_type == 'deposit':
                 # calculate the amount of deposit
                 if wizard.advance_payment_method == 'percentage':
-                    sale = sale_obj.browse(cr, uid, context.get('active_id', False))
+                    sale = sale_obj.browse(cr, uid, sale_id)
                     amount_deposit = (wizard.amount / 100) * sale.amount_net
                 elif wizard.advance_payment_method == 'fixed':
                     amount_deposit = wizard.amount           
@@ -140,12 +140,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                 # kittiu: Use net amount before Tax!!! Then, it should have tax
                 inv_amount = sale.amount_net * wizard.amount / 100
                 if not res.get('name'):
-                    res['name'] = _("Advance of %s %%") % (wizard.amount)
-                    # Get default sales tax
-                    ir_values = self.pool.get('ir.values')
-                    taxes_id = ir_values.get_default(cr, uid, 'product.product', 'taxes_id', company_id=sale.company_id.id)
-                    #supplier_taxes_id = ir_values.get_default(cr, uid, 'product.product', 'supplier_taxes_id', company_id=sale.company_id.id)
-                    res['invoice_line_tax_id'] = taxes_id  
+                    res['name'] = _("%s of %s %%") % (advance_label, wizard.amount)
                 # -- kittiu
             else:
                 inv_amount = wizard.amount
@@ -156,18 +151,6 @@ class sale_advance_payment_inv(osv.osv_memory):
                         res['name'] = _("%s of %s %s") % (advance_label, inv_amount, symbol)
                     else:
                         res['name'] = _("%s of %s %s") % (advance_label, symbol, inv_amount)
-                    # kittiu, Get default sales tax
-                    ir_values = self.pool.get('ir.values')
-                    taxes_id = ir_values.get_default(cr, uid, 'product.product', 'taxes_id', company_id=sale.company_id.id)
-                    #supplier_taxes_id = ir_values.get_default(cr, uid, 'product.product', 'supplier_taxes_id', company_id=sale.company_id.id)
-                    res['invoice_line_tax_id'] = taxes_id
-                    # --kittiu
-                    
-            # determine taxes
-            if res.get('invoice_line_tax_id'):
-                res['invoice_line_tax_id'] = [(6, 0, res.get('invoice_line_tax_id'))]
-            else:
-                res['invoice_line_tax_id'] = False
 
             # create the invoice
             inv_line_values = {
@@ -179,11 +162,11 @@ class sale_advance_payment_inv(osv.osv_memory):
                 'discount': False,
                 'uos_id': res.get('uos_id', False),
                 'product_id': wizard.product_id.id,
-                'invoice_line_tax_id': res.get('invoice_line_tax_id'),
+                'invoice_line_tax_id': [(6, 0, [x.id for x in sale.order_line[0].tax_id])],
                 'account_analytic_id': sale.project_id.id or False,
                 # kittiu
                 'is_advance': advance_type == 'advance' and True or False,
-                'is_deposit': context.get('advance_type', False) == 'deposit' and True or False
+                'is_deposit': advance_type == 'deposit' and True or False
                 # -- kittiu            
             }
             inv_values = {
@@ -199,8 +182,8 @@ class sale_advance_payment_inv(osv.osv_memory):
                 'payment_term': sale.payment_term.id,
                 'fiscal_position': sale.fiscal_position.id or sale.partner_id.property_account_position.id,
                 # kittiu
-                'is_advance': context.get('advance_type', False) == 'advance' and True or False,
-                'is_deposit': context.get('advance_type', False) == 'deposit' and True or False
+                'is_advance': advance_type == 'advance' and True or False,
+                'is_deposit': advance_type == 'deposit' and True or False
                 # -- kittiu
             }
             result.append((sale.id, inv_values))
