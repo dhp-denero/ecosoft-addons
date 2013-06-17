@@ -7,6 +7,10 @@
             <field name="inherit_id" ref="sale.view_sale_advance_payment_inv"/>
             <field name="arch" type="xml">
                 <data>
+					<xpath expr="/form/p" position="before">
+	                    <separator string="Create Advance on 1st Invoice" invisible="context.get('advance_type', False) in ['deposit', False]"/>
+	                    <separator string="Create Deposit on 1st Invoice" invisible="context.get('advance_type', False) in ['advance', False]"/>                
+					</xpath>
 					<xpath expr="/form/group/field[@name='advance_payment_method']" position="attributes">
 						<attribute name="on_change">onchange_method(advance_payment_method, product_id, context)</attribute>
 					</xpath>   		

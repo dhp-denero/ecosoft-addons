@@ -49,6 +49,11 @@ class account_invoice(AdditionalDiscountable, osv.Model):
             'is_advance': fields.boolean('Advance'),
             'amount_advance': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Advance Amt',
                                             store =True,multi='sums', help="The advance amount to be deducted according to original percentage"),
+            # Deposit
+            'is_deposit': fields.boolean('Advance'),
+            'amount_deposit': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Deposit Amt',
+                                            store =True,multi='sums', help="The deposit amount to be deducted in the second invoice according to original deposit"),
+
             'amount_beforetax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Before Taxes',
                                             store =True,multi='sums', help="Net amount after advance amount deduction"),
             # --
@@ -70,7 +75,8 @@ class account_invoice(AdditionalDiscountable, osv.Model):
 
     _defaults={
                'add_disc': 0.0,
-               'is_advance': False
+               'is_advance': False,
+               'is_deposit': False
     }
     
 account_invoice()
@@ -81,10 +87,12 @@ class account_invoice_line(osv.osv):
     
     _columns = {
         'is_advance': fields.boolean('Advance'),
+        'is_deposit': fields.boolean('Deposit'),
     }
     
     _defaults = {
-        'is_advance': False,             
+        'is_advance': False,       
+        'is_deposit': False,             
     }
     
     def move_line_get_item(self, cr, uid, line, context=None):
@@ -98,28 +106,48 @@ class account_invoice_line(osv.osv):
         
         res = super(account_invoice_line,self).move_line_get(cr, uid, invoice_id, context=context)
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
-        if inv.amount_advance == 0.0:
-            return res
-        
-        sign = inv.type in ('out_invoice','out_refund') and -1 or 1
-        # account code for advance
-        prop = self.pool.get('ir.property').get(cr, uid,
-                    'property_account_advance_customer', 'res.partner', context=context)
-        prop_id = prop and prop.id or False
-        account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
-
-        res.append({
-            'type':'src',
-            'name': _('Advance Amount'),
-            'price_unit':sign * inv.amount_advance,
-            'quantity': 1,
-            'price':sign * inv.amount_advance,
-            'account_id':account_id,
-            'product_id':False,
-            'uos_id':False,
-            'account_analytic_id':False,
-            'taxes':False,
-        })
+        if inv.amount_advance > 0.0:        
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
+            # account code for advance
+            prop = self.pool.get('ir.property').get(cr, uid,
+                        'property_account_advance_customer', 'res.partner', context=context)
+            prop_id = prop and prop.id or False
+            account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
+    
+            res.append({
+                'type':'src',
+                'name': _('Advance Amount'),
+                'price_unit':sign * inv.amount_advance,
+                'quantity': 1,
+                'price':sign * inv.amount_advance,
+                'account_id':account_id,
+                'product_id':False,
+                'uos_id':False,
+                'account_analytic_id':False,
+                'taxes':False,
+            })
+            
+        if inv.amount_deposit > 0.0:        
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
+            # account code for advance
+            prop = self.pool.get('ir.property').get(cr, uid,
+                        'property_account_deposit_customer', 'res.partner', context=context)
+            prop_id = prop and prop.id or False
+            account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
+    
+            res.append({
+                'type':'src',
+                'name': _('Deposit Amount'),
+                'price_unit':sign * inv.amount_deposit,
+                'quantity': 1,
+                'price':sign * inv.amount_deposit,
+                'account_id':account_id,
+                'product_id':False,
+                'uos_id':False,
+                'account_analytic_id':False,
+                'taxes':False,
+            })
+            
         return res
     
 account_invoice_line()

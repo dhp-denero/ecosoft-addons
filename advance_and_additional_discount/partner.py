@@ -48,7 +48,28 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the advance account for the current partner",
             required=True,
             readonly=True),
-    }
+
+        'property_account_deposit_customer': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Deposit Customer",
+            view_load=True,
+            domain="[('type', '=', 'payable')]",
+            help="This account will be used instead of the default one as the deposit account for the current partner",
+            required=True,
+            readonly=True),
+        'property_account_deposit_supplier': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Deposit Supplier",
+            view_load=True,
+            domain="[('type', '=', 'receivable')]",
+            help="This account will be used instead of the default one as the deposit account for the current partner",
+            required=True,
+            readonly=True),
+        }
 
 res_partner()
 

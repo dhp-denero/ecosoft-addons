@@ -9,7 +9,16 @@ class sale_order(AdditionalDiscountable, osv.osv):
 
     _tax_column = 'tax_id'
     _line_column = 'order_line'
-
+    
+    def _num_invoice(self, cursor, user, ids, name, args, context=None):
+        '''Return the amount still to pay regarding all the payment orders'''
+        if not ids:
+            return {}
+        res = {}
+        for sale in self.browse(cursor, user, ids, context=context):
+            res[sale.id] = len(sale.invoice_ids)
+        return res
+    
     def _amount_all(self, *args, **kwargs):
         return self._amount_all_generic(sale_order, *args, **kwargs)
 
@@ -27,7 +36,11 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Total',
                                             store = True,multi='sums', help="The total amount."),
             # Advance Feature
+            'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
+            'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
+                                             required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
+            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Sale Price'))
         }
 
     _defaults = {
@@ -55,6 +68,8 @@ class sale_order(AdditionalDiscountable, osv.osv):
         for result in results:
             if result['is_advance']: # If created for advance, remove it.
                 lines.remove(result['id'])
+            if result['is_deposit']: # If created for deposit, remove it.
+                lines.remove(result['id'])                
                 
         res = super(sale_order, self)._prepare_invoice(cr, uid, order, lines, context=context)
         return res

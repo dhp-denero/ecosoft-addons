@@ -18,10 +18,23 @@
 		                    </div>
 		                    <div>
 		                        <label string="Supplier"/>
-		                        <field name="property_account_advance_supplier" on_change="onchange_sale_analytic_plans(module_sale_analytic_plans)" class="oe_inline"/>
+		                        <field name="property_account_advance_supplier" class="oe_inline"/>
 		                    </div>
                         </div>
                     </group>               
+                    <group name="account_deposit">
+                        <label for="id" string="Account Deposit"/>
+                        <div>
+		                    <div>
+		                        <label string="Customer"/>
+		                        <field name="property_account_deposit_customer" class="oe_inline"/>
+		                    </div>
+		                    <div>
+		                        <label string="Supplier"/>
+		                        <field name="property_account_deposit_supplier" class="oe_inline"/>
+		                    </div>
+                        </div>
+                    </group>   
                 </field>
             </field>
         </record>

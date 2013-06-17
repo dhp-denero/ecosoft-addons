@@ -98,13 +98,21 @@ class AdditionalDiscountable(object):
             
             # add advance amount, if is_advance = True and advance_percentage > 0
             o_res['amount_advance'] = 0.0
+            o_res['amount_deposit'] = 0.0
             o_res['amount_beforetax'] = o_res['amount_net']
             if record.sale_order_ids:
                 if not record.is_advance:
                     advance_percentage = record.sale_order_ids[0].advance_percentage
                     if advance_percentage:
                         o_res['amount_advance'] = (o_res['amount_net'] * advance_percentage/100)
-                        o_res['amount_beforetax'] = o_res['amount_net'] - o_res['amount_advance']
+                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
+                if not record.is_deposit:
+                    # Deposit will occur only in the second invoice.
+                    amount_deposit = record.sale_order_ids[0].num_invoice == 2 \
+                                    and record.sale_order_ids[0].amount_deposit or False
+                    if amount_deposit:
+                        o_res['amount_deposit'] = amount_deposit
+                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']                        
 
             # we apply a discount on the tax as well.
             # We might have rounding issue

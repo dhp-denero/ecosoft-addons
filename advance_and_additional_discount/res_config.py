@@ -32,6 +32,8 @@ class account_config_settings(osv.osv_memory):
     _columns = {
         'property_account_advance_customer': fields.many2one('account.account', 'Account Advance Customer'),
         'property_account_advance_supplier': fields.many2one('account.account', 'Account Advance Supplier'),
+        'property_account_deposit_customer': fields.many2one('account.account', 'Account Deposit Customer'),
+        'property_account_deposit_supplier': fields.many2one('account.account', 'Account Deposit Supplier'),    
     }
 
     def set_default_account_advance(self, cr, uid, ids, context=None):
@@ -42,6 +44,8 @@ class account_config_settings(osv.osv_memory):
         todo_list = [
             ('property_account_advance_customer','res.partner','account.account'),
             ('property_account_advance_supplier','res.partner','account.account'),
+            ('property_account_deposit_customer','res.partner','account.account'),
+            ('property_account_deposit_supplier','res.partner','account.account'),
         ]
         for record in todo_list:
             account = getattr(wizard, record[0])
@@ -69,6 +73,8 @@ class account_config_settings(osv.osv_memory):
         todo_list = [
             ('property_account_advance_customer','res.partner'),
             ('property_account_advance_supplier','res.partner'),
+            ('property_account_deposit_customer','res.partner'),
+            ('property_account_deposit_supplier','res.partner'),
         ]
         res = {}
         for record in todo_list:
