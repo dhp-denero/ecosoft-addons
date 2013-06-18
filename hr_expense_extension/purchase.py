@@ -20,6 +20,7 @@
 ##############################################################################
 
 from datetime import datetime, timedelta
+import types
 import time
 from openerp import pooler
 from openerp.osv import fields, osv
@@ -38,6 +39,8 @@ class purchase_order(osv.osv):
         
         res = super(purchase_order, self).write(cr, uid, ids, vals, context=context)
         # If hr_expense_ok, check whether all the lines' products are marked as Expense.
+        if not isinstance(ids, types.ListType): # Ensure it is a list before proceeding.
+            ids = [ids]
         for order in self.browse(cr, uid, ids, context=context):
             if order.hr_expense_ok or False: # If Expense
                 for line in order.order_line:
