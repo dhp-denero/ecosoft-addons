@@ -28,15 +28,16 @@ class sale_advance_payment_inv(osv.osv_memory):
     
     def _get_advance_payment_method(self, cr, uid, context=None):
         res = []
-        sale_id = context.get('active_id', False)
-        if sale_id:
-            sale = self.pool.get('sale.order').browse(cr, uid, context.get('active_id', False))
-            if sale.order_policy == 'manual':
-                res.append(('all', 'Invoice the whole sales order'))
-                res.append(('lines', 'Some order lines'))
-            if not len(sale.invoice_ids):
-                res.append(('percentage','Percentage'))
-                res.append(('fixed','Fixed price (deposit)'))
+        if context.get('active_model', False) == 'sale.order':
+            sale_id = context.get('active_id', False)
+            if sale_id:
+                sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
+                if sale.order_policy == 'manual':
+                    res.append(('all', 'Invoice the whole sales order'))
+                    res.append(('lines', 'Some order lines'))
+                if not len(sale.invoice_ids):
+                    res.append(('percentage','Percentage'))
+                    res.append(('fixed','Fixed price (deposit)'))
         
         return res
     

@@ -64,7 +64,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
 
     def _prepare_invoice(self, cr, uid, order, lines, context=None):
         invoice_line_obj = self.pool.get('account.invoice.line')
-        results = invoice_line_obj.read(cr, uid, lines, ['id', 'is_advance'])
+        results = invoice_line_obj.read(cr, uid, lines, ['id', 'is_advance', 'is_deposit'])
         for result in results:
             if result['is_advance']: # If created for advance, remove it.
                 lines.remove(result['id'])
