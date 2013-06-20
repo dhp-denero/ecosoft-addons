@@ -8,7 +8,7 @@ class stock_picking(osv.osv):
             group=False, type='out_invoice', context=None):
         """ Adding Additional Discount % from SO/PO into INV when created from DO """
         
-        assert type in ('out_invoice', 'in_invoice')
+        assert type in ('out_invoice', 'in_invoice', 'in_refund', 'out_refund')
         
         res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id,
                                                                 group, type, context=context)
