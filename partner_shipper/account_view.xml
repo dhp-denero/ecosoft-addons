@@ -36,7 +36,7 @@
                 <data>
                     <xpath expr="/form/sheet/notebook/page[@string='Other Info']/group" position="inside">
                         <group name="shipper">
-                            <field name="shipper_id"/>
+                            <field name="shipper_id" options="{'limit': 10, 'create': false, 'create_edit': false}" />
                         </group>
 					</xpath>
 				</data>
