@@ -31,20 +31,18 @@ Product Form
 * Procurement Tab only appear for Purchase User and Purchase Manager
 
 M2O fields Restriction
-=============================================
-* Sales Order (OK)
-* Purchase Order (OK)
-* Customer Invoice (OK)
-* Supplier Invoice 
+======================
+* Sales Order
+* Purchase Order
+* Customer Invoice
+* Supplier Invoice
 * Delivery Order
 * Incoming Shipment
 * Internal Move
-* Customer Billing
 * Customer Payment
 * Customer Refund
 * Supplier Payment
 * Supplier Refund
-
 
     """,
     'category': 'Technical',
@@ -52,12 +50,18 @@ M2O fields Restriction
     'images' : [],
     'depends' : ['web_m2o_enhanced',
                  'product',
-                 'sale','purchase',
-                 'account'],
+                 'sale',
+                 'purchase',
+                 'stock',
+                 'account',
+                 'account_voucher'],
     'demo' : [],
     'data' : ['product_view.xml',
-              'sale_view.xml','purchase_view.xml',
-              'account_invoice_view.xml'
+              'sale_view.xml',
+              'purchase_view.xml',
+              'account_invoice_view.xml',
+              'stock_view.xml',
+              'account_voucher_view.xml'
     ],
     'test' : [
     ],
