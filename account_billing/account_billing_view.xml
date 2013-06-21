@@ -170,15 +170,11 @@
             <field name="model">account.voucher</field>
             <field name="inherit_id" ref="account_voucher.view_vendor_receipt_form"/>
             <field name="arch" type="xml">
-                <xpath expr="/form/sheet/group/group/field[@name='partner_id']" position="replace">
-                	<field name="partner_id" domain="[('customer','=',True)]" required="1" 
-                		on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context, billing_id)" string="Customer" context="{'search_default_customer': 1}"/>
+                <xpath expr="/form/sheet/group/group/field[@name='partner_id']" position="attributes">
+                    <attribute name="on_change">onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context, billing_id)</attribute>
 				</xpath>
-                <xpath expr="/form/sheet/group/group/field[@name='amount']" position="replace">
-	                <field name="amount" class="oe_inline"
-	                    string="Paid Amount"
-	                    widget="monetary" options="{'currency_field': 'currency_id'}"
-	                    on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context, billing_id)"/>
+                <xpath expr="/form/sheet/group/group/field[@name='amount']" position="attributes">
+                    <attribute name="on_change">onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context, billing_id)</attribute>
 	            </xpath>
                 <xpath expr="/form/sheet//field[@name='date']" position="before">
                 	<field name="billing_id" on_change="onchange_billing_id(partner_id, journal_id, amount, currency_id, type, date, context, billing_id)"
