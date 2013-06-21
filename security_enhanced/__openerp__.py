@@ -30,13 +30,34 @@ Product Form
 ============
 * Procurement Tab only appear for Purchase User and Purchase Manager
 
+M2O fields Restriction
+=============================================
+* Sales Order (OK)
+* Purchase Order (OK)
+* Customer Invoice (OK)
+* Supplier Invoice 
+* Delivery Order
+* Incoming Shipment
+* Internal Move
+* Customer Billing
+* Customer Payment
+* Customer Refund
+* Supplier Payment
+* Supplier Refund
+
+
     """,
     'category': 'Technical',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['product'],
+    'depends' : ['web_m2o_enhanced',
+                 'product',
+                 'sale','purchase',
+                 'account'],
     'demo' : [],
-    'data' : ['product_view.xml'
+    'data' : ['product_view.xml',
+              'sale_view.xml','purchase_view.xml',
+              'account_invoice_view.xml'
     ],
     'test' : [
     ],
