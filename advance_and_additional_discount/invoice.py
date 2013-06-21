@@ -41,20 +41,20 @@ class account_invoice(AdditionalDiscountable, osv.Model):
               },
               multi='all'),
             'add_disc':fields.float('Additional Discount(%)',digits=(4,6),readonly=True, states={'draft':[('readonly',False)]}),
-            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Additional Disc Amt',
+            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',
                                             store =True,multi='sums', help="The additional discount on untaxed amount."),
-            'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Net Amount',
+            'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Net Amount',
                                               store = True,multi='sums', help="The amount after additional discount."),
             # Advance 
             'is_advance': fields.boolean('Advance'),
-            'amount_advance': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Advance Amt',
+            'amount_advance': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Advance Amt',
                                             store =True,multi='sums', help="The advance amount to be deducted according to original percentage"),
             # Deposit
             'is_deposit': fields.boolean('Advance'),
-            'amount_deposit': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Deposit Amt',
+            'amount_deposit': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Deposit Amt',
                                             store =True,multi='sums', help="The deposit amount to be deducted in the second invoice according to original deposit"),
 
-            'amount_beforetax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Sale Price'), string='Before Taxes',
+            'amount_beforetax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Before Taxes',
                                             store =True,multi='sums', help="Net amount after advance amount deduction"),
             # --
             'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Tax',
