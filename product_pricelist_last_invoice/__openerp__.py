@@ -25,6 +25,8 @@
     'summary': 'Add new option in Price List Version to calculate price based on last invoice',
     'description': """
 Add new option in Price List Version to calculate price based on last invoice
+
+Note: Have not tested with multi-currency yet.
 """,
     'category': 'Purchase Management',
     'website' : 'http://www.ecosoft.co.th',
