@@ -10,7 +10,8 @@
                 <data>
                     <xpath expr="/form/sheet/notebook/page[@string='Additional Info']/group" position="inside">
                         <group name="shipper">
-                            <field name="shipper_id"/>
+                            <field name="shipper_id" widget="selection" />
+                            <!--field name="shipper_id" widget="selection" options="{'limit': 10, 'create': false, 'create_edit': false}" /-->
                         </group>
 					</xpath>
 				</data>

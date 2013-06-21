@@ -25,9 +25,6 @@ from tools.translate import _
 class sale_order(osv.osv):
 
     _inherit = 'sale.order'
-    _columns = {
-        'shipper_id': fields.many2one('partner.shipper', 'Shipper', domain="[('partner_ids','in',partner_id)]"),
-    }
     
     def _create_pickings_and_procurements(self, cr, uid, order, order_lines, picking_id=False, context=None):
         super(sale_order,self)._create_pickings_and_procurements(cr, uid, order, order_lines, picking_id=picking_id, context=context)

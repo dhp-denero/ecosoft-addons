@@ -25,6 +25,7 @@ from tools.translate import _
 class sale_order(osv.osv):
 
     _inherit = 'sale.order'
+    
     _columns = {
         'shipper_id': fields.many2one('partner.shipper', 'Shipper', domain="[('partner_ids','in',partner_id)]"),
     }
