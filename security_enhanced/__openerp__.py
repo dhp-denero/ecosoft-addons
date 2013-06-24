@@ -43,6 +43,8 @@ M2O fields Restriction
 * Customer Refund
 * Supplier Payment
 * Supplier Refund
+* Partner
+* Product
 
     """,
     'category': 'Technical',
@@ -61,7 +63,8 @@ M2O fields Restriction
               'purchase_view.xml',
               'account_invoice_view.xml',
               'stock_view.xml',
-              'account_voucher_view.xml'
+              'account_voucher_view.xml',
+              'res_partner_view.xml',
     ],
     'test' : [
     ],
