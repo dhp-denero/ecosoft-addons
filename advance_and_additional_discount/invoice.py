@@ -186,6 +186,8 @@ class account_invoice_tax(osv.Model):
             val_before_tax = val_after_disco - advance_amount_tax - deposit_amount
             new_base = cur_pool.round(cr, uid, cur, val_before_tax)
             tax_grouped[line]['base'] = new_base
+            if not base:
+                continue
             ratio = new_base / base
             # Adjust others
             tax_grouped[line]['amount'] = tax_grouped[line]['amount'] * ratio
