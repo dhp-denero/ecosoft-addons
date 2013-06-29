@@ -27,7 +27,12 @@ class sale_advance_payment_inv(osv.osv_memory):
     
     def _get_advance_payment_method(self, cr, uid, context=None):
         res = super(sale_advance_payment_inv, self)._get_advance_payment_method(cr, uid, context=context)
-        res.append( ('line_percentage','Line Percentage') )
+        if context.get('active_model', False) == 'sale.order':
+            sale_id = context.get('active_id', False)
+            if sale_id:
+                sale = self.pool.get('sale.order').browse(cr, uid, sale_id)        
+                if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
+                    res.append( ('line_percentage','Line Percentage') )
         return res
     
     _columns = {
@@ -49,18 +54,23 @@ class sale_advance_payment_inv(osv.osv_memory):
             # Getting Sale Order Line IDs of this SO
             sale_obj = self.pool.get('sale.order')
             sale_ids = context.get('active_ids', [])
-            orders = sale_obj.browse(cr, uid, sale_ids)
+            order = sale_obj.browse(cr, uid, sale_ids[0])
             order_line_ids = []
-            for order in orders:
-                for order_line in order.order_line:
-                    order_line_ids.append(order_line.id)
+            for order_line in order.order_line:
+                order_line_ids.append(order_line.id)
             # Assign them into active_ids
             context.update({'active_ids': order_line_ids})
             context.update({'line_percent': wizard.line_percent})
             sale_order_line_make_invoice_obj = self.pool.get('sale.order.line.make.invoice')
             res = sale_order_line_make_invoice_obj.make_invoices(cr, uid, ids, context=context)
+            # Update retention
+            if wizard.retention > 0.0:
+                sale_obj.write(cr, uid, sale_ids, {'retention_percentage': wizard.retention})
+            if order.retention_percentage > 0.0 and res.get('res_id'):
+                self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
             # Update invoice
-            self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
+            if res.get('res_id'):
+                self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
             return res
         
         return super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
