@@ -156,7 +156,7 @@ class product_pricelist(osv.osv):
                                         where state not in ('draft','cancel') \
                                         and il.product_id = %s \
                                         and i.partner_id = %s \
-                                        order by i.write_date desc limit 1", (product_id,partner,))
+                                        order by i.write_date desc limit 1", (product_id,partner or -1,))
                                                      
                             res2 = cr.dictfetchone()
                             if res2:
