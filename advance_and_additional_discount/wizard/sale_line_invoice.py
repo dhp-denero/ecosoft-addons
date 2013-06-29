@@ -19,9 +19,26 @@
 #
 ##############################################################################
 
-import sale_make_invoice_advance
-import purchase_make_invoice_advance
-import sale_line_invoice
+from openerp.osv import osv, fields
+from openerp.tools.translate import _
+from openerp import netsvc
 
+class sale_order_line_make_invoice(osv.osv_memory):
+    _inherit = "sale.order.line.make.invoice"
+    
+    def open_invoices(self, cr, uid, ids, invoice_ids, context=None):
+        res = super(sale_order_line_make_invoice,self).open_invoices(cr, uid, ids, invoice_ids, context=context)
+        invoice_obj = self.pool.get('account.invoice')
+        if not isinstance(invoice_ids, list) :
+            invoice_ids = [invoice_ids]
+        for invoice_id in invoice_ids:
+            invoice = invoice_obj.browse(cr, uid, invoice_id)
+            order = invoice.sale_order_ids[0]
+            if order and order.retention_percentage > 0.0:
+                invoice_obj.write(cr, uid, [invoice_id], {'is_retention': True})
+        self.pool.get('account.invoice').button_compute(cr, uid, invoice_ids, context=context)
+        return res
+
+sale_order_line_make_invoice()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

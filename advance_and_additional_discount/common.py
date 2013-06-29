@@ -115,7 +115,17 @@ class AdditionalDiscountable(object):
                         o_res['amount_deposit'] = amount_deposit
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']                        
 
-            o_res['amount_total'] = o_res['amount_beforetax'] + o_res['amount_tax']
+            # add retention amount, if is_retention = True and retention_percentage > 0
+            o_res['amount_beforeretention'] = o_res['amount_beforetax'] + o_res['amount_tax']
+            o_res['amount_retention'] = 0.0
+            if record.sale_order_ids:
+                order = record.sale_order_ids and record.sale_order_ids[0]
+                if record.is_retention:
+                    retention_percentage = order.retention_percentage
+                    if retention_percentage:
+                        o_res['amount_retention'] = (o_res['amount_net'] * retention_percentage/100)
+                    
+            o_res['amount_total'] = o_res['amount_beforeretention'] - o_res['amount_retention']
 
         return res
 

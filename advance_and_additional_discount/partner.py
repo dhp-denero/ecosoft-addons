@@ -69,7 +69,27 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the deposit account for the current partner",
             required=True,
             readonly=True),
-        }
+                
+        'property_account_retention_customer': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Retention Customer",
+            view_load=True,
+            domain="[('type', '=', 'payable')]",
+            help="This account will be used instead of the default one as the retention account for the current partner",
+            required=True,
+            readonly=True),
+        'property_account_retention_supplier': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Retention Supplier",
+            view_load=True,
+            domain="[('type', '=', 'receivable')]",
+            help="This account will be used instead of the default one as the retention account for the current partner",
+            required=True,
+            readonly=True),        }
 
 res_partner()
 

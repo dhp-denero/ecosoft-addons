@@ -46,7 +46,6 @@ class purchase_advance_payment_inv(osv.osv_memory):
         purchase_obj = self.pool.get('purchase.order')
         ir_property_obj = self.pool.get('ir.property')
         fiscal_obj = self.pool.get('account.fiscal.position')
-        inv_line_obj = self.pool.get('account.invoice.line')
         wizard = self.browse(cr, uid, ids[0], context)
         purchase_ids = context.get('active_ids', [])
         advance_type = context.get('advance_type', False)

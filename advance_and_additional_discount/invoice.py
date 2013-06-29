@@ -42,20 +42,40 @@ class account_invoice(AdditionalDiscountable, osv.Model):
               multi='all'),
             'add_disc':fields.float('Additional Discount(%)',digits=(4,6),readonly=True, states={'draft':[('readonly',False)]}),
             'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',
-                                            store =True,multi='sums', help="The additional discount on untaxed amount."),
+              store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  }, multi='all', help="The additional discount on untaxed amount."),
             'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Net Amount',
-                                              store = True,multi='sums', help="The amount after additional discount."),
+              store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  }, multi='all', help="The amount after additional discount."),
             # Advance 
             'is_advance': fields.boolean('Advance'),
             'amount_advance': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Advance Amt',
-                                            store =True,multi='sums', help="The advance amount to be deducted according to original percentage"),
+              store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  }, multi='all', help="The advance amount to be deducted according to original percentage"),
             # Deposit
             'is_deposit': fields.boolean('Advance'),
             'amount_deposit': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Deposit Amt',
-                                            store =True,multi='sums', help="The deposit amount to be deducted in the second invoice according to original deposit"),
+              store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  },multi='all', help="The deposit amount to be deducted in the second invoice according to original deposit"),
 
             'amount_beforetax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Before Taxes',
-                                            store =True,multi='sums', help="Net amount after advance amount deduction"),
+              store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  },multi='all', help="Net amount after advance amount deduction"),
             # --
             'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Tax',
               store={
@@ -64,6 +84,21 @@ class account_invoice(AdditionalDiscountable, osv.Model):
                   'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
               },
               multi='all'),
+            # Retention
+            'is_retention': fields.boolean('Retention'),
+            'amount_retention': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Retention Amt',
+                store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  }, multi='all', help="The amount to be retained according to retention percentage"),
+            'amount_beforeretention': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Before Retention',
+                store={
+                  'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
+                  'account.invoice.tax': (_get_invoice_tax, None, 20),
+                  'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+                  }, multi='all', help="Net amount after retention deduction"),
+
             'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
               store={
                   'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
@@ -76,7 +111,8 @@ class account_invoice(AdditionalDiscountable, osv.Model):
     _defaults={
                'add_disc': 0.0,
                'is_advance': False,
-               'is_deposit': False
+               'is_deposit': False,
+               'is_retention': False
     }
     
 account_invoice()
@@ -145,6 +181,28 @@ class account_invoice_line(osv.osv):
                 'price_unit':sign * inv.amount_deposit,
                 'quantity': 1,
                 'price':sign * inv.amount_deposit,
+                'account_id':account_id,
+                'product_id':False,
+                'uos_id':False,
+                'account_analytic_id':False,
+                'taxes':False,
+            })
+            
+        if inv.amount_retention > 0.0:        
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
+            # account code for advance
+            prop = inv.type in ('out_invoice','out_refund') \
+                        and self.pool.get('ir.property').get(cr, uid, 'property_account_retention_customer', 'res.partner', context=context) \
+                        or self.pool.get('ir.property').get(cr, uid, 'property_account_retention_supplier', 'res.partner', context=context)
+            prop_id = prop and prop.id or False
+            account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
+    
+            res.append({
+                'type':'src',
+                'name': _('Retention Amount'),
+                'price_unit':sign * inv.amount_retention,
+                'quantity': 1,
+                'price':sign * inv.amount_retention,
                 'account_id':account_id,
                 'product_id':False,
                 'uos_id':False,

@@ -7,7 +7,8 @@
     "author": "Ecosoft",
     "category": "Sales",
     "description": """
-This module add 2 new features, Additional Discount and Advance Amount (Advance and Deposit).
+This module add 3 new features, Additional Discount and Advance Amount (Advance and Deposit)
+and lastly, the Retention.
 
 For Additional Discount, it is the same as additional_discount module, and quite easy to use by self.
 
@@ -21,10 +22,17 @@ For Advance Amount, following are how it works,
 * Applicable for both Sales and Purchases Order.
 * Accounting for invoice will be posted in regards to the deducted amount.
 
+For Retention, following are how it works,
+
+* Create invoice wizard (from SO), will ask if you have retention (%).
+* If you specify the retention, it will be kept that % in SO, and any retention amount will be deducted from After Tax amount.
+* All the following invoices will then have the retention amount.
+
     """,
     "init_xml": [],
     'update_xml': ['wizard/sale_make_invoice_advance.xml',
                    'wizard/purchase_make_invoice_advance.xml',
+                   'wizard/sale_line_invoice.xml',
                    'all_view.xml','partner_view.xml','res_config_view.xml',
                    ],
     'demo_xml': [],

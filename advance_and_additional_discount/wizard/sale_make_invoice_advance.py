@@ -32,10 +32,10 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_id = context.get('active_id', False)
             if sale_id:
                 sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
-                if sale.order_policy == 'manual':
+                if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
                     res.append(('all', 'Invoice the whole sales order'))
                     res.append(('lines', 'Some order lines'))
-                if not len(sale.invoice_ids):
+                if not len(sale.invoice_ids) and context.get('advance_type', False):
                     res.append(('percentage','Percentage'))
                     res.append(('fixed','Fixed price (deposit)'))
         
@@ -50,35 +50,51 @@ class sale_advance_payment_inv(osv.osv_memory):
                 Use Some Order Lines to invoice a selection of the sales order lines."""),
         'amount': fields.float('Amount', digits_compute= dp.get_precision('Account'),
             help="The amount to be invoiced in advance."),    
+        # Retention
+        'retention': fields.float('Retention', digits_compute= dp.get_precision('Account'),
+            help="The amount to be retained from invoices. The amount will be retained from this invoice onwards."),                  
         }
                
     def create_invoices(self, cr, uid, ids, context=None):
+        
         res = super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
+        
         wizard = self.browse(cr, uid, ids[0], context)
         sale_obj= self.pool.get('sale.order')
+        sale_id = context.get('active_id', False)
+        if wizard.retention > 0.0:
+            sale_obj.write(cr, uid, [sale_id], {'retention_percentage': wizard.retention})
+
         advance_percent = 0.0
         amount_deposit = 0.0
-        sale_id = context.get('active_id', False)
         if sale_id:
+            sale = sale_obj.browse(cr, uid, sale_id)
+            
             advance_type = context.get('advance_type', False)
             if advance_type == 'advance':
                 # calculate the percentage of advancement
                 if wizard.advance_payment_method == 'percentage':
                     advance_percent = wizard.amount
-                elif wizard.advance_payment_method == 'fixed':
-                    sale = sale_obj.browse(cr, uid, sale_id)            
+                elif wizard.advance_payment_method == 'fixed':      
                     advance_percent = (wizard.amount / sale.amount_net) * 100
             if advance_type == 'deposit':
                 # calculate the amount of deposit
                 if wizard.advance_payment_method == 'percentage':
-                    sale = sale_obj.browse(cr, uid, sale_id)
                     amount_deposit = (wizard.amount / 100) * sale.amount_net
                 elif wizard.advance_payment_method == 'fixed':
                     amount_deposit = wizard.amount           
             # write back to sale_order
             sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
             sale_obj.write(cr, uid, [sale_id], {'amount_deposit': amount_deposit})
-        
+
+            # for retention, mark the invoice is_retention = True
+            if sale.retention_percentage > 0.0 and res.get('res_id'):
+                self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
+
+            # Update invoice
+            if res.get('res_id'):
+                self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
+
         return res               
                
     # This is a complete overwrite method of sale/wizard/sale_make_invoice_advance (rev8852)
@@ -105,7 +121,6 @@ class sale_advance_payment_inv(osv.osv_memory):
             res = val['value']
 
             # kittiu: determine and check advance customer account
-            # TODO: please do also for supplier side for Purchase Order
             if not wizard.product_id.id:
                 if advance_type == 'advance':
                 # Case Advance
@@ -127,11 +142,6 @@ class sale_advance_payment_inv(osv.osv_memory):
                         raise osv.except_osv(_('Configuration Error!'),
                                 _('There is no deposit customer account defined as global property.'))
                     res['account_id'] = account_id
-            # -- kittiu
-            if not res.get('account_id'):
-                raise osv.except_osv(_('Configuration Error!'),
-                        _('There is no income account defined for this product: "%s" (id:%d).') % \
-                            (wizard.product_id.name, wizard.product_id.id,))
 
             # determine invoice amount
             if wizard.amount <= 0.00:
@@ -184,8 +194,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                 'fiscal_position': sale.fiscal_position.id or sale.partner_id.property_account_position.id,
                 # kittiu
                 'is_advance': advance_type == 'advance' and True or False,
-                'is_deposit': advance_type == 'deposit' and True or False
-                # -- kittiu
+                'is_deposit': advance_type == 'deposit' and True or False,
             }
             result.append((sale.id, inv_values))
         return result

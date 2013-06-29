@@ -22,6 +22,39 @@ class sale_order(AdditionalDiscountable, osv.osv):
     def _amount_all(self, *args, **kwargs):
         return self._amount_all_generic(sale_order, *args, **kwargs)
 
+
+
+    def _get_amount_retained(self, cr, uid, ids, field_names, arg, context=None):
+        if context is None:
+            context = {}  
+            
+        res = {}     
+        currency_obj = self.pool.get('res.currency')
+        # Account Retention
+        prop = self.pool.get('ir.property').get(cr, uid, 'property_account_retention_customer', 'res.partner', context=context)
+        prop_id = prop and prop.id or False
+        account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, False, prop_id)
+        if not account_id:
+            return res
+        sales = self.browse(cr, uid, ids)
+        for sale in sales:
+            cr.execute("""select sum(l.debit-l.credit) as amount_debit
+                            from account_move_line l
+                            where l.account_id = %s
+                            and state = 'valid'
+                            and move_id in 
+                            (select move_id from account_invoice inv
+                            inner join sale_order_invoice_rel rel 
+                            on inv.id = rel.invoice_id and order_id = %s)
+                          """,
+                       (account_id,sale.id))
+            
+            amount_debit = cr.fetchone()[0] or 0.0
+            amount = currency_obj.compute(cr, uid, sale.company_id.currency_id.id, sale.pricelist_id.currency_id.id, amount_debit)
+            res[sale.id] = amount
+            
+        return res
+
     _columns = {
             # Additional Discount Feature
             'add_disc':fields.float('Additional Discount(%)',digits=(4,6), readonly=True, states={'draft': [('readonly', False)]}),
@@ -40,7 +73,11 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
-            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account'))
+            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
+            # Retention Feature
+            'retention_percentage': fields.float('Retention (%)', digits=(16,2), required=False, readonly=True),
+            'amount_retained': fields.function(_get_amount_retained, string='Retained Amount', type='float', readonly=True, digits_compute=dp.get_precision('Account'))
+        
         }
 
     _defaults = {
