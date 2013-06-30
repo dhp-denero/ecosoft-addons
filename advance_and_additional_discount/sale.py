@@ -53,7 +53,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                 and account_id = %s
                                 group by order_id
                               """, (order.id,account_id))
-                amount_debit = cr.fetchone() and cr.fetchone()[0] or 0.0
+                amount_debit = cr.rowcount and cr.fetchone()[0] or 0.0
                 amount = currency_obj.compute(cr, uid, order.company_id.currency_id.id, order.pricelist_id.currency_id.id, amount_debit)
                 res[order.id] = amount
                 
