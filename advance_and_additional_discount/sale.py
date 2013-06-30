@@ -30,29 +30,33 @@ class sale_order(AdditionalDiscountable, osv.osv):
             
         res = {}     
         currency_obj = self.pool.get('res.currency')
+        sale_obj = self.pool.get('sale.order')
+
         # Account Retention
         prop = self.pool.get('ir.property').get(cr, uid, 'property_account_retention_customer', 'res.partner', context=context)
         prop_id = prop and prop.id or False
         account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, False, prop_id)
         if not account_id:
-            return res
-        sales = self.browse(cr, uid, ids)
-        for sale in sales:
-            cr.execute("""select sum(l.debit-l.credit) as amount_debit
-                            from account_move_line l
-                            where l.account_id = %s
-                            and state = 'valid'
-                            and move_id in 
-                            (select move_id from account_invoice inv
-                            inner join sale_order_invoice_rel rel 
-                            on inv.id = rel.invoice_id and order_id = %s)
-                          """,
-                       (account_id,sale.id))
-            
-            amount_debit = cr.fetchone()[0] or 0.0
-            amount = currency_obj.compute(cr, uid, sale.company_id.currency_id.id, sale.pricelist_id.currency_id.id, amount_debit)
-            res[sale.id] = amount
-            
+            for id in ids:
+                res[id] = 0.0
+        else:
+            for id in ids:
+                order = sale_obj.browse(cr, uid, id)
+                cr.execute("""select sum(l.debit-l.credit) as amount_debit
+                                from account_move_line l
+                                inner join
+                                (select order_id, move_id from account_invoice inv
+                                inner join sale_order_invoice_rel rel 
+                                on inv.id = rel.invoice_id and order_id = %s) inv
+                                on inv.move_id = l.move_id
+                                where state = 'valid'
+                                and account_id = %s
+                                group by order_id
+                              """, (order.id,account_id))
+                amount_debit = cr.fetchone() and cr.fetchone()[0] or 0.0
+                amount = currency_obj.compute(cr, uid, order.company_id.currency_id.id, order.pricelist_id.currency_id.id, amount_debit)
+                res[order.id] = amount
+                
         return res
 
     _columns = {
@@ -77,6 +81,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
             # Retention Feature
             'retention_percentage': fields.float('Retention (%)', digits=(16,2), required=False, readonly=True),
             'amount_retained': fields.function(_get_amount_retained, string='Retained Amount', type='float', readonly=True, digits_compute=dp.get_precision('Account'))
+            #'amount_retained': fields.float('Retained Amount',readonly=True, digits_compute=dp.get_precision('Account'))
         
         }
 
