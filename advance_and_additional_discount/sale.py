@@ -61,7 +61,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
 
     _columns = {
             # Additional Discount Feature
-            'add_disc':fields.float('Additional Discount(%)',digits=(4,6), readonly=True, states={'draft': [('readonly', False)]}),
+            'add_disc':fields.float('Additional Discount(%)',digits_compute= dp.get_precision('Additional Discount'), readonly=True, states={'draft': [('readonly', False)]}),
             'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',
                                             store =True,multi='sums', help="The additional discount on untaxed amount."),
             'amount_untaxed': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
