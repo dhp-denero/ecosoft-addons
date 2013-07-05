@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <data>       
 					<xpath expr="/form/header/button[@name='invoice_cancel']" position="after">
-                    	<button name="%(act_invoice_cancel_return_picking)d" string="Cancel Inoice and Return Shipment" states="open" type="action" groups="base.group_user"/>
+                    	<button name="%(act_invoice_cancel_return_picking)d" string="Cancel Invoice and Return Shipment" states="open" type="action" groups="base.group_user"/>
                     </xpath>
                 </data>
             </field>
