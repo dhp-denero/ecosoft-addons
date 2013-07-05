@@ -4,7 +4,7 @@
 
         <record forcecreate="True" id="decimal_additional_discount" model="decimal.precision">
             <field name="name">Additional Discount</field>
-            <field name="digits" eval="4"/>
+            <field name="digits" eval="6"/>
         </record>        
 
     </data>
