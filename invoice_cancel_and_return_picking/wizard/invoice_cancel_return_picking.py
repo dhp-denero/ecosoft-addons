@@ -43,7 +43,9 @@ class invoice_cancel_return_picking(osv.osv_memory):
     
     _columns = {
         'picking_ids': fields.one2many('invoice.cancel.return.picking.list', 'wizard_id', 'Shipments', readonly=True),
-        'invoice_state': fields.selection([('2binvoiced', 'To be refunded/invoiced'), ('none', 'No invoicing')], 'Invoicing',required=True),
+        #'invoice_state': fields.selection([('2binvoiced', 'To be refunded/invoiced'), ('none', 'No invoicing')], 'Invoicing',required=True),
+        'invoice_state': fields.selection([('none', 'No invoicing')], 'Invoicing',required=True),
+
     }
     
     _defaults = {
