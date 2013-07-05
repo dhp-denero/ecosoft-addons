@@ -7,10 +7,7 @@
             <field name="inherit_id" ref="account.invoice_form" />
             <field name="model">account.invoice</field>
             <field name="arch" type="xml">
-                <data>
-                    <xpath expr="/form/header/button[@name='action_cancel_draft']" position="attributes">
-						<attribute name="invisible">True</attribute>
-                    </xpath>                    
+                <data>       
 					<xpath expr="/form/header/button[@name='invoice_cancel']" position="after">
                     	<button name="%(act_invoice_cancel_return_picking)d" string="Cancel Inoice and Return Shipment" states="open" type="action" groups="base.group_user"/>
                     </xpath>
