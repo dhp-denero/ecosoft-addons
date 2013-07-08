@@ -29,7 +29,7 @@ class product_product(osv.osv):
     _inherit = "product.product"
     _columns = {
         'uom_so_id': fields.many2one('product.uom', 'Sales Unit of Measure', required=False, help="Default Unit of Measure used for sales orders. It must be in the same category than the default unit of measure."),
-        'uom_so_price_unit': fields.float('Sale Unit Price', digits_compute= dp.get_precision('Product Price'), help="If in sales order, the Sales Unit of Measure is selected, this price will be used instead of the normal unit price."),
+        'uom_so_price_unit': fields.float('Sales Unit Price', digits_compute= dp.get_precision('Product Price'), help="If in sales order, the Sales Unit of Measure is selected, this price will be used instead of the normal unit price."),
     }
     
     def _check_so_uom(self, cursor, user, ids, context=None):
