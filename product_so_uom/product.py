@@ -21,6 +21,7 @@
 
 import netsvc
 from osv import osv, fields
+import openerp.addons.decimal_precision as dp
 from tools.translate import _
 
 class product_product(osv.osv):
@@ -28,6 +29,7 @@ class product_product(osv.osv):
     _inherit = "product.product"
     _columns = {
         'uom_so_id': fields.many2one('product.uom', 'Sales Unit of Measure', required=False, help="Default Unit of Measure used for sales orders. It must be in the same category than the default unit of measure."),
+        'uom_so_price_unit': fields.float('Sale Unit Price', digits_compute= dp.get_precision('Product Price'), help="If in sales order, the Sales Unit of Measure is selected, this price will be used instead of the normal unit price."),
     }
     
     def _check_so_uom(self, cursor, user, ids, context=None):
@@ -39,6 +41,14 @@ class product_product(osv.osv):
     _constraints = [
         (_check_so_uom, 'Error: The default Unit of Measure and the sales Unit of Measure must be in the same category.', ['uom_id']),
     ]
+       
+    def onchange_uom_so_price_unit(self, cr, uid, ids, uom_so_price_unit, uom_so_id, uom_id, context=None):
+        context = context or {}
+        res = {}
+        list_price = self.pool.get('product.uom')._compute_price(cr, uid, uom_so_id, uom_so_price_unit, uom_id)
+        if list_price:
+            res['list_price'] = list_price
+        return {'value': res}
        
 product_product()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

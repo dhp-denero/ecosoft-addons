@@ -11,6 +11,7 @@
 						<group>
 							<group string="Sales">
 								<field name="uom_so_id"/>
+								<field name="uom_so_price_unit" on_change="onchange_uom_so_price_unit(uom_so_price_unit, uom_so_id, uom_id)"/>
 							</group>
 							<group>
 							</group>

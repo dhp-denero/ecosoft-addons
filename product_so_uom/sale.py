@@ -30,7 +30,6 @@ class sale_order_line(osv.osv):
     
     _inherit = "sale.order.line"
     
-
     def product_id_change(self, cr, uid, ids, pricelist, product, qty=0,
             uom=False, qty_uos=0, uos=False, name='', partner_id=False,
             lang=False, update_tax=True, date_order=False, packaging=False, fiscal_position=False, flag=False, context=None):
@@ -45,6 +44,11 @@ class sale_order_line(osv.osv):
             product = self.pool.get('product.product').browse(cr, uid, product, context=context)
             if product.uom_so_id and not context.get('is_uom_change'):
                 res.get('value').update({'product_uom': product.uom_so_id.id})
+
+            # If Sales Unit Price of this Sales UOM is used, use it instead of standard unit price.
+            if res.get('value').get('product_uom') or uom == product.uom_so_id.id:
+                if product.uom_so_price_unit:
+                    res.get('value').update({'price_unit': product.uom_so_price_unit})                
 
         return res
     
