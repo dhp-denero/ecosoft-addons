@@ -20,28 +20,19 @@
 ##############################################################################
 
 {
-    'name' : 'Sale Stock Extension for MH',
+    'name' : 'Fill Internal Move Lines',
     'version' : '1.0',
     'author' : 'Kitti U.',
-    'summary': 'Miscellenous Extension to Sale Stock Module for MH',
+    'summary': 'Auto create move lines based on required products at destination',
     'description': """
 
-In MH, step before deliver product is as following
-
-1. Complete Sale Order create Delivery Order
-2. Stock people do internal move from "Stock" location to "Output" location.
-3. The Delivery Order's Source Location should be "Output" location.
-
-Modification List:
-
-* In Internal Move window, add a feature to automatically list all the required move based on virtual stock and pending delivery order.
-* 2 new fields 1) Stock at Origin and 2) Stock at Destination
-
+This module add new button "Fill move lines" in Internal Move.
+    
     """,
     'category': 'Warehouse Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['stock','sale_stock'],
+    'depends' : ['web_m2o_enhanced','stock','sale_stock'],
     'demo' : [],
     'data' : [
         'wizard/stock_fill_move_view.xml',

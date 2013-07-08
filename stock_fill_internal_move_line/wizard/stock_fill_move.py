@@ -27,30 +27,35 @@ class stock_fill_move(osv.osv_memory):
     _description = "Fill Move Lines"
 
     _columns = {
-        'location_in_id': fields.many2one('stock.location', 'Inside Location', required=True),
-        'location_out_id': fields.many2one('stock.location', 'Outside Location', required=True),
+        'location_id': fields.many2one('stock.location', 'Source Location', required=True),
+        'location_dest_id': fields.many2one('stock.location', 'Destination Location', required=True),
         'set_qty_zero': fields.boolean("Set move quantity to zero",help="If checked, all product quantities will be set to zero to help ensure a real move is done"),
     }
-
-    def view_init(self, cr, uid, fields_list, context=None):
-        """
-         Creates view dynamically and adding fields at runtime.
-         @param self: The object pointer.
-         @param cr: A database cursor
-         @param uid: ID of the user currently logged in
-         @param context: A standard dictionary
-         @return: New arch of view with new columns.
-        """
-        if context is None:
-            context = {}
-        super(stock_fill_move, self).view_init(cr, uid, fields_list, context=context)
-
-        if len(context.get('active_ids',[])) > 1:
-            raise osv.except_osv(_('Error!'), _('You cannot perform this operation on more than one Stock Inventories.'))
-
-        if context.get('active_id', False):
-            stock_picking = self.pool.get('stock.picking').browse(cr, uid, context.get('active_id', False))
-        return True
+    
+    _defaults = {
+        'location_id': lambda self,cr,uid,c: c.get('location_id', False),
+        'location_dest_id': lambda self,cr,uid,c: c.get('location_dest_id', False),
+    }
+# 
+#     def view_init(self, cr, uid, fields_list, context=None):
+#         """
+#          Creates view dynamically and adding fields at runtime.
+#          @param self: The object pointer.
+#          @param cr: A database cursor
+#          @param uid: ID of the user currently logged in
+#          @param context: A standard dictionary
+#          @return: New arch of view with new columns.
+#         """
+#         if context is None:
+#             context = {}
+#         super(stock_fill_move, self).view_init(cr, uid, fields_list, context=context)
+# 
+#         if len(context.get('active_ids',[])) > 1:
+#             raise osv.except_osv(_('Error!'), _('You cannot perform this operation on more than one Stock Inventories.'))
+# 
+# #         if context.get('active_id', False):
+# #             stock_picking = self.pool.get('stock.picking').browse(cr, uid, context.get('active_id', False))
+#         return True
 
     def fill_move(self, cr, uid, ids, context=None):
         """ To Import Stock Move required by the selected location."""
@@ -70,7 +75,7 @@ class stock_fill_move(osv.osv_memory):
             return {'type': 'ir.actions.act_window_close'}
         fill_move = self.browse(cr, uid, ids, context=context)
  
-        location_out_id = fill_move.location_out_id.id
+        location_dest_id = fill_move.location_dest_id.id
         
         # Check for existing lines in this picking, remove it if exists.
         move_ids = move_obj.search(cr, uid,[('picking_id', '=', picking_id)])
@@ -92,7 +97,7 @@ class stock_fill_move(osv.osv_memory):
                         and sm.location_id = %s \
                         ) move \
                         group by product_id, name, product_uom, factor \
-                        order by product_id, factor ", (location_out_id,))
+                        order by product_id, factor ", (location_dest_id,))
         
         moves = cr.dictfetchall()
 
@@ -104,7 +109,7 @@ class stock_fill_move(osv.osv_memory):
             else:
                 # check required qty = product_qty - available qty at destination
                 c = context.copy()
-                c.update({'uom': move['product_uom'], 'location': fill_move.location_out_id.id})
+                c.update({'uom': move['product_uom'], 'location': fill_move.location_dest_id.id})
                 product = product_obj.browse(cr, uid, move['product_id'], context=c)
                 move_qty = round(- product.virtual_available,0) # movement equal to what is lacking
                 move.update({'product_qty': move_qty > 0.0 and move_qty or 0.0})
@@ -115,8 +120,8 @@ class stock_fill_move(osv.osv_memory):
                 'name': move['name'],
                 'product_uom': move['product_uom'],
                 'product_qty': move['product_qty'],
-                'location_id': fill_move.location_in_id.id,
-                'location_dest_id': fill_move.location_out_id.id,
+                'location_id': fill_move.location_id.id,
+                'location_dest_id': fill_move.location_dest_id.id,
             }
             
             if res.get('product_qty') > 0 and res.get('product_id') != prev_product_id:
