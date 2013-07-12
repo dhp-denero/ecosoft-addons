@@ -33,16 +33,6 @@ class stock_picking(osv.osv):
     
 stock_picking()
 
-class stock_location(osv.osv):
-
-    _inherit = "stock.location"
-
-    _columns = {
-        'user_ids': fields.many2many('stock.location', 'location_user_rel', 'location_id', 'user_id',
-            'Users'),    
-    }
-    
-stock_location()
 
 class stock_move(osv.osv):
 

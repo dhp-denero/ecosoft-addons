@@ -93,8 +93,8 @@
                     <group>
                         <group>
                             <!-- kittiu -->
-                            <field name="location_id" required="True" domain="[('user_ids','in',uid)]" options="{'limit': 10, 'create': false, 'create_edit': false}"/>
-                            <field name="location_dest_id" required="True" domain="[('user_ids','in',uid)]" options="{'limit': 10, 'create': false, 'create_edit': false}"/>
+                            <field name="location_id" required="True" domain="[('usage','!=','view')]"  options="{'limit': 10, 'create': false, 'create_edit': false}"/>
+                            <field name="location_dest_id" required="True" domain="[('usage','!=','view')]" options="{'limit': 10, 'create': false, 'create_edit': false}"/>
                             <!-- kittiu -->
                             <field name="partner_id" on_change="onchange_partner_in(partner_id)" invisible="True" options="{'limit': 10, 'create': false, 'create_edit': false}"/>
                             <field name="backorder_id" readonly="1" attrs="{'invisible': [('backorder_id','=',False)]}" invisible="True"/>
