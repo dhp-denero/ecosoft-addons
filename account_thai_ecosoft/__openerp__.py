@@ -40,7 +40,7 @@ Note: This module need careful merge with the core code. It has many methods ove
     'sequence': 8,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account','account_voucher'],
+    'depends' : ['sale','account','account_voucher'],
     'demo' : [],
     'data' : ['account_view.xml',
               'voucher_payment_receipt_view.xml'

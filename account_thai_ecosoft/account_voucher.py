@@ -35,6 +35,20 @@ class account_voucher(osv.osv):
         'tax_line': fields.one2many('account.voucher.tax', 'voucher_id', 'Tax Lines', readonly=True, states={'draft':[('readonly',False)]}),
     }
     
+    def recompute_voucher_lines(self, cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=None):
+        res = super(account_voucher, self).recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=context)
+        line_cr_ids = res['value']['line_cr_ids']
+        line_dr_ids = res['value']['line_dr_ids']
+        for line in line_cr_ids:
+            res1 = self.pool.get('account.voucher.line').onchange_amount(cr, uid, ids, partner_id, line['move_line_id'], line['amount_original'], line['amount'], line['amount_unreconciled'], context=context)
+            line['amount_wht'] = res1['value']['amount_wht']
+            line['reconcile'] = res1['value']['reconcile']
+        for line in line_dr_ids:
+            res2 = self.pool.get('account.voucher.line').onchange_amount(cr, uid, ids, partner_id, line['move_line_id'], line['amount_original'], line['amount'], line['amount_unreconciled'], context=context)
+            line['amount_wht'] = res2['value']['amount_wht']
+            line['reconcile'] = res2['value']['reconcile']
+        return res
+    
     def button_reset_taxes(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -85,6 +99,7 @@ class account_voucher(osv.osv):
             move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
             line_total = move_line_brw.debit - move_line_brw.credit
             rec_list_ids = []
+            rec_wht_ids = []
             if voucher.type == 'sale':
                 line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
             elif voucher.type == 'purchase':
@@ -93,7 +108,7 @@ class account_voucher(osv.osv):
             # kittiu - Thai Accounting
             # If voucher.type = receipt or payment, it is possible to have tax.
             elif voucher.type in ('receipt','payment'): # Create dr/cr for taxes, then remove the net amount from line_total
-                net_tax = self.voucher_move_line_tax_create(cr, uid, voucher, move_id, company_currency, current_currency, context)
+                net_tax, rec_wht_ids = self.voucher_move_line_tax_create(cr, uid, voucher, move_id, company_currency, current_currency, context)
                 move_line_pool.write(cr, uid, [move_line_id], {'debit': move_line_brw.debit and (move_line_brw.debit - net_tax) or 0.0,
                                                                'credit': move_line_brw.credit and (move_line_brw.credit + net_tax) or 0.0,})
             # -- kittiu
@@ -117,6 +132,10 @@ class account_voucher(osv.osv):
             reconcile = False
             for rec_ids in rec_list_ids:
                 if len(rec_ids) >= 2:
+                    # kittiu, if wht, add it to the list when reconcile
+                    for id in rec_wht_ids:
+                            rec_ids.append(id)
+                    # --kittiu
                     reconcile = move_line_pool.reconcile_partial(cr, uid, rec_ids, writeoff_acc_id=voucher.writeoff_acc_id.id, writeoff_period_id=voucher.period_id.id, writeoff_journal_id=voucher.journal_id.id)
         return True    
     
@@ -131,10 +150,12 @@ class account_voucher(osv.osv):
         # create one move line for the total and possibly adjust the other lines amount
         net_tax_currency, vtml = self.compute_net_tax(cr, uid, voucher, company_currency, vtml, context=context)
         # Create move line,
+        rec_ids = []
         for ml in vtml:
             ml.update({'move_id': move_id})
-            move_line_obj.create(cr, uid, ml, context=context)
-        return net_tax_currency
+            new_id = move_line_obj.create(cr, uid, ml, context=context)
+            rec_ids.append(new_id)
+        return net_tax_currency, rec_ids
     
     # kittiu -- New Method to compute the net tax (cr/dr)
     def compute_net_tax(self, cr, uid, voucher, company_currency, voucher_tax_move_lines, context=None):
@@ -183,6 +204,68 @@ class account_voucher(osv.osv):
     
 account_voucher()
 
+class account_voucher_line(osv.osv):
+    
+    _inherit = 'account.voucher.line'
+    
+    _columns = {
+        'amount_wht': fields.float('WHT', digits_compute=dp.get_precision('Account')),
+    }
+    
+    def _get_amount_wht(self, cr, uid, partner_id, move_line_id, amount_original, amount, context=None):
+        tax_obj = self.pool.get('account.tax')
+        partner_obj = self.pool.get('res.partner')
+        move_line_obj = self.pool.get('account.move.line')
+        partner = partner_obj.browse(cr, uid, partner_id)
+        move_line = move_line_obj.browse(cr, uid, move_line_id)
+        amount_wht = 0.0
+        original_wht_amt = 0.0
+        for line in move_line.invoice.invoice_line:
+            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+                if tax_obj.browse(cr, uid, tax['id']).is_wht:
+                    original_wht_amt += tax['amount']
+        # Payment Ratio
+        payment_ratio = amount_original == 0.0 and 0.0 or (amount / (amount_original-original_wht_amt) )
+        amount_wht += original_wht_amt * payment_ratio
+        return amount, amount_wht
+
+    def _get_original_amount_wht(self, cr, uid, partner_id, move_line_id, amount_original, context=None):
+        tax_obj = self.pool.get('account.tax')
+        partner_obj = self.pool.get('res.partner')
+        move_line_obj = self.pool.get('account.move.line')
+        partner = partner_obj.browse(cr, uid, partner_id)
+        move_line = move_line_obj.browse(cr, uid, move_line_id)
+        original_wht_amt = 0.0
+        for line in move_line.invoice.invoice_line:
+            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+                if tax_obj.browse(cr, uid, tax['id']).is_wht:
+                    original_wht_amt += tax['amount']
+        return amount_original, original_wht_amt
+# 
+#     def onchange_amount(self, cr, uid, ids, partner_id, move_line_id, amount_original, amount, amount_unreconciled, context=None):
+#         vals = {}
+#         amount, amount_wht = self._get_amount_wht(cr, uid, partner_id, move_line_id, amount_original, amount, context=context)
+#         vals['amount_wht'] = amount_wht
+#         vals['reconcile'] = (round(amount + amount_wht) == round(amount_unreconciled))
+#         return {'value': vals}
+#     
+    def onchange_reconcile(self, cr, uid, ids, partner_id, move_line_id, amount_original, reconcile, amount, amount_unreconciled, context=None):
+        vals = {}
+        if reconcile:
+            # Get WHT for full amount.
+            original_amount, original_amount_wht = self._get_original_amount_wht(cr, uid, partner_id, move_line_id, amount_original, context=context)
+            # Create ratio of WHT/Full amount
+            ratio = original_amount_wht / original_amount
+            # Amount = amount_unreconciled * ratio
+            amount = amount_unreconciled - (amount_unreconciled * ratio)
+            # Get WHT of the amount
+            amount, amount_wht = self._get_amount_wht(cr, uid, partner_id, move_line_id, amount_original, amount, context=context)
+            vals['amount_wht'] = amount_wht
+            vals['amount'] = amount
+        return {'value': vals}
+        
+account_voucher_line()
+
 # kittiu -- New class
 class account_voucher_tax(osv.osv):
     
@@ -224,32 +307,6 @@ class account_voucher_tax(osv.osv):
         'factor_tax': fields.function(_count_factor, string='Multipication factor Tax code', type='float', multi="all")
     }
 
-    def base_change(self, cr, uid, ids, base, currency_id=False, company_id=False, date=False):
-        cur_obj = self.pool.get('res.currency')
-        company_obj = self.pool.get('res.company')
-        company_currency = False
-        factor = 1
-        if ids:
-            factor = self.read(cr, uid, ids[0], ['factor_base'])['factor_base']
-        if company_id:
-            company_currency = company_obj.read(cr, uid, [company_id], ['currency_id'])[0]['currency_id'][0]
-        if currency_id and company_currency:
-            base = cur_obj.compute(cr, uid, currency_id, company_currency, base*factor, context={'date': date or time.strftime('%Y-%m-%d')}, round=False)
-        return {'value': {'base_amount':base}}
-
-    def amount_change(self, cr, uid, ids, amount, currency_id=False, company_id=False, date=False):
-        cur_obj = self.pool.get('res.currency')
-        company_obj = self.pool.get('res.company')
-        company_currency = False
-        factor = 1
-        if ids:
-            factor = self.read(cr, uid, ids[0], ['factor_tax'])['factor_tax']
-        if company_id:
-            company_currency = company_obj.read(cr, uid, [company_id], ['currency_id'])[0]['currency_id'][0]
-        if currency_id and company_currency:
-            amount = cur_obj.compute(cr, uid, currency_id, company_currency, amount*factor, context={'date': date or time.strftime('%Y-%m-%d')}, round=False)
-        return {'value': {'tax_amount': amount}}
-
     _order = 'sequence'
     _defaults = {
         'manual': 1,
@@ -268,7 +325,7 @@ class account_voucher_tax(osv.osv):
             # Each voucher line is equal to an invoice, we will need to go through all of them.
             if voucher_line.move_line_id.invoice:
                 
-                payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / voucher_line.amount_original)
+                payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or ((voucher_line.amount+voucher_line.amount_wht) / voucher_line.amount_original)
                 
                 for line in voucher_line.move_line_id.invoice.invoice_line:
                     # Each invoice line, calculate tax
@@ -280,7 +337,7 @@ class account_voucher_tax(osv.osv):
                         val['amount'] = tax['amount'] * payment_ratio
                         val['manual'] = False
                         val['sequence'] = tax['sequence']
-                        val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity']) * payment_ratio
+                        val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio
                         # For Suspend
                         vals={}
                         vals['voucher_id'] = voucher.id
@@ -288,7 +345,7 @@ class account_voucher_tax(osv.osv):
                         vals['amount'] = - tax['amount'] * payment_ratio # Reverse Sign
                         vals['manual'] = False
                         vals['sequence'] = tax['sequence']
-                        vals['base'] = - cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity']) * payment_ratio # Reverse Sign
+                        vals['base'] = - cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio # Reverse Sign
                         # Check the product are services, which has been using suspend account. This time, it needs to cr: non-suspend acct and dr: suspend acct
                         use_suspend_acct = line.product_id.id in tax_obj.read(cr, uid, [tax['id']], ['product_ids'])[0]['product_ids']
                         is_wht = tax_obj.browse(cr, uid, tax['id']).is_wht
@@ -400,5 +457,7 @@ class account_voucher_tax(osv.osv):
                 'account_analytic_id': t['account_analytic_id'],
             })
         return res
+
+
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
