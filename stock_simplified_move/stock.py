@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
+import types
 import netsvc
 from osv import osv, fields
 from openerp.tools.translate import _
@@ -32,6 +32,8 @@ class stock_picking(osv.osv):
     }
 
     def write(self, cr, uid, ids, vals, context=None):
+        if not isinstance(ids, types.ListType): # Ensure it is a list before proceeding.
+            ids = [ids]        
         for id in ids:
             if vals.get('location_id', False):
                 cr.execute('update stock_move set location_id = %s where picking_id = %s', (vals.get('location_id'), id))
