@@ -30,7 +30,15 @@ class stock_picking(osv.osv):
     _columns = {
         'create_uid':  fields.many2one('res.users', 'Creator', readonly=True),
     }
-    
+
+    def write(self, cr, uid, ids, vals, context=None):
+        for id in ids:
+            if vals.get('location_id', False):
+                cr.execute('update stock_move set location_id = %s where picking_id = %s', (vals.get('location_id'), id))
+            if vals.get('location_dest_id', False):
+                cr.execute('update stock_move set location_dest_id = %s where picking_id = %s', (vals.get('location_dest_id'), id))
+        return  super(stock_picking, self).write(cr, uid, ids, vals, context=context)
+
 stock_picking()
 
 
@@ -63,7 +71,7 @@ class stock_move(osv.osv):
         if context.get('simplified_move', False):
             return True
         return super(stock_move, self).onchange_move_type(cr, uid, ids, type, context=context)
-    
+
 stock_move()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

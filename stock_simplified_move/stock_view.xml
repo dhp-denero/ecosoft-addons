@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
     <data>
-        <menuitem id="menu_simplified_stock_move" name="Simplified Internal Move" parent="stock.menu_stock_root" sequence="1"/>
+        <menuitem id="menu_simplified_stock_move" name="Simplified Internal Move" parent="stock.menu_stock_root" sequence="0"/>
 
         <record id="view_simplified_picking_internal_search" model="ir.ui.view">
             <field name="name">stock.picking.internal.search</field>
