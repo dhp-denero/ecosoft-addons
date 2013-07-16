@@ -16,7 +16,7 @@
                                     <field name="name"/>
                                     <field name="type"/>
                                     <field name="check_no"/>
-                                    <field name="date_due"/>
+                                    <field name="date_due" required="True"/>
                                     <field name="amount"/>
                                 </tree>
                             </field>
