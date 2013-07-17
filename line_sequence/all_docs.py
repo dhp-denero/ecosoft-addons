@@ -39,4 +39,9 @@ class mrp_bom(osv.osv):
     _order = 'sequence, id'
 mrp_bom()
 
+class stock_move(osv.osv):
+    _inherit = "stock.move"
+    _order = 'id'
+stock_move()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
