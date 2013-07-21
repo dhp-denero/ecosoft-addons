@@ -42,7 +42,7 @@ Note: This module need careful merge with the core code. It has many methods ove
     'images' : [],
     'depends' : ['sale','account','account_voucher'],
     'demo' : [],
-    'data' : ['account_view.xml',
+    'data' : ['account_view.xml','partner_view.xml',
               'voucher_payment_receipt_view.xml'
     ],
     'test' : [
