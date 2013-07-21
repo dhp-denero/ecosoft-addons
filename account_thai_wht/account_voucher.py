@@ -282,10 +282,11 @@ class account_voucher_line(osv.osv):
         move_line = move_line_obj.browse(cr, uid, move_line_id)
         amount_wht = 0.0
         original_wht_amt = 0.0
-        for line in move_line.invoice.invoice_line:
-            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
-                if tax_obj.browse(cr, uid, tax['id']).is_wht:
-                    original_wht_amt += tax['amount']
+        if move_line.invoice:
+            for line in move_line.invoice.invoice_line:
+                for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+                    if tax_obj.browse(cr, uid, tax['id']).is_wht:
+                        original_wht_amt += tax['amount']
         # Payment Ratio
         payment_ratio = amount_original == 0.0 and 0.0 or (float(amount) / float(amount_original))
         amount_wht += original_wht_amt * payment_ratio
@@ -379,6 +380,11 @@ class account_voucher_tax(osv.osv):
         company_currency = voucher.company_id.currency_id.id
 
         for voucher_line in voucher.line_ids:
+            line_sign = 1
+            if voucher.type in ('sale','receipt'):
+                line_sign = voucher_line.type == 'cr' and 1 or -1
+            elif voucher.type in ('purchase','payment'):
+                line_sign = voucher_line.type == 'dr' and 1 or -1
             # Each voucher line is equal to an invoice, we will need to go through all of them.
             if voucher_line.move_line_id.invoice:
                 
@@ -391,18 +397,18 @@ class account_voucher_tax(osv.osv):
                         val={}
                         val['voucher_id'] = voucher.id
                         val['name'] = tax['name']
-                        val['amount'] = tax['amount'] * payment_ratio
+                        val['amount'] = tax['amount'] * payment_ratio * line_sign
                         val['manual'] = False
                         val['sequence'] = tax['sequence']
-                        val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio
+                        val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio * line_sign
                         # For Suspend
                         vals={}
                         vals['voucher_id'] = voucher.id
                         vals['name'] = tax['name']
-                        vals['amount'] = - tax['amount'] * payment_ratio # Reverse Sign
+                        vals['amount'] = - tax['amount'] * payment_ratio * line_sign # Reverse Sign
                         vals['manual'] = False
                         vals['sequence'] = tax['sequence']
-                        vals['base'] = - cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio # Reverse Sign
+                        vals['base'] = - cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio * line_sign # Reverse Sign
                         # Check the product are services, which has been using suspend account. This time, it needs to cr: non-suspend acct and dr: suspend acct
                         use_suspend_acct = line.product_id.id in tax_obj.read(cr, uid, [tax['id']], ['product_ids'])[0]['product_ids']
                         is_wht = tax_obj.browse(cr, uid, tax['id']).is_wht
@@ -432,7 +438,7 @@ class account_voucher_tax(osv.osv):
                                 tax_grouped[key]['base_amount'] = -tax_grouped[key]['base_amount']
                                 tax_grouped[key]['tax_amount'] = -tax_grouped[key]['tax_amount']                              
                             else:
-                                tax_grouped[key]['amount'] -= val['amount']     # REVERSE SIGN for WHT
+                                tax_grouped[key]['amount'] -= val['amount'] # REVERSE SIGN for WHT
                                 tax_grouped[key]['base'] -= val['base']
                                 tax_grouped[key]['base_amount'] -= val['base_amount']
                                 tax_grouped[key]['tax_amount'] -= val['tax_amount']    
