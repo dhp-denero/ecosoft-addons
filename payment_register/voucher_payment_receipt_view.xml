@@ -9,7 +9,10 @@
             <field name="model">account.voucher</field>
             <field name="arch" type="xml">
                 <data>
-                    <xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="before">
+                    <button name="action_cancel_draft" position="attributes">
+                    	<attribute name="invisible">True</attribute>
+                    </button>
+					<xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="before">
                       <page string="Payment Details">
                             <field name="payment_details">
                                 <tree editable="bottom" string="Payment Details">

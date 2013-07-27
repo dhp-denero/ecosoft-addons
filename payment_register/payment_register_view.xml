@@ -50,7 +50,7 @@
                     <button name="validate_register" string="Validate" states="draft" class="oe_highlight"/>
                     <button name="cancel_register" string="Cancel" states="draft"/>
                     <button name="cancel_register" string="Cancel" type="object" states="posted" confirm="Are you sure to cancel this record ?"/>
-                    <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft"/>
+                    <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="1"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"posted":"blue"}'/>
                 </header>
                 <sheet>
@@ -90,8 +90,8 @@
 	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    </group>
                         <group name="pay.register" string="Payment Register">
-                        	 <field name="date" required="1" on_change="onchange_date(date, company_id, context)"/>
-	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" required="1" on_change="onchange_journal(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context)" />
+                        	 <field name="date" on_change="onchange_date(date, company_id, context)"/>
+	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context)" />
                            	 <field name="account_id" invisible="1" readonly="0"/>	                         
                              <field name="currency_id" invisible="1" readonly="0"/>
                              <field name="amount_payin" required="1" on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>      

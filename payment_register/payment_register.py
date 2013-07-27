@@ -245,6 +245,9 @@ class payment_register(osv.osv):
             self.message_post(cr, uid, [obj.id], body=message, subtype="payment_register.mt_register", context=context)
 
     def validate_register(self, cr, uid, ids, context=None):
+        for obj in self.browse(cr, uid, ids, context=context):
+            if not obj.journal_id.id or not obj.date:
+                raise osv.except_osv(_('Warning!'), _('Pay-in Date and Target Bank is not selected.'))
         self.action_move_line_create(cr, uid, ids, context=context)
         return True
     
@@ -413,12 +416,27 @@ class payment_register(osv.osv):
     def onchange_amount(self, cr, uid, ids, amount, amount_payin, context=None):
         diff = (amount or 0.0) - (amount_payin or 0.0)
         return {'value': {'writeoff_amount':diff}}
-    
-    def cancel_register(self, cr, uid, ids, context=None):
 
+    def cancel_register(self, cr, uid, ids, context=None):
+        reconcile_pool = self.pool.get('account.move.reconcile')
+        move_pool = self.pool.get('account.move')
+
+        for register in self.browse(cr, uid, ids, context=context):
+            recs = []
+            for line in register.move_ids:
+                if line.reconcile_id:
+                    recs += [line.reconcile_id.id]
+                if line.reconcile_partial_id:
+                    recs += [line.reconcile_partial_id.id]
+
+            reconcile_pool.unlink(cr, uid, recs)
+
+            if register.move_id:
+                move_pool.button_cancel(cr, uid, [register.move_id.id])
+                move_pool.unlink(cr, uid, [register.move_id.id])
         res = {
             'state':'cancel',
-            #'move_id':False,
+            'move_id':False,
         }
         self.write(cr, uid, ids, res)
         return True

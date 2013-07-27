@@ -109,6 +109,17 @@ class account_voucher(osv.osv):
 
         return True
     
+    def cancel_voucher(self, cr, uid, ids, context=None):
+        # If this voucher has related payment register, make sure all of them are cancelled first.
+        payment_register_pool = self.pool.get('payment.register')
+        for voucher in self.browse(cr, uid, ids, context=context):
+            register_ids = payment_register_pool.search(cr, uid, [('voucher_id', '=', voucher.id),('state', '<>', 'cancel')], limit=1) 
+            if register_ids: # if at least 1 record not cancelled, raise error
+                raise osv.except_osv(_('Error!'), _('You can not cancel this Payment.\nYou need to cancel all Payment Registers associate with this payment first.'))
+        # Normal call
+        res = super(account_voucher, self).cancel_voucher(cr, uid, ids, context=context)
+        return res
+    
 account_voucher()
 
 class account_voucher_pay_detail(osv.osv):
@@ -126,7 +137,7 @@ class account_voucher_pay_detail(osv.osv):
             ],'Type', required=True, select=True, change_default=True),
         'check_no': fields.char('Check No.', size=64),   
         'date_due': fields.date('Check Date'),
-        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account')),        
+        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account')),
         #'date_payin': fields.date('Pay-in Date'),
     }
 
