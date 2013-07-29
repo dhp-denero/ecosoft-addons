@@ -36,8 +36,15 @@ class account_voucher(osv.osv):
             billing_pool = self.pool.get('account.billing')
             billing_pool.write(cr, uid, voucher.billing_id.id, {'payment_id':ids[0]})
             billing_pool.write(cr, uid, voucher.billing_id.id, {'state':'billed'})
-        
         return super(account_voucher, self).proforma_voucher(cr, uid, ids, context=context)
+
+    def cancel_voucher(self, cr, uid, ids, context=None):
+        # Set payment_id in Billing back to False
+        voucher = self.browse(cr, uid, ids[0], context=context)
+        if voucher.billing_id:
+            billing_pool = self.pool.get('account.billing')
+            billing_pool.write(cr, uid, voucher.billing_id.id, {'payment_id': False})
+        return super(account_voucher, self).cancel_voucher(cr, uid, ids, context=context)
     
     def onchange_amount(self, cr, uid, ids, amount, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None, billing_id=False):
         if context is None:
