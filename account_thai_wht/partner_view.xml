@@ -9,7 +9,6 @@
 		    <field name="arch" type="xml">
 		        <field name="function" position="before">
 		            <field name="vat"/>
-		            <field name="tax_type"/>
 		        </field>
 		    </field>
 		</record>    

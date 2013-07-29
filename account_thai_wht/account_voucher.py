@@ -349,6 +349,7 @@ class account_voucher_tax(osv.osv):
 
     _columns = {
         'voucher_id': fields.many2one('account.voucher', 'Voucher Line', ondelete='cascade', select=True),
+        'tax_id': fields.many2one('account.tax', 'Tax'),
         'name': fields.char('Tax Description', size=64, required=True),
         'account_id': fields.many2one('account.account', 'Tax Account', required=True, domain=[('type','<>','view'),('type','<>','income'), ('type', '<>', 'closed')]),
         'account_analytic_id': fields.many2one('account.analytic.account', 'Analytic account'),
@@ -396,6 +397,7 @@ class account_voucher_tax(osv.osv):
                         # For Normal
                         val={}
                         val['voucher_id'] = voucher.id
+                        val['tax_id'] = tax['id']
                         val['name'] = tax['name']
                         val['amount'] = tax['amount'] * payment_ratio * line_sign
                         val['manual'] = False
@@ -404,6 +406,7 @@ class account_voucher_tax(osv.osv):
                         # For Suspend
                         vals={}
                         vals['voucher_id'] = voucher.id
+                        vals['tax_id'] = tax['id']
                         vals['name'] = tax['name']
                         vals['amount'] = - tax['amount'] * payment_ratio * line_sign # Reverse Sign
                         vals['manual'] = False
