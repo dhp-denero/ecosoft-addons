@@ -46,10 +46,10 @@ class account_voucher(osv.osv):
             billing_pool.write(cr, uid, voucher.billing_id.id, {'payment_id': False})
         return super(account_voucher, self).cancel_voucher(cr, uid, ids, context=context)
     
-    def onchange_amount(self, cr, uid, ids, amount, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None, billing_id=False):
+    def onchange_amount(self, cr, uid, ids, amount, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None):
         if context is None:
             context = {}
-        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context, billing_id=billing_id)
+        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
         ctx = context.copy()
         ctx.update({'date': date})
         vals = self.onchange_rate(cr, uid, ids, rate, amount, currency_id, payment_rate_currency_id, company_id, context=ctx)
@@ -57,10 +57,10 @@ class account_voucher(osv.osv):
             res[key].update(vals[key])
         return res
     
-    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None, billing_id=False):
+    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
         if not journal_id:
             return {}
-        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context, billing_id=billing_id)
+        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
         vals = self.recompute_payment_rate(cr, uid, ids, res, currency_id, date, ttype, journal_id, amount, context=context)
         for key in vals.keys():
             res[key].update(vals[key])
@@ -81,10 +81,10 @@ class account_voucher(osv.osv):
         return res    
     
 
-    def onchange_billing_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None, billing_id=False):
+    def onchange_billing_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
         if not journal_id:
             return {}
-        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context, billing_id=billing_id)
+        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
         vals = self.recompute_payment_rate(cr, uid, ids, res, currency_id, date, ttype, journal_id, amount, context=context)
         for key in vals.keys():
             res[key].update(vals[key])
@@ -103,7 +103,7 @@ class account_voucher(osv.osv):
             del(res['value']['payment_rate'])
         return res
 
-    def recompute_voucher_lines(self, cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=None, billing_id=False):
+    def recompute_voucher_lines(self, cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=None):
         """
         Returns a dict that contains new values and context
 
@@ -184,6 +184,7 @@ class account_voucher(osv.osv):
 
         # KTU
         if not context.get('move_line_ids', False):
+            billing_id = context.get('billing_id', False)
             if billing_id > 0:
                 billing_obj = self.pool.get('account.billing')
                 billing = billing_obj.browse(cr, uid, billing_id, context=context)

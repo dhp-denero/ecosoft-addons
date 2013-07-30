@@ -171,14 +171,14 @@
             <field name="inherit_id" ref="account_voucher.view_vendor_receipt_form"/>
             <field name="arch" type="xml">
                 <xpath expr="/form/sheet/group/group/field[@name='partner_id']" position="attributes">
-                    <attribute name="on_change">onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context, billing_id)</attribute>
+                    <attribute name="context">{'search_default_customer': 1, 'billing_id': billing_id}</attribute>
 				</xpath>
                 <xpath expr="/form/sheet/group/group/field[@name='amount']" position="attributes">
-                    <attribute name="on_change">onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context, billing_id)</attribute>
+                    <attribute name="context">{'billing_id': billing_id}</attribute>
 	            </xpath>
                 <xpath expr="/form/sheet//field[@name='date']" position="before">
-                	<field name="billing_id" on_change="onchange_billing_id(partner_id, journal_id, amount, currency_id, type, date, context, billing_id)"
-                		domain="[('state','=','billed'),('payment_id','=',False),('partner_id','=',partner_id)]"/>
+                	<field name="billing_id" on_change="onchange_billing_id(partner_id, journal_id, amount, currency_id, type, date, context)"
+                		domain="[('state','=','billed'),('payment_id','=',False),('partner_id','=',partner_id)]" context="{'billing_id': billing_id}"/> 
                 </xpath>
             </field>
         </record>
