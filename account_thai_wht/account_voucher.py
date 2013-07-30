@@ -78,7 +78,7 @@ class account_voucher(osv.osv):
         
     _columns = {
         'writeoff_amount': fields.function(_get_writeoff_amount, string='Difference Amount', type='float', readonly=True, help="Computed as the difference between the amount stated in the voucher and the sum of allocation on the voucher lines."),
-        'tax_line': fields.one2many('account.voucher.tax', 'voucher_id', 'Tax Lines', readonly=True, states={'draft':[('readonly',False)]}),
+        'tax_line': fields.one2many('account.voucher.tax', 'voucher_id', 'Tax Lines', readonly=False),
     }
     
     # The original recompute_voucher_lines() do not aware of withholding.
@@ -113,8 +113,12 @@ class account_voucher(osv.osv):
         ctx = context.copy()
         avt_obj = self.pool.get('account.voucher.tax')
         for id in ids:
+            # Only update if voucher state is not "posted"
+            voucher = self.browse(cr, uid, id, context=ctx)
+            if voucher.state == 'posted':
+                continue
             cr.execute("DELETE FROM account_voucher_tax WHERE voucher_id=%s AND manual is False", (id,))
-            partner = self.browse(cr, uid, id, context=ctx).partner_id
+            partner = voucher.partner_id
             if partner.lang:
                 ctx.update({'lang': partner.lang})
             for taxe in avt_obj.compute(cr, uid, id, context=ctx).values():
@@ -351,6 +355,7 @@ class account_voucher_tax(osv.osv):
         'voucher_id': fields.many2one('account.voucher', 'Voucher Line', ondelete='cascade', select=True),
         'tax_id': fields.many2one('account.tax', 'Tax'),
         'name': fields.char('Tax Description', size=64, required=True),
+        'name2': fields.char('Tax Description 2', size=64, required=False),
         'account_id': fields.many2one('account.account', 'Tax Account', required=True, domain=[('type','<>','view'),('type','<>','income'), ('type', '<>', 'closed')]),
         'account_analytic_id': fields.many2one('account.analytic.account', 'Analytic account'),
         'base': fields.float('Base', digits_compute=dp.get_precision('Account')),

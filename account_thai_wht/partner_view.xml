@@ -9,6 +9,7 @@
 		    <field name="arch" type="xml">
 		        <field name="function" position="before">
 		            <field name="vat"/>
+		            <field name="partner_type"/>
 		        </field>
 		    </field>
 		</record>    

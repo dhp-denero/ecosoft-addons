@@ -19,11 +19,16 @@
 #
 ##############################################################################
 
-import account
-import account_invoice
-import account_voucher
-import sale
-import res_partner
+import netsvc
+from osv import osv, fields
+from tools.translate import _
 
-
+class res_partner(osv.osv):
+    _inherit = "res.partner"
+    _columns = {
+        'partner_type': fields.selection([('government', 'Government'), ('company', 'Company Limited'),
+                                   ('partnership', 'Partnership'), ('personal', 'Personal')], 'Partner Type',
+            help="Partner Type selected here will be relate to the type of Withholding Certificate"),
+    }
+res_partner()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
