@@ -235,7 +235,7 @@ class account_billing(osv.osv):
         'account_id':fields.many2one('account.account', 'Account', required=True, readonly=True, states={'draft':[('readonly',False)]}),
         'line_ids':fields.one2many('account.billing.line','billing_id','Billing Lines', readonly=True, states={'draft':[('readonly',False)]}),
         'line_cr_ids':fields.one2many('account.billing.line','billing_id','Credits',
-            domain=[('type','=','cr')], context={'default_type':'cr'}, readonly=True, states={'draft':[('readonly',False)]}),
+                                      context={'default_type':'cr'}, readonly=True, states={'draft':[('readonly',False)]}),
         'period_id': fields.many2one('account.period', 'Period', required=True, readonly=True, states={'draft':[('readonly',False)]}),
         'narration':fields.text('Notes', readonly=True, states={'draft':[('readonly',False)]}),
         'currency_id': fields.related('journal_id','currency', type='many2one', relation='res.currency', string='Currency', readonly=True),
