@@ -28,6 +28,7 @@ class account_tax(osv.osv):
     _inherit="account.tax"
     _columns={
         'is_wht': fields.boolean("Withholding Tax", help="Tax will be withhold and will be used in Payment"),
+        'threshold_wht': fields.float("Threshold Amount", help="Withholding Tax will be applied only if base amount more or equal to threshold amount"),
         'account_suspend_collected_id':fields.many2one('account.account', 'Invoice Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Invoice Tax Account"),
         'account_suspend_paid_id':fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
         'product_ids': fields.many2many('product.product', 'suspend_taxes_products_rel',

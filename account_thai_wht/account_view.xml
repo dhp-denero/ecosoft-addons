@@ -9,6 +9,7 @@
 		    <field name="arch" type="xml">
 		        <field name="price_include" position="after">
 		            <field name="is_wht"/>
+		            <field name="threshold_wht" attrs="{'invisible': [('is_wht','=',False)]}"/>
 		        </field>
 		        <field name="account_collected_id" position="after">
 		            <field name="account_suspend_collected_id" attrs="{'invisible': [('is_wht','=',True)]}"/>

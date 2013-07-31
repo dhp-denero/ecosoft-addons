@@ -422,6 +422,9 @@ class account_voucher_tax(osv.osv):
                         is_wht = tax_obj.browse(cr, uid, tax['id']).is_wht
                         # -------------------> Adding Tax for Posting
                         if is_wht: 
+                            # Check Threshold first
+                            if abs(val['base']) and abs(val['base']) < tax_obj.read(cr, uid, val['tax_id'], ['threshold_wht'])['threshold_wht']:
+                                continue
                             # Case Withholding Tax Dr.
                             if voucher.type in ('receipt','payment'):
                                 val['base_code_id'] = tax['base_code_id']
