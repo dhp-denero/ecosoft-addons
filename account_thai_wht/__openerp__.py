@@ -43,7 +43,8 @@ Note: This module need careful merge with the core code. It has many methods ove
     'depends' : ['sale','account','account_voucher'],
     'demo' : [],
     'data' : ['account_view.xml','partner_view.xml',
-              'voucher_payment_receipt_view.xml'
+              'voucher_payment_receipt_view.xml',
+              'security/ir.model.access.csv'
     ],
     'test' : [
     ],
