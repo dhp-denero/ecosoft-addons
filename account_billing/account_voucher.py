@@ -119,17 +119,18 @@ class account_voucher(osv.osv):
                 This function returns True if the line is considered as noise and should not be displayed
             """
             if line.reconcile_partial_id:
-                sign = 1 if ttype == 'receipt' else -1
                 if currency_id == line.currency_id.id:
-                    if line.amount_residual_currency * sign <= 0:
+                    if line.amount_residual_currency <= 0:
                         return True
                 else:
-                    if line.amount_residual * sign <= 0:
+                    if line.amount_residual <= 0:
                         return True
             return False
         
-        if context.get('mode', False) == 'partner':
+        # kittiu
+        if context.get('mode', False) == 'partner' or not context.get('billing_id', False):
             return super(account_voucher, self).recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=context)
+        # -- kittiu
         
         if context is None:
             context = {}
@@ -182,7 +183,7 @@ class account_voucher(osv.osv):
             total_credit = price or 0.0
             account_type = 'receivable'
 
-        # KTU
+        # kittiu
         if not context.get('move_line_ids', False):
             billing_id = context.get('billing_id', False)
             if billing_id > 0:
@@ -191,6 +192,7 @@ class account_voucher(osv.osv):
                 ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id),
                                                       ('id','in',[line.reconcile and line.move_line_id.id or False for line in billing.line_ids])
                                                       ], context=context)
+        # -- kittiu
             else:
                 ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id)], context=context)
         else:
