@@ -7,10 +7,13 @@
             <field name="model">account.voucher</field>
             <field name="arch" type="xml">
                 <data>
-                    <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='account_id']" position="before">
+                    <xpath expr="/form/sheet/notebook/page/field[@name='line_cr_ids']/tree/field[@name='account_id']" position="before">
                     	<field name="reference" />
                     </xpath>
-                </data>
+                    <xpath expr="/form/sheet/notebook/page/field[@name='line_dr_ids']/tree/field[@name='account_id']" position="before">
+                    	<field name="reference" />
+                    </xpath>                
+				</data>
             </field>
         </record>
        
