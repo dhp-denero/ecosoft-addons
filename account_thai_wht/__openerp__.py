@@ -44,7 +44,8 @@ Note: This module need careful merge with the core code. It has many methods ove
     'demo' : [],
     'data' : ['account_view.xml','partner_view.xml',
               'voucher_payment_receipt_view.xml',
-              'security/ir.model.access.csv'
+              'security/ir.model.access.csv',
+              'reports/custom_reports.xml'
     ],
     'test' : [
     ],
