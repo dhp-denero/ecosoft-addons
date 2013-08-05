@@ -1,6 +1,7 @@
 import sale
 import purchase
-import invoice
+import account_invoice
+import account_voucher
 import stock
 import wizard
 import partner
