@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
+import types
 import netsvc
 from osv import osv, fields
 from tools.translate import _
@@ -29,6 +29,8 @@ class sale_order(osv.osv):
     
     def _check_tax(self, cr, uid, ids, context=None):
         # loop through each lines, check if tax different.
+        if not isinstance(ids, types.ListType): # Make it a list
+            ids = [ids]
         orders = self.browse(cr, uid, ids, context=context)
         for order in orders:
             i = 0
