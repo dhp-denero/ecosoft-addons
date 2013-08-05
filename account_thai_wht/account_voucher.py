@@ -296,18 +296,18 @@ class account_voucher_line(osv.osv):
         amount_wht += original_wht_amt * payment_ratio
         return float(amount), float(amount_wht)
 
-    def _get_original_amount_wht(self, cr, uid, partner_id, move_line_id, amount_original, context=None):
-        tax_obj = self.pool.get('account.tax')
-        partner_obj = self.pool.get('res.partner')
-        move_line_obj = self.pool.get('account.move.line')
-        partner = partner_obj.browse(cr, uid, partner_id)
-        move_line = move_line_obj.browse(cr, uid, move_line_id)
-        original_wht_amt = 0.0
-        for line in move_line.invoice.invoice_line:
-            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
-                if tax_obj.browse(cr, uid, tax['id']).is_wht:
-                    original_wht_amt += tax['amount']
-        return float(amount_original), float(original_wht_amt)
+#     def _get_original_amount_wht(self, cr, uid, partner_id, move_line_id, amount_original, context=None):
+#         tax_obj = self.pool.get('account.tax')
+#         partner_obj = self.pool.get('res.partner')
+#         move_line_obj = self.pool.get('account.move.line')
+#         partner = partner_obj.browse(cr, uid, partner_id)
+#         move_line = move_line_obj.browse(cr, uid, move_line_id)
+#         original_wht_amt = 0.0
+#         for line in move_line.invoice.invoice_line:
+#             for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+#                 if tax_obj.browse(cr, uid, tax['id']).is_wht:
+#                     original_wht_amt += tax['amount']
+#         return float(amount_original), float(original_wht_amt)
  
     def onchange_amount(self, cr, uid, ids, partner_id, move_line_id, amount_original, amount, amount_unreconciled, context=None):
         #return super(account_voucher_line, self).onchange_amount(cr, uid, ids, amount, amount_unreconciled, context=context)
