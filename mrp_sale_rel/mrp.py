@@ -61,9 +61,13 @@ class mrp_production(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         origin = vals.get('origin', False)
-        if origin:
-            order_id, parent_id = self._get_ids_order_and_parent_from_origin(cr, uid, origin)
+        order_id = vals.get('order_id', False)
+        if origin: # If origin has SO# or MO#,
+            order_id, parent_id = self._get_ids_order_and_parent_from_origin(cr, origin)
             vals.update({'order_id': order_id, 'parent_id': parent_id})
+        elif order_id: # No origin, if order_id is specified, update it back to origin.
+            so_number = self.pool.get('sale.order').browse(cr, uid, order_id).name
+            vals.update({'origin': so_number})
         res = super(mrp_production, self).create(cr, uid, vals, context=context)
         return res
 
