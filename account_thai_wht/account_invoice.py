@@ -31,6 +31,8 @@ class account_invoice(osv.osv):
     
     def _check_tax(self, cr, uid, ids, context=None):
         # loop through each lines, check if tax different.
+        if not isinstance(ids, list) :
+            ids = [ids]        
         invoices = self.browse(cr, uid, ids, context=context)
         for invoice in invoices:
             i = 0
