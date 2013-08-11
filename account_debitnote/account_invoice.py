@@ -137,10 +137,12 @@ class account_invoice(osv.osv):
         return res
     
     _columns = {
-        'is_debitnote': fields.function(is_debitnote, string='Is Debit Note?', type='boolean', store=False),
+        'is_debitnote': fields.function(is_debitnote, string='Is Debit Note?', type='boolean', store=True),
     }
     
     def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        if context is None:
+            context = {}
         res = super(account_invoice, self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)        
         journal_obj = self.pool.get('account.journal')
         type = context.get('journal_type', False)
