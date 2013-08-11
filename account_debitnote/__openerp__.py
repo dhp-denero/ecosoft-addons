@@ -26,6 +26,11 @@
     'summary': 'Create Debit Note from Invoice',
     'description': """
 Use the similar concept as Refund. Debit Note is in fact Invoice with reference to previous invoice.
+It will be used in every way the same as Invoice.
+New type of journal has been created,
+* sale_debitnote
+* purchase_debitnote
+Make sure the new Journal has been created for them (manually).
     """,
     'category': 'Accounting',
     'website' : 'http://www.ecosoft.co.th',

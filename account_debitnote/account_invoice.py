@@ -125,6 +125,33 @@ class account_invoice(osv.osv):
             if new_invoice.invoice_id_ref:
                 self.write(cr, uid, [new_invoice.invoice_id_ref.id], {'invoice_id_ref': new_invoice.id})
 
-        return new_ids   
-
+        return new_ids
+    
+    def is_debitnote(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        for invoice in self.browse(cursor, user, ids, context=context):
+            if invoice.journal_id and invoice.journal_id.type in ('sale_debitnote', 'purchase_debitnote'):
+                res[invoice.id] = True
+            else:
+                res[invoice.id] = False
+        return res
+    
+    _columns = {
+        'is_debitnote': fields.function(is_debitnote, string='Is Debit Note?', type='boolean', store=False),
+    }
+    
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        res = super(account_invoice, self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)        
+        journal_obj = self.pool.get('account.journal')
+        type = context.get('journal_type', False)
+        for field in res['fields']:
+            if field == 'journal_id' and type in ('sale','purchase'):
+                # Add debit note type with sale type.
+                if type == 'sale':
+                    type = ('sale','sale_debitnote')
+                if type == 'purchase':
+                    type = ('purchase','purchase_debitnote')
+                journal_select = journal_obj._name_search(cr, uid, '', [('type', 'in', type)], context=context, limit=None, name_get_uid=1)
+                res['fields'][field]['selection'] = journal_select
+        return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
