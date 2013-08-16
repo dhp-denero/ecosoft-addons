@@ -43,8 +43,8 @@ class mrp_production(osv.osv):
         return order_id, parent_id
         
     _columns = {
-        'order_id': fields.many2one('sale.order', 'Source SO', required=False, readonly=True, states={'draft': [('readonly', False)]}),
-        'parent_id': fields.many2one('mrp.production', 'Source MO', required=False, readonly=True),
+        'order_id': fields.many2one('sale.order', 'Sales Order', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'parent_id': fields.many2one('mrp.production', 'Parent', required=False, readonly=True),
     }
 
     def init(self, cr):
