@@ -27,6 +27,21 @@
 Add new option in Price List Version to calculate price based on last invoice
 
 Note: Have not tested with multi-currency yet.
+
+* Additional, second base field, this is optional for computation price list ,when price list in base equal to 0.0 , it will be new calculate price list with base2. 
+* * Ecosof-addons/product_pricelist_last_invoice module
+* * * New base2 and base2_pricelist_id Name field
+* * * New constraints
+* * * 1. _check_duplicate_base,Checking base not equal to base2
+* * * 2. _check_base2_recursion, Checking base2 Pricelist has looping in Other Pricelist
+* * * New Method
+* * * 1._common_price_get_multi, Copy from price_get_multi and param:basefieldname for choosing field to calculate price list 
+* * * 2. base_price_get_multi, Using "base" field computation a price list
+* * * 3. base2_price_get_multi, Using "base2" field computation a price list
+* * * Override price_get_multi method from product.pricelist module(replace method ,it not call super class)
+* * * Modification price_get_multi_lastinvoice method,add param:basefieldname for choosing field to calculate price list
+* * * Remove price_get method
+
 """,
     'category': 'Purchase Management',
     'website' : 'http://www.ecosoft.co.th',
@@ -34,6 +49,7 @@ Note: Have not tested with multi-currency yet.
     'depends' : ['product'],
     'demo' : [],
     'data' : [
+              'pricelist_view.xml',
     ],
     'test' : [
     ],
