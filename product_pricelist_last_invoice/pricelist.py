@@ -264,7 +264,7 @@ class product_pricelist(osv.osv):
         
         res = self.price_get_multi_lastinvoice(cr, uid, pricelist_ids, products_by_qty_by_partner,basefieldname="base",context=context)
         if not res:
-            res = self.base_price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context)
+            res = self.base_price_get_multi(cr, uid, pricelist_ids, products_by_qty_by_partner, context)
             
         for products in products_by_qty_by_partner:
             for pricelist_id in pricelist_ids:
