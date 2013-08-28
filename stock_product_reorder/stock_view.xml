@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="product_normal_form_view_ext" model="ir.ui.view">
+            <field name="name">product.normal.form.view.ext</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <group name="status" position="before" version="7.0">
+                    <group colspan="2" name="orderpoint" groups="base.group_user" string="Reordering Rules">
+                        <field name="orderpoint_ids" nolabel="1"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+        
+		<!--
+		Product Reorder
+		-->
+        <record id="view_location_tree" model="ir.ui.view">
+            <field name="name">stock.location.tree</field>
+            <field name="model">stock.location</field>
+            <field name="field_parent">child_ids</field>
+            <field name="arch" type="xml">
+                <tree toolbar="1" string="Locations" >
+                    <field icon="icon" name="name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_location_tree" model="ir.actions.act_window">
+            <field name="name">Product Reorder</field>
+            <field name="res_model">stock.location</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="domain">[('location_id','=',False)]</field>
+            <field name="view_type">tree</field>
+            <field name="view_id" ref="view_location_tree"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a location.
+              </p><p>
+                This is the structure of your company's warehouses and
+                locations. You can click on a location to get the list of the
+                products and their stock level in this particular location and
+                all its children.
+              </p>
+            </field>
+        </record>
+        <menuitem action="action_location_tree"
+            id="menu_action_location_tree"
+            parent="stock.menu_stock_inventory_control"
+            groups="stock.group_locations"
+            sequence="15"/>
+
+  	</data>
+</openerp>
