@@ -57,28 +57,30 @@ class account_voucher(osv.osv):
             res[key].update(vals[key])
         return res
     
-    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
-        if not journal_id:
-            return {}
-        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
-        vals = self.recompute_payment_rate(cr, uid, ids, res, currency_id, date, ttype, journal_id, amount, context=context)
-        for key in vals.keys():
-            res[key].update(vals[key])
-        #TODO: onchange_partner_id() should not returns [pre_line, line_dr_ids, payment_rate...] for type sale, and not 
-        # [pre_line, line_cr_ids, payment_rate...] for type purchase.
-        # We should definitively split account.voucher object in two and make distinct on_change functions. In the 
-        # meanwhile, bellow lines must be there because the fields aren't present in the view, what crashes if the 
-        # onchange returns a value for them
-        if ttype == 'sale':
-            del(res['value']['line_dr_ids'])
-            del(res['value']['pre_line'])
-            del(res['value']['payment_rate'])
-        elif ttype == 'purchase':
-            del(res['value']['line_cr_ids'])
-            del(res['value']['pre_line'])
-            del(res['value']['payment_rate'])
-        
-        return res    
+    # kittiu: For some reason, I don't know why I need this at the first place???
+    # Working with new versions of OE, got problem, so let's try removing it.
+#     def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
+#         if not journal_id:
+#             return {}
+#         res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
+#         vals = self.recompute_payment_rate(cr, uid, ids, res, currency_id, date, ttype, journal_id, amount, context=context)
+#         for key in vals.keys():
+#             res[key].update(vals[key])
+#         #TODO: onchange_partner_id() should not returns [pre_line, line_dr_ids, payment_rate...] for type sale, and not 
+#         # [pre_line, line_cr_ids, payment_rate...] for type purchase.
+#         # We should definitively split account.voucher object in two and make distinct on_change functions. In the 
+#         # meanwhile, bellow lines must be there because the fields aren't present in the view, what crashes if the 
+#         # onchange returns a value for them
+#         if ttype == 'sale':
+#             del(res['value']['line_dr_ids'])
+#             del(res['value']['pre_line'])
+#             del(res['value']['payment_rate'])
+#         elif ttype == 'purchase':
+#             del(res['value']['line_cr_ids'])
+#             del(res['value']['pre_line'])
+#             del(res['value']['payment_rate'])
+#         
+#         return res    
     
 
     def onchange_billing_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
