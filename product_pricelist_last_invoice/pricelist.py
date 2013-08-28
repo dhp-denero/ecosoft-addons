@@ -254,17 +254,18 @@ class product_pricelist(osv.osv):
     def base_price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context=None):        
         res = self._common_price_get_multi(cr, uid, pricelist_ids, products_by_qty_by_partner, basefieldname='base', context=context)
         return res
+    
     #Calculate price list use base2 field
     def base2_price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context=None):
         res = self._common_price_get_multi(cr, uid, pricelist_ids, products_by_qty_by_partner, basefieldname='base2', context=context)
         return res
     
     #Override price_get_multi method from product.pricelist module,it make sure all dependency are apply.
-    def price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context=None):
+    def price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context=None):        
         
         res = self.price_get_multi_lastinvoice(cr, uid, pricelist_ids, products_by_qty_by_partner,basefieldname="base",context=context)
         if not res:
-            res = self.base_price_get_multi(self, cr, uid, pricelist_ids, products_by_qty_by_partner, context)
+            res = self.super(product_pricelist, self).price_get_multi(cr, uid, pricelist_ids, products_by_qty_by_partner, context=context)
             
         for products in products_by_qty_by_partner:
             for pricelist_id in pricelist_ids:
