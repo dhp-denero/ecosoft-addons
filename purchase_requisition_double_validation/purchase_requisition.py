@@ -29,12 +29,22 @@ class purchase_requisition(osv.osv):
     _inherit = "purchase.requisition"
     
     _columns = {
+        'name': fields.char('Requisition Reference', size=32, required=False, readonly=True),
         'state': fields.selection([('draft','New'),
                                    ('in_purchase','Sent to Purchase'), # Additional Step
                                    ('in_progress','Sent to Suppliers'),('cancel','Cancelled'),('done','Purchase Done')],
             'Status', track_visibility='onchange', required=True)
     }
     
+    _defaults = {
+        'name': lambda obj, cr, uid, context: '/',
+    }    
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.requisition') or '/'
+        return super(purchase_requisition, self).create(cr, uid, vals, context=context)
+        
     def tender_in_purchase(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'in_purchase'} ,context=context)   
       
