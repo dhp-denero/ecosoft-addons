@@ -40,7 +40,7 @@ class sale_order(osv.osv):
         default['name'] = order.name + '/B'
         default['split_ab_ref'] = order.id
         default['order_line'] = False
-        default['header_msg'] = False
+        default['header_msg'] = '<div><b>LABOUR COST</b></div><br>' + order.header_msg 
         vals = {}
         vals = self.copy_data(cr, uid, ids[0], default, context)
         new_order_id = super(sale_order, self).create(cr, uid, vals, context=context)        
