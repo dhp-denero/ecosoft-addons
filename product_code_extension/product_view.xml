@@ -24,9 +24,9 @@
                     <xpath expr="/form/sheet/notebook/page[@string='Information']/group//field[@name='type']" position="before">
 						<field name="product_main_code"/>
                     </xpath>
-                    <xpath expr="/form/sheet/notebook/page[@string='Information']/group//field[@name='default_code']" position="before">
+                    <!--xpath expr="/form/sheet/notebook/page[@string='Information']/group//field[@name='default_code']" position="before">
 						<field name="product_sub_code"/>
-                    </xpath>
+                    </xpath-->  
                     <xpath expr="/form/sheet/notebook/page[@string='Information']/group//field[@name='default_code']" position="replace">
                     	<!-- Replaced with blank -->
                     </xpath>           
