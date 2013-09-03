@@ -50,8 +50,8 @@ class product_product(osv.osv):
             dynamic_product_code += p.product_main_code and p.product_main_code or "00000"
             dynamic_product_code += "/"
             dynamic_product_code += (p.partner_id and p.partner_id.partner_code <> "") and p.partner_id.partner_code or "MH"
-            dynamic_product_code += "/"
-            dynamic_product_code += p.product_sub_code and p.product_sub_code or "00"
+#             dynamic_product_code += "/"
+#             dynamic_product_code += p.product_sub_code and p.product_sub_code or "00"
 
             res[p.id] = dynamic_product_code
         return res
@@ -61,12 +61,13 @@ class product_product(osv.osv):
     _columns = {
         'default_code': fields.function(_dynamic_product_code, type='char', store=True, string='Internal Reference'),
         'product_main_code': fields.char('Main Code', size=20, required=True, help="Main Code Max Size = 10 characters"),
-        'product_sub_code': fields.char('Sub Code', size=2, help="Sub Code Max Size = 2 characters"),
+        #'product_sub_code': fields.char('Sub Code', size=2, help="Sub Code Max Size = 2 characters"),
         'partner_id': fields.many2one('res.partner', 'Product Customer'),
     }
 
     _sql_constraints = [
-        ('product_code_uniq', 'unique(product_main_code, product_sub_code)', 'Main Code + Sub Code must be unique!'),
+        #('product_code_uniq', 'unique(product_main_code, product_sub_code)', 'Main Code + Sub Code must be unique!'),
+        ('product_code_uniq', 'unique(product_main_code)', 'Main Code + Sub Code must be unique!'),
     ]    
 product_product()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

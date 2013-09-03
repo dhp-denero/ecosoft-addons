@@ -19,7 +19,7 @@
 	            </xpath>	            
 	            <xpath expr="/form/header/button[@name='tender_cancel']" position="attributes">
 	            	<attribute name="states">draft,in_progress,in_purchase</attribute>
-	            	<attribute name="groups">purchase_requisition.group_purchase_requisition_manager</attribute>
+	            	<attribute name="groups">purchase_requisition.group_purchase_requisition_user</attribute>
 	            </xpath>
 	            <xpath expr="/form/header/button[@name='tender_in_progress']" position="after">
                 	<button name="tender_in_purchase" states="draft" string="Send to Purchase" type="object" class="oe_highlight"/>
