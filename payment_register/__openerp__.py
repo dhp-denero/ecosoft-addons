@@ -33,7 +33,7 @@
     'depends' : ['account_voucher','account_billing','customer_supplier_voucher'],
     'demo' : [],
     'data' : [
-            'data/payment_register_data.xml'
+            'data/payment_register_data.xml',
             'security/ir.model.access.csv',
             'payment_register_sequence.xml',
             'payment_register_workflow.xml',
