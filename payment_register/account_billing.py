@@ -34,7 +34,7 @@ class account_billing(osv.osv):
     
     def _get_journal(self, cr, uid, context=None):
         # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
-        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'account_voucher', 'bank_intransit_journal')
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
         return res and res[1] or False
         
     _inherit = 'account.journal'

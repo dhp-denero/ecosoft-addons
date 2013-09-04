@@ -4,11 +4,11 @@
         
 
 		<!-- Receipt Voucher Sequence-->
-        <record id="account_voucher.seq_type_bank_receipt_voucher" model="ir.sequence.type">
+        <record id="seq_type_bank_receipt_voucher" model="ir.sequence.type">
             <field name="name">Receipt Voucher</field>
             <field name="code">bank_receipt_voucher</field>
         </record>
-        <record id="account_voucher.sequence_receipt_voucher_journal" model="ir.sequence">
+        <record id="sequence_receipt_voucher_journal" model="ir.sequence">
             <field name="name">Receipt Voucher</field>
             <field name="code">bank_receipt_voucher</field>
             <field name="prefix">RV%(year)s/</field>
@@ -18,11 +18,11 @@
         </record>
         
 		<!-- Add Bank In Transit -->
-        <record id="account_voucher.bank_intransit_journal" model="account.journal">
+        <record id="bank_intransit_journal" model="account.journal">
             <field name="name">Receipt Voucher</field>
             <field name="code">BNKT</field>
             <field name="type">bank</field>
-            <field name="sequence_id" ref="account_voucher.sequence_receipt_voucher_journal"/>
+            <field name="sequence_id" ref="sequence_receipt_voucher_journal"/>
             <field name="user_id" ref="base.user_root"/>
             <field name="company_id" ref="base.main_company"/>
         </record>
