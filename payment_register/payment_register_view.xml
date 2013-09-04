@@ -5,11 +5,11 @@
             <field name="name">view.payment.register.filter</field>
             <field name="model">payment.register</field>
             <field name="arch" type="xml">
-                <search string="Search Payment Registers">
-                    <filter string="Draft" domain="[('state','=','draft')]" help="Draft Payment Register"/>
-                    <filter string="Posted" domain="[('state','=','posted')]" help="Posted Payment Register"/>
-                    <filter string="Cancelled" domain="[('state','=','cancel')]" help="Draft Payment Register"/>
-                    <field name="number" string="Payment Register"/>
+                <search string="Search Payment Details">
+                    <filter string="Draft" domain="[('state','=','draft')]" help="Draft Payment Detail"/>
+                    <filter string="Posted" domain="[('state','=','posted')]" help="Posted Payment Detail"/>
+                    <filter string="Cancelled" domain="[('state','=','cancel')]" help="Draft Payment Detail"/>
+                    <field name="number" string="Payment Detail"/>
                     <field name="date"/>	
                     <field name="partner_id" string="Customer"/>
                     <field name="journal_id" context="{'journal_id': self, 'set_visible':False}" domain="[('type','in',('bank','cash'))]"/>
@@ -28,7 +28,7 @@
             <field name="name">view.payment.register.tree</field>
             <field name="model">payment.register</field>
             <field name="arch" type="xml">
-                <tree colors="blue:state == 'draft';gray:state == 'cancel'" string="Payment Register Entries">
+                <tree colors="blue:state == 'draft';gray:state == 'cancel'" string="Payment Detail Entries">
                     <field name="date"/>
                     <field name="number"/>
                     <field name="voucher_id"/>
@@ -45,7 +45,7 @@
             <field name="name">view.payment.register.form</field>
             <field name="model">payment.register</field>
             <field name="arch" type="xml">
-                <form string="Payment Register" version="7.0">
+                <form string="Payment Detail" version="7.0">
                 <header invisible="0">
                     <button name="validate_register" string="Validate" states="draft" class="oe_highlight"/>
                     <button name="cancel_register" string="Cancel" states="draft"/>
@@ -89,7 +89,7 @@
 	                         <field name="date_due"/>
 	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    </group>
-                        <group name="pay.register" string="Payment Register">
+                        <group name="pay.register" string="Payment Detail">
                         	 <field name="date" on_change="onchange_date(date, company_id, context)"/>
 	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context)" />
                            	 <field name="account_id" invisible="1" readonly="0"/>	                         
@@ -153,14 +153,14 @@
         
    
 		<record id="action_payment_register" model="ir.actions.act_window">
-            <field name="name">Payment Register</field>
+            <field name="name">Payment Detail</field>
             <field name="res_model">payment.register</field>
             <field name="view_type">form</field>
             <field name="view_id" eval="False"/>
             <field name="target">current</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Payment Register should not be created manually!
+                Payment Detail should not be created manually!
               </p>
             </field>
         </record>

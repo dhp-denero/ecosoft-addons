@@ -12,9 +12,16 @@
                     <button name="action_cancel_draft" position="attributes">
                     	<attribute name="invisible">True</attribute>
                     </button>
+                    <button name="proforma_voucher" position="after">
+                    	<button name="create_payment_register" string="Create Payment Detail" type="object" class="oe_highlight"
+                    		attrs="{'invisible':['|',('is_paydetail_created','=',True),('state','!=','posted')]}" />
+                    </button>	
+                    <field name="journal_id" position="after">
+                    	<field name="is_paydetail_created" />
+                    </field>					
 					<xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="before">
-                      <page string="Payment Details">
-                            <field name="payment_details">
+                    	<page string="Payment Details">
+                            <field name="payment_details" attrs="{'readonly':[('is_paydetail_created', '=', True)]}" >
                                 <tree editable="bottom" string="Payment Details">
                                     <field name="name"/>
                                     <field name="type"/>

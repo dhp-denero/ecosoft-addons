@@ -59,12 +59,13 @@ class account_voucher(osv.osv):
     #_rec_name = 'number'
     _columns = {
         'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True),
-        'payment_details': fields.one2many('account.voucher.pay.detail', 'voucher_id', 'Payment Details', readonly=True, states={'draft':[('readonly',False)]}),
+        'payment_details': fields.one2many('account.voucher.pay.detail', 'voucher_id', 'Payment Details'),
         'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
             store = {
                 'account.voucher.pay.detail': (_get_account_voucher, None, 10),
             },
             multi='sums', help="The total amount."),
+        'is_paydetail_created': fields.boolean('Payment Details Created', readonly=True)
     }
     _defaults = {
         'journal_id': _get_journal,
@@ -77,40 +78,22 @@ class account_voucher(osv.osv):
         if context is None: context = {}
         return [(r['id'], r['number'] or '') for r in self.read(cr, uid, ids, ['number'], context, load='_classic_write')]
 
-#     def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
-#         res = super(account_voucher, self).onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
-#         # Dynamic domain filter for journal
-#         dom = {'journal_id':  [('id', 'in', 11)]}
-#         if res.get('domain', False):
-#             res['domain'].update(dom)
-#         else:
-#             res.update({'domain': dom})
-#         
-#         return res    
-
-    def proforma_voucher(self, cr, uid, ids, context=None):
-        
-        # Validate Payment and Payment Register Amount
-        this = self.browse(cr, uid, ids[0], context=context)
-        if this.type == 'receipt':
-            if (this.amount_total or 0.0) <> (this.amount or 0.0):
-                raise osv.except_osv(_('Unable to save!'), _('Total Amount in Payment Details must equal to Paid Amount'))
-
-        self.create_payment_register(cr, uid, ids, context=context)
-        super(account_voucher, self).action_move_line_create(cr, uid, ids, context=context)
-        
-        return super(account_voucher, self).proforma_voucher(cr, uid, ids, context=context)
-
-
     def create_payment_register(self, cr, uid, ids, context=None):
         
         if context is None:
             context = {}
+            
+        # Validate Payment and Payment Detail Amount
+        this = self.browse(cr, uid, ids[0], context=context)
+        if this.type == 'receipt':
+            if (this.amount_total or 0.0) <> (this.amount or 0.0):
+                raise osv.except_osv(_('Unable to save!'), _('Total Amount in Payment Details must equal to Paid Amount'))
+            
         payment_register_pool = self.pool.get('payment.register')
         for voucher in self.browse(cr, uid, ids, context=context):
             if voucher.type <> 'receipt': # Only on receipt case.
                 continue
-            # For each of the Payment Detail, create a new payment register.
+            # For each of the Payment Detail, create a new payment detail.
             period_pool = self.pool.get('account.period')
             ctx = context.copy()
             ctx.update({'company_id': voucher.company_id.id})
@@ -125,6 +108,8 @@ class account_voucher(osv.osv):
                         'period_id':pids and pids[0] or False,
                 }
                 payment_register_pool.create(cr, uid, res, context)
+                
+            self.write(cr, uid, [voucher.id], {'is_paydetail_created':True})
 
         return True
     
@@ -134,7 +119,7 @@ class account_voucher(osv.osv):
         for voucher in self.browse(cr, uid, ids, context=context):
             register_ids = payment_register_pool.search(cr, uid, [('voucher_id', '=', voucher.id),('state', '<>', 'cancel')], limit=1) 
             if register_ids: # if at least 1 record not cancelled, raise error
-                raise osv.except_osv(_('Error!'), _('You can not cancel this Payment.\nYou need to cancel all Payment Registers associate with this payment first.'))
+                raise osv.except_osv(_('Error!'), _('You can not cancel this Payment.\nYou need to cancel all Payment Details associate with this payment first.'))
         # Normal call
         res = super(account_voucher, self).cancel_voucher(cr, uid, ids, context=context)
         return res
