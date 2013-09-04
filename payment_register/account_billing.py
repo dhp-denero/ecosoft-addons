@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,34 +18,33 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+# TODO
+# - Only create Payment Register, if Type = Receipt
 
-{
-    'name' : 'Payment Register',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': "Extra step to normal Customer Payment, to register payment to appropriate payment channel",
-    'description': """
 
-    """,
-    'category': 'Accounting & Finance',
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['account_voucher','account_billing','customer_supplier_voucher'],
-    'demo' : [],
-    'data' : [
-            'security/ir.model.access.csv',
-            'payment_register_sequence.xml',
-            'payment_register_workflow.xml',
-            #'payment_register_report.xml',
-            'voucher_payment_receipt_view.xml',
-            'payment_register_view.xml',
-            'payment_register_data.xml',
-            'data/payment_register_data.xml'
-            ],
-    'test' : [],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
+import time
+from lxml import etree
+
+from openerp import netsvc
+from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
+from openerp.tools.translate import _
+
+class account_billing(osv.osv):
+    
+    def _get_journal(self, cr, uid, context=None):
+        # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'account_voucher', 'bank_intransit_journal')
+        return res and res[1] or False
+        
+    _inherit = 'account.journal'
+    _columns = {
+        'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True),                
+    }
+    _defaults = {
+        'journal_id': _get_journal,
+    }
+    
+account_billing()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

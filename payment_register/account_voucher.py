@@ -43,7 +43,6 @@ class account_voucher(osv.osv):
                 val += line.amount
             res[account_voucher.id]['amount_total'] = val
         return res
-
     
     def _get_account_voucher(self, cr, uid, ids, context=None):
         result = {}
@@ -51,9 +50,15 @@ class account_voucher(osv.osv):
             result[line.voucher_id.id] = True
         return result.keys()
     
+    def _get_journal(self, cr, uid, context=None):
+        # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'account_voucher', 'bank_intransit_journal')
+        return res and res[1] or False
+        
     _inherit = 'account.voucher'
     #_rec_name = 'number'
     _columns = {
+        'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True),
         'payment_details': fields.one2many('account.voucher.pay.detail', 'voucher_id', 'Payment Details', readonly=True, states={'draft':[('readonly',False)]}),
         'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
             store = {
@@ -61,6 +66,10 @@ class account_voucher(osv.osv):
             },
             multi='sums', help="The total amount."),
     }
+    _defaults = {
+        'journal_id': _get_journal,
+    }
+    
     
     def name_get(self, cr, uid, ids, context=None):
         if not ids:
@@ -68,7 +77,17 @@ class account_voucher(osv.osv):
         if context is None: context = {}
         return [(r['id'], r['number'] or '') for r in self.read(cr, uid, ids, ['number'], context, load='_classic_write')]
 
-    
+#     def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
+#         res = super(account_voucher, self).onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
+#         # Dynamic domain filter for journal
+#         dom = {'journal_id':  [('id', 'in', 11)]}
+#         if res.get('domain', False):
+#             res['domain'].update(dom)
+#         else:
+#             res.update({'domain': dom})
+#         
+#         return res    
+
     def proforma_voucher(self, cr, uid, ids, context=None):
         
         # Validate Payment and Payment Register Amount
