@@ -69,8 +69,11 @@ class sale_advance_payment_inv(osv.osv_memory):
         amount_deposit = 0.0
         if sale_id:
             sale = sale_obj.browse(cr, uid, sale_id)
-            
             advance_type = context.get('advance_type', False)
+            if advance_type:
+                if not sale.amount_net:
+                    raise osv.except_osv(_('Amount Error!'),
+                            _('This Sales Order has no values!'))
             if advance_type == 'advance':
                 # calculate the percentage of advancement
                 if wizard.advance_payment_method == 'percentage':
