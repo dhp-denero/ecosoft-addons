@@ -36,8 +36,7 @@ class account_billing(osv.osv):
         # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
         return res and res[1] or False
-        
-    _inherit = 'account.journal'
+    _inherit = 'account.billing'
     _columns = {
         'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True),                
     }
