@@ -232,7 +232,7 @@ class account_billing(osv.osv):
         'name':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
         'date':fields.date('Date', readonly=True, select=True, states={'draft':[('readonly',False)]}, help="Effective date for accounting entries"),
         'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True, states={'draft':[('readonly',False)]}),
-        'account_id':fields.many2one('account.account', 'Account', required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'account_id':fields.many2one('account.account', 'Account', required=False, readonly=True, states={'draft':[('readonly',False)]}),
         'line_ids':fields.one2many('account.billing.line','billing_id','Billing Lines', readonly=True, states={'draft':[('readonly',False)]}),
         'line_cr_ids':fields.one2many('account.billing.line','billing_id','Credits',
                                       context={'default_type':'cr'}, readonly=True, states={'draft':[('readonly',False)]}),
