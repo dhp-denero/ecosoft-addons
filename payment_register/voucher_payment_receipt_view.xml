@@ -50,6 +50,16 @@
             <field name="model">account.voucher</field>
             <field name="arch" type="xml">
                 <data>
+                    <button name="action_cancel_draft" position="attributes">
+                    	<attribute name="invisible">True</attribute>
+                    </button>
+                    <button name="proforma_voucher" position="after">
+                    	<button name="create_payment_register" string="Create Payment Detail" type="object" class="oe_highlight"
+                    		attrs="{'invisible':['|',('is_paydetail_created','=',True),('state','!=','posted')]}" />
+                    </button>	
+                    <field name="journal_id" position="after">
+                    	<field name="is_paydetail_created" />
+                    </field>	
                     <xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="before">
                       <page string="Payment Details">
                             <field name="payment_details">
@@ -72,6 +82,33 @@
                     </xpath>
                 </data>
             </field>
-        </record>       
+        </record>     
+
+
+        <record id="view_vendor_tree_ext" model="ir.ui.view">
+            <field name="name">view.vendor.tree.ext</field>
+            <field name="inherit_id" ref="account_voucher.view_voucher_tree" />
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <data>	
+                    <field name="state" position="before">
+                    	<field name="is_paydetail_created" string="Pay Details"/>
+                    </field>				
+                </data>
+            </field>
+        </record>  
+
+        <record id="view_voucher_filter_customer_pay_ext" model="ir.ui.view">
+            <field name="name">view.voucher.filter.customer.pay</field>
+            <field name="inherit_id" ref="account_voucher.view_voucher_filter_customer_pay" />
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <data>	
+                    <filter string="Posted" position="after">
+                    	<filter string="Pay Details" domain="[('is_paydetail_created','=',True)]" help="Payment Details has been created"/>
+                    </filter>
+                </data>
+            </field>
+        </record>  
     </data>
 </openerp>
