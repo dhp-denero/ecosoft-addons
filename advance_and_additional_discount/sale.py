@@ -88,6 +88,18 @@ class sale_order(AdditionalDiscountable, osv.osv):
     _defaults = {
             'add_disc': 0.0,
         }
+    
+    def copy(self, cr, uid, id, default=None, context=None):
+        if not default:
+            default = {}
+        default.update({
+            'advance_type': False,
+            'amount_deposit': False,
+            'advance_percentage': False,
+            'retention_percentage': False,
+        })
+        return super(sale_order, self).copy(cr, uid, id, default, context=context)
+
 
     def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
         """Add a discount in the invoice after creation, and recompute the total
