@@ -37,13 +37,17 @@ class stock_location_product(osv.osv_memory):
         if location_products:
             res['context'].update({'reorder_flag':location_products[0]['reorder_flag']})
             
+        
       
         if not res.get('domain',False): 
             res['domain'] =[]
             
         if location_products[0]['reorder_flag']:        
+            location_obj=  shop_obj = self.pool.get('product.product')
+            location_ids = location_obj._get_location(cr, uid, ids, context=res['context'])
+        
             # Data filter only "Reorder Point Rule"     
-            res['domain']+=[tuple(['orderpoint_ids','<>',False])]
+            res['domain']+=[tuple(['orderpoint_ids','<>',False])]+[tuple(['orderpoint_ids.location_id','in',location_ids])]
         return res
 stock_location_product()
 
