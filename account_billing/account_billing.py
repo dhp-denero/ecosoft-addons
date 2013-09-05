@@ -506,6 +506,10 @@ class account_billing(osv.osv):
         return vals
 
     def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, date, context=None):
+        if context is None:
+            context = {}
+        # Additional Condition for Matching Billing Date
+        context.update({'billing_date_condition': ['|',('date_maturity', '=', False),('date_maturity', '<=', date)]})
         if not journal_id:
             return {}
         res = self.recompute_billing_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, date, context=context)
@@ -542,6 +546,7 @@ class account_billing(osv.osv):
 
         if context is None:
             context = {}
+        billing_date_condition = context.get('billing_date_condition', [])
         context_multi_currency = context.copy()
         if date:
             context_multi_currency.update({'date': date})
@@ -587,7 +592,7 @@ class account_billing(osv.osv):
         if not context.get('move_line_ids', False):
             ids = move_line_pool.search(cr, uid, 
                                         [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id), 
-                                         '|',('date_maturity', '=', False),('date_maturity', '<=', date)], 
+                                         ] + billing_date_condition, 
                                         context=context)
         else:
             ids = context['move_line_ids']
