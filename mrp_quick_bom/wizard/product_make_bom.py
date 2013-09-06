@@ -60,19 +60,19 @@ class product_make_bom(osv.osv_memory):
         if not bom_id:
             return False
 
-        res = mod_obj.get_object_reference(cr, uid, 'mrp', 'mrp_bom_form_view')
+        res = mod_obj.get_object_reference(cr, uid, 'product', 'product_normal_form_view')
         res_id = res and res[1] or False,
 
         return {
-            'name': _('Bill of Material'),
+            'name': _('Product'),
             'view_type': 'form',
             'view_mode': 'form',
             'view_id': res_id,
-            'res_model': 'mrp.bom',
+            'res_model': 'product.product',
             'type': 'ir.actions.act_window',
             'nodestroy': True,
             'target': 'current',
-            'res_id': bom_id or False,
+            'res_id': product_id or False,
         } 
 
 product_make_bom()
