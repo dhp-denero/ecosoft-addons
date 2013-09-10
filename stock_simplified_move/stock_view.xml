@@ -87,7 +87,7 @@
                     <h1>
                         <field name="name" class="oe_inline" attrs="{'invisible': [('name','=','/')]}" readonly="1"/>
 	                    <div class="oe_right oe_button_box">
-	                        <button name="%(stock_fill_internal_move_line.action_view_stock_fill_move)d" string="Fill Move Lines" states="draft" type="action" context="{'move_type':'out','location_id': location_id, 'location_dest_id': location_dest_id}"/>
+	                        <button name="%(stock_fill_internal_move_line_by_origin.action_view_stock_fill_move)d" string="Fill Move Lines" states="draft" type="action" context="{'move_type':'out','location_id': location_id, 'location_dest_id': location_dest_id}"/>
 	                    </div>                    
                     </h1>
                     <group>
