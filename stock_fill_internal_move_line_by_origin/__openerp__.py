@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,26 +20,27 @@
 ##############################################################################
 
 {
-    'name' : 'Simplified Internal Move',
+    'name' : 'Fill Internal Move Lines by Origin',
     'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Internal Move in Simplified Way',
+    'author' : 'Kitti U.',
+    'summary': 'Auto create move lines based on available products at origin',
     'description': """
-    
-Reduce user mistake in 2 ways,
-* Location and location destination first, then all the lines will follows, no need to specify location line by line.
-* List of available locations based on allowed locations in User page.
 
+This module add new button "Fill move lines" in Internal Move.
+The filled line will be based on available products at origin.
+    
     """,
     'category': 'Warehouse Management',
-    'sequence': 16,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['base','web_m2o_enhanced','stock','stock_fill_internal_move_line_by_origin'],
+    'depends' : ['web_m2o_enhanced','stock','sale_stock'],
     'demo' : [],
-    'data' : ['stock_view.xml',
-              ],
-    'test' : [],
+    'data' : [
+        'wizard/stock_fill_move_view.xml',
+        'stock_view.xml',
+    ],  
+    'test' : [
+    ],
     'auto_install': False,
     'application': True,
     'installable': True,

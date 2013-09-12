@@ -20,26 +20,28 @@
 ##############################################################################
 
 {
-    'name' : 'Simplified Internal Move',
+    'name' : 'Quick BOM and MO',
     'version' : '1.0',
     'author' : 'Ecosoft',
-    'summary': 'Internal Move in Simplified Way',
+    'summary': 'Allows quick creation of BOM and MO from selected products',
     'description': """
-    
-Reduce user mistake in 2 ways,
-* Location and location destination first, then all the lines will follows, no need to specify location line by line.
-* List of available locations based on allowed locations in User page.
+
+This module allows quick creation of BOM and MO from selected products.
+* From Product page, user selects multiple products, new menu action "Create Product/BOM" will appears, 
+* After new Product/BOM is created, user will be redirected to BOM page.
+* In BOM page, user will modify quantities of components, and click button "Create MO"
 
     """,
-    'category': 'Warehouse Management',
-    'sequence': 16,
+    'category': 'MRP',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['base','web_m2o_enhanced','stock','stock_fill_internal_move_line_by_origin'],
+    'depends' : ['mrp'],
     'demo' : [],
-    'data' : ['stock_view.xml',
-              ],
-    'test' : [],
+    'data' : [
+              'wizard/product_make_bom_view.xml'
+    ],
+    'test' : [
+    ],
     'auto_install': False,
     'application': True,
     'installable': True,

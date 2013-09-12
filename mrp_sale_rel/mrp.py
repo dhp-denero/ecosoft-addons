@@ -36,10 +36,12 @@ class mrp_production(osv.osv):
             parent = len(origin) > 1 and origin[1] or ''
             if order and order != '':
                 cr.execute('select id from sale_order where name=%s order by id desc', (order,))
-                order_id = cr.fetchone()[0] or False
+                res = cr.fetchone()
+                order_id = res and res[0] or False
             if parent and parent != '':
                 cr.execute('select id from mrp_production where name=%s order by id desc', (parent,))
-                parent_id = cr.fetchone()[0] or False    
+                res = cr.fetchone()
+                parent_id = res and res[0] or False    
         return order_id, parent_id
         
     _columns = {

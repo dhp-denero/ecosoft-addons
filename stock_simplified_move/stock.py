@@ -29,8 +29,9 @@ class stock_picking(osv.osv):
 
     _columns = {
         'create_uid':  fields.many2one('res.users', 'Creator', readonly=True),
+        'product_categ_id': fields.many2one('product.category', 'Product Category'),
     }
-
+    
     def write(self, cr, uid, ids, vals, context=None):
         if not isinstance(ids, types.ListType): # Ensure it is a list before proceeding.
             ids = [ids]        
@@ -69,6 +70,15 @@ class stock_move(osv.osv):
         'location_dest_id': _default_location_destination,
     }
     
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        if context == None:
+            context = {}
+        res = super(stock_move,self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
+        if context.get('product_categ_id', False):
+            if res['fields'].get('product_id', False):
+                res['fields']['product_id']['domain'] = [('categ_id','child_of',context.get('product_categ_id', False))]
+        return res 
+        
     def onchange_move_type(self, cr, uid, ids, type, context=None):
         if context.get('simplified_move', False):
             return True

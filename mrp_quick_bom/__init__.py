@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,30 +19,7 @@
 #
 ##############################################################################
 
-{
-    'name' : 'Simplified Internal Move',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Internal Move in Simplified Way',
-    'description': """
-    
-Reduce user mistake in 2 ways,
-* Location and location destination first, then all the lines will follows, no need to specify location line by line.
-* List of available locations based on allowed locations in User page.
-
-    """,
-    'category': 'Warehouse Management',
-    'sequence': 16,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['base','web_m2o_enhanced','stock','stock_fill_internal_move_line_by_origin'],
-    'demo' : [],
-    'data' : ['stock_view.xml',
-              ],
-    'test' : [],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
+import mrp
+import wizard
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
