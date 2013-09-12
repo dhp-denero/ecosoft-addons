@@ -20,6 +20,7 @@
 ##############################################################################
 
 import sale_make_invoice_advance
+import purchase_make_invoice_advance
 import sale_line_invoice
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
