@@ -56,6 +56,9 @@ class account_voucher(osv.osv):
         if type and type == 'receipt':
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
             return res and res[1] or False
+        else:
+            res = self._make_journal_search(cr, uid, 'bank', context=context)
+            return res and res[0] or False              
         return False
             
     _inherit = 'account.voucher'
