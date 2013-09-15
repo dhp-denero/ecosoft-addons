@@ -52,13 +52,16 @@ class account_voucher(osv.osv):
     
     def _get_journal(self, cr, uid, context=None):
         # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
-        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
-        return res and res[1] or False
-        
+        type = context.get('type', 'receipt')
+        if type == 'receipt':
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
+            return res and res[1] or False
+        return False
+            
     _inherit = 'account.voucher'
     #_rec_name = 'number'
     _columns = {
-        'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=True),
+        'journal_id':fields.many2one('account.journal', 'Journal', required=True, readonly=False),
         'payment_details': fields.one2many('account.voucher.pay.detail', 'voucher_id', 'Payment Details'),
         'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
             store = {

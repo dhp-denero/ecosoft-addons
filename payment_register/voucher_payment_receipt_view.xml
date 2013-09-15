@@ -16,7 +16,10 @@
                     	<button name="create_payment_register" string="Create Payment Detail" type="object" class="oe_highlight"
                     		attrs="{'invisible':['|',('is_paydetail_created','=',True),('state','!=','posted')]}" />
                     </button>	
-                    <field name="journal_id" position="after">
+                    <field name="journal_id" position="attributes">
+                    	<attribute name="readonly">True</attribute>
+                    </field>	
+					<field name="journal_id" position="after">
                     	<field name="is_paydetail_created" />
                     </field>					
 					<xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="before">
