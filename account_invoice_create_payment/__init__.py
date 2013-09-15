@@ -19,29 +19,8 @@
 #
 ##############################################################################
 
-{
-    'name' : 'Invoice(s) Receipt Confirm ',
-    'version' : '1.0',
-    'author' : 'DBuasri',
-    'summary': 'Confirm Receipt the all the selected open invoices',
-    'description': """
-        The selected invoice(s) is open status and company same.
-        This module same as receipt in account voucher module
-     """,
-    'category': 'Accounting & Finance',
-    'sequence': 4,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['account_voucher'],
-    'demo' : [],
-    'data' : [
-        'account_voucher_receipt_view.xml',
-    ],
-    'test' : [
-    ],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
-
+import account_voucher
+import wizard
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+
