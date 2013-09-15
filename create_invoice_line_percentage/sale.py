@@ -47,7 +47,7 @@ class sale_order_line(osv.osv):
                 all(iline.invoice_id.state != 'cancel' for iline in this.invoice_lines) 
         return res
     
-    # A complete overwrite method. We need it hear because it is called from a function field.
+    # A complete overwrite method. We need it here because it is called from a function field.
     def _order_lines_from_invoice(self, cr, uid, ids, context=None):
         # direct access to the m2m table is the less convoluted way to achieve this (and is ok ACL-wise)
         cr.execute("""SELECT DISTINCT sol.id FROM sale_order_invoice_rel rel JOIN

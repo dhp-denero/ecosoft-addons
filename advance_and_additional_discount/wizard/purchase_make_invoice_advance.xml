@@ -14,7 +14,7 @@
                         before validation.
                     </p>
                     <group>
-                        <field name="advance_payment_method" class="oe_inline"/>
+                        <field name="advance_payment_method" required="True" class="oe_inline"/>
                         <label for="amount" attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}"/>
                         <div attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}">
                             <field name="amount"

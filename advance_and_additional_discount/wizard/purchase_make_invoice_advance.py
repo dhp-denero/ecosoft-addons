@@ -29,7 +29,7 @@ class purchase_advance_payment_inv(osv.osv_memory):
     _columns = {
         'advance_payment_method':fields.selection(
             [('percentage','Percentage'), ('fixed','Fixed price (deposit)')],
-            'What do you want to invoice?', required=True,
+            'What do you want to invoice?', required=False,
             help="""Use Percentage to invoice a percentage of the total amount.
                 Use Fixed Price to invoice a specific amount in advance."""),
         'amount': fields.float('Amount', digits_compute= dp.get_precision('Account'),
