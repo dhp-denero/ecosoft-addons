@@ -196,7 +196,10 @@ class account_voucher(osv.osv):
                                                       ], context=context)
         # -- kittiu
             else:
-                invoice_date_condition = ['|',('date_maturity', '=', False),('date_maturity', '<=', date)]
+                # For Supplier Payment, also check date.
+                invoice_date_condition = []
+                if ttype == 'payment':
+                    invoice_date_condition = ['|',('date_maturity', '=', False),('date_maturity', '<=', date)]
                 ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id)]
                                                         + invoice_date_condition, context=context)
         else:
