@@ -23,6 +23,7 @@ import account
 import account_invoice
 import account_voucher
 import sale
+import purchase
 import res_partner
 
 
