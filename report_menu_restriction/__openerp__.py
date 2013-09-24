@@ -28,7 +28,8 @@
 
 Adding report restrict on menu listing based on specified views.
 Working with account.invoice and account.voucher only.
-
+New invisible name field ,add condition for restrict report on menu listing, it's compile with eval function of Python 
+Overriding get_actions in "ir.values" class,It will remove report object if condition in invisible field be true
     """,
     'category': 'Reports',
     'website' : 'http://www.ecosoft.co.th',
