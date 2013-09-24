@@ -19,12 +19,30 @@
 #
 ##############################################################################
 
-import account
-import account_invoice
-import account_voucher
-import sale
-import purchase
-import res_partner
-
+{
+    'name' : "Partner and Attention field in SO/PO",
+    'author' : 'Kitti U.',
+    'summary': '',
+    'description': """
+Features
+========
+* Supplier/Customer field to show only Partner marked as Company
+* New Contact field to show contact on selected Supplier/Contact
+""",
+    'category': 'Sales Management',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['web_m2o_enhanced','purchase','sale'],
+    'demo' : [],
+    'data' : [
+        'purchase_view.xml',
+        'sale_view.xml',
+    ],
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -19,12 +19,17 @@
 #
 ##############################################################################
 
-import account
-import account_invoice
-import account_voucher
-import sale
-import purchase
-import res_partner
+import netsvc
+from osv import osv, fields
+
+class sale_order(osv.osv):
+
+    _inherit = "sale.order"
+    _columns = {
+        'ref_contact_id': fields.many2one('res.partner', 'Contact',  domain="[('parent_id','=', partner_id)]", readonly=False),
+    }
+    
+sale_order()
 
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

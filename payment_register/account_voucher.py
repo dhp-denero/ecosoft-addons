@@ -52,10 +52,13 @@ class account_voucher(osv.osv):
     
     def _get_journal(self, cr, uid, context=None):
         # Ignore the more complex account_voucher._get_journal() and simply return Bank in tansit journal.
-        type = context.get('type', 'receipt')
-        if type == 'receipt':
+        type = context.get('type', False)
+        if type and type == 'receipt':
             res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'payment_register', 'bank_intransit_journal')
             return res and res[1] or False
+        else:
+            res = self._make_journal_search(cr, uid, 'bank', context=context)
+            return res and res[0] or False              
         return False
             
     _inherit = 'account.voucher'
