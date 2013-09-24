@@ -30,34 +30,25 @@ class product_product(osv.osv):
         if not args:
             args = []
         if name:
-            # kittiu: For easy default code search
-            #ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
-            ids = self.search(cr, user, [('default_code',operator,name+'%')]+ args, limit=limit, context=context)
-            # --kittiu:
+            # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
+            # on a database with thousands of matching products, due to the huge merge+unique needed for the
+            # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
+            # Performing a quick memory merge of ids in Python will give much better performance
+            ids = set()
+            ids.update(self.search(cr, user, args + [('default_code',operator,name)], limit=limit, context=context))
+            if not limit or len(ids) < limit:
+                words = name.split(' ')
+                xargs = []
+                for word in words:
+                    if len(word.replace(' ','')) > 0:
+                        xargs += [('name',operator,word.replace(' ',''))]
+                ids = set()
+                ids.update(self.search(cr, user, args + xargs, limit=(limit and (limit-len(ids)) or False) , context=context))
+            ids = list(ids)
+            # D Code
+            ids += self.search(cr, user, [('default_code',operator,name+'%')]+ args, limit=limit, context=context)
             if not ids:
                 ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
-            if not ids:
-                # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
-                # on a database with thousands of matching products, due to the huge merge+unique needed for the
-                # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
-                # Performing a quick memory merge of ids in Python will give much better performance
-                ids = set()
-                ids.update(self.search(cr, user, args + [('default_code',operator,name)], limit=limit, context=context))
-                if not limit or len(ids) < limit:
-                    # we may underrun the limit because of dupes in the results, that's fine
-                    # Start kittiu
-                    words = name.split(' ')
-                    xargs = []
-                    for word in words:
-                        if len(word.replace(' ','')) > 0:
-                            xargs += [('name',operator,word.replace(' ',''))]
-                    # End kittiu
-                    ids = set()
-                    # start kittiu
-                    #ids.update(self.search(cr, user, args + [('name',operator,name)], limit=(limit and (limit-len(ids)) or False) , context=context))
-                    ids.update(self.search(cr, user, args + xargs, limit=(limit and (limit-len(ids)) or False) , context=context))
-                    # end kittiu
-                ids = list(ids)
             if not ids:
                 ptrn = re.compile('(\[(.*?)\])')
                 res = ptrn.search(name)
