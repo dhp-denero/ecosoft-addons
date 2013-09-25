@@ -7,6 +7,9 @@
             <field name="model">ir.actions.report.xml</field>
             <field name="arch" type="xml">
                 <data>
+                    <field name="report_file" position="after">
+                    	<field name="invisible" />
+                    </field>
                     <page string="Security" position="after">
                         <page string="Views" attrs="{'invisible': [('model','not in',('account.invoice','account.voucher'))]}">
                             <label string="For Invoice (account.invoice) and Payment (account.voucher), you can restrict views for this report."/>
