@@ -45,8 +45,9 @@ class product_product(osv.osv):
                 ids = set()
                 ids.update(self.search(cr, user, args + xargs, limit=(limit and (limit-len(ids)) or False) , context=context))
             ids = list(ids)
-            # D Code
-            ids += self.search(cr, user, [('default_code',operator,name+'%')]+ args, limit=limit, context=context)
+            # Default Code
+            code_ids = self.search(cr, user, [('default_code',operator,name+'%')]+ args, limit=limit, context=context)
+            ids = list(set(ids + code_ids))
             if not ids:
                 ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
             if not ids:
