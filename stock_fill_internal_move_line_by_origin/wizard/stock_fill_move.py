@@ -99,7 +99,7 @@ class stock_fill_move(osv.osv_memory):
                 'location_dest_id': fill_move.location_dest_id.id,
             }
 
-            if res.get('product_qty') != 0:
+            if res.get('product_qty') > 0:
                 move_obj.create(cr, uid, res)
 
         return {'type': 'ir.actions.act_window_close'}
