@@ -394,7 +394,7 @@ class account_voucher_tax(osv.osv):
             # Each voucher line is equal to an invoice, we will need to go through all of them.
             if voucher_line.move_line_id.invoice:
                 
-                payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / voucher_line.amount_original)
+                payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / (voucher_line.amount_original or 1))
                                 
                 for line in voucher_line.move_line_id.invoice.invoice_line:
                     # Each invoice line, calculate tax
