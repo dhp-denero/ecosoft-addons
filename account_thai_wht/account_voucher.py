@@ -72,7 +72,7 @@ class account_voucher(osv.osv):
                     if tax_obj.browse(cr, uid, tax['id']).is_wht:
                         original_wht_amt += tax['amount']
         # Payment Ratio
-        payment_ratio = amount_original == 0.0 and 0.0 or (float(amount) / float(amount_original-original_wht_amt))
+        payment_ratio = amount_original == 0.0 and 0.0 or (float(amount) / (float(amount_original-original_wht_amt) or 1))
         amount_wht += original_wht_amt * payment_ratio
         return float(amount), float(amount_wht)
         
@@ -292,7 +292,7 @@ class account_voucher_line(osv.osv):
                     if tax_obj.browse(cr, uid, tax['id']).is_wht:
                         original_wht_amt += tax['amount']
         # Payment Ratio
-        payment_ratio = amount_original == 0.0 and 0.0 or (float(amount) / float(amount_original))
+        payment_ratio = amount_original == 0.0 and 0.0 or (float(amount) / (float(amount_original) or 1))
         amount_wht += original_wht_amt * payment_ratio
         return float(amount), float(amount_wht)
 
