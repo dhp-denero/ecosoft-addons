@@ -23,6 +23,7 @@ import netsvc
 from osv import osv, fields
 from tools.translate import _
 import openerp.addons.decimal_precision as dp
+from lxml import etree
 #class product_category(osv.osv):
 #    
 #    _inherit = "product.category"
@@ -136,6 +137,22 @@ class product_product(osv.osv):
 #         res.update(summary)
             
         return res
+    
+    #Overriding from product_product Class
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        
+        result = super(product_product, self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
+        if not context:
+            context={}
+            
+        doc = etree.XML(result['arch'])
+        for node in doc.xpath("//tree[@string='Products']"):            
+            if context.get('reorder_flag',False) : #Set red color if QTY of product less than reorder point
+                node.set('colors', "red:qty_diff_reroder and qty_diff_reroder<0;blue:virtual_available>=0 and state in ('draft', 'end', 'obsolete');black:virtual_available>=0 and state not in ('draft', 'end', 'obsolete')")
+        result['arch'] = etree.tostring(doc)
+ 
+
+        return result
     
     _inherit = "product.product"
     _columns = {
