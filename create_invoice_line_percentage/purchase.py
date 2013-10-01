@@ -72,7 +72,7 @@ class purchase_order_line(osv.osv):
         res = dict.fromkeys(ids, False)
         uom_obj = self.pool.get('product.uom')
         for this in self.browse(cr, uid, ids, context=context):
-            if this.product_id:
+            if this.product_id and not this.product_uos: # TODO: uos case is not covered yet.
                 oline_qty = uom_obj._compute_qty(cr, uid, this.product_uom.id, this.product_qty, this.product_id.uom_id.id)
                 iline_qty = 0.0
                 for iline in this.invoice_lines:

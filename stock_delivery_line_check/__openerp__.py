@@ -19,9 +19,26 @@
 #
 ##############################################################################
 
-import purchase
-import product
-import stock
-import purchase_requisition
+{
+    'name' : 'Delivery Line Check',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Check availability for each product line before deliver',
+    'description': """
+
+    """,
+    'category': 'Warehouse Management',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['stock'],
+    'demo' : [],
+    'data' : [
+    ],  
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

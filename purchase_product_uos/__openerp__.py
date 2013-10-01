@@ -33,12 +33,13 @@ This addon is not full feature, will apply concept of UOS only in the following 
 * New UOS and UOS Qty in PUrchase Order Line.
 * In Purchase Order Line, Purchase UOM will not apply to the default UOM as per existing functionality, but instead to the new UOS field.
 * Incoming Shipment now have new UOS Qty column. It only use for documentation.
+* Support when working with Purchase Requisition
 
     """,
     'category': 'Purchase',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['product','sale','purchase'],
+    'depends' : ['product','sale','purchase','purchase_requisition'],
     'demo' : [],
     'data' : [
               'product_data.xml',

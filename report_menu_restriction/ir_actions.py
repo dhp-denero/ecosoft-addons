@@ -28,8 +28,8 @@ class report_xml(osv.osv):
     _inherit = 'ir.actions.report.xml'
     _columns = {
         'views_id': fields.many2many('ir.ui.view', 'res_views_report_rel', 'uid', 'view_id', 'Views', domain="[('model','=',model),('inherit_id','=',False),('type','in',('tree','form'))]"),
-        'invisible': fields.char('Domain Value', size=250,
-            help="Optional domain filtering of the destination data, as a Python expression"),
+        'invisible': fields.char('Invisible Condition', size=250,
+            help="Optional invisible condition as a Python expression, i.e., not context.get('search_default_available',False)"),
     }
 
 report_xml()
