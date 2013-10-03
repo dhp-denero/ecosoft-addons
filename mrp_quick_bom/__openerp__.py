@@ -30,6 +30,7 @@ This module allows quick creation of BOM and MO from selected products.
 * From Product page, user selects multiple products, new menu action "Create Product/BOM" will appears, 
 * After new Product/BOM is created, user will be redirected to BOM page.
 * In BOM page, user will modify quantities of components, and click button "Create MO"
+* From Product page, add new Create Product/BOM button. This will create BOM based on Order Lines.
 
     """,
     'category': 'MRP',
@@ -38,7 +39,8 @@ This module allows quick creation of BOM and MO from selected products.
     'depends' : ['mrp'],
     'demo' : [],
     'data' : [
-              'wizard/product_make_bom_view.xml'
+              'wizard/product_make_bom_view.xml',
+              'sale_view.xml'
     ],
     'test' : [
     ],

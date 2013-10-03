@@ -19,23 +19,18 @@
 #
 ##############################################################################
 
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-import time
-from openerp import pooler
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-import openerp.addons.decimal_precision as dp
 from openerp import netsvc
 
 class mrp_bom(osv.osv):
     
     _inherit = "mrp.bom"
     
-    def action_product_bom_create(self, cr, uid, ids, data, context=None):
+    def action_product_bom_create(self, cr, uid, product_ids, data, context=None):
         if context == None:
             context = {}
+        products = context.get('products', False)
         product_obj = self.pool.get('product.product')
         # Create product
         product_id = product_obj.create(cr, uid, {
@@ -61,16 +56,39 @@ class mrp_bom(osv.osv):
             })
         
         # Create BOM Line
-        for product in product_obj.browse(cr, uid, ids):
+        for product in product_obj.browse(cr, uid, product_ids):
             self.create(cr, uid, {
                     'bom_id': bom_id,
                     'product_id': product.id,       
                     'name': product.name,
-                    'product_qty': 1.0,
-                    'product_uom': product.uom_id.id,
+                    'product_qty': products and products[product.id] and products[product.id]['product_qty'] or 1.0,
+                    'product_uom': products and products[product.id] and products[product.id]['product_uom'] or product.uom_id.id,
                     'type': 'normal',
                 })
         return product_id, bom_id
+    
+    # Create from Order Line
+    def action_product_bom_create_from_order_line(self, cr, uid, order_ids, data, context=None):
+        if context == None:
+            context = {}
+        # Get list of products
+        assert len(order_ids) == 1, 'This option should only be used for a single id at a time.'
+        order = self.pool.get('sale.order').browse(cr, uid, order_ids[0])
+        ids = []
+        products = {}
+        for line in order.order_line:
+            if line.product_id:
+                ids.append(line.product_id.id)
+                products[line.product_id.id] = {
+                                        'name': line.product_id.name,
+                                        'product_qty': line.product_uom_qty,
+                                        'product_uom': line.product_uom.id,
+                                        }
+        if len(ids) == 0:
+            raise osv.except_osv(_('Error!'), _('No Product Lines!'))
+        ctx = context.copy()
+        ctx.update({'products': products})
+        return self.action_product_bom_create(cr, uid, ids, data, context=ctx)
 
 mrp_bom()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

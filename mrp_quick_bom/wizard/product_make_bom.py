@@ -55,8 +55,10 @@ class product_make_bom(osv.osv_memory):
         if context is None:
             context = {}
         data = self.read(cr, uid, ids)[0]
-        product_id, bom_id = mrp_obj.action_product_bom_create(cr, uid, context.get(('active_ids'), []), data, context=context)
-
+        if context.get('active_model') == 'sale.order': # created from sales order line
+            product_id, bom_id = mrp_obj.action_product_bom_create_from_order_line(cr, uid, context.get(('active_ids'), []), data, context=context)
+        elif context.get('active_model') == 'product.product': # created from product_line
+            product_id, bom_id = mrp_obj.action_product_bom_create(cr, uid, context.get(('active_ids'), []), data, context=context)
         if not bom_id:
             return False
 
