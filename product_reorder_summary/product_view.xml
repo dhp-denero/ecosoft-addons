@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
-        <record id="product_product_tree_view_ext" model="ir.ui.view">
-            <field name="name">product.product.tree_ext</field>
+    <data>        
+        <record id="product_reorder_tree_view" model="ir.ui.view">
+            <field name="name">product.reorder.tree_ext</field>
             <field name="model">product.product</field>
             <field name="inherit_id" ref="product.product_product_tree_view"/>
-            <field eval="7" name="priority"/>
-            <field name="arch" type="xml">
-            	<xpath expr="//tree[@string='Products']" position="attributes">
-					<attribute name="colors">red:virtual_available&lt;0 or qty_diff_reroder and qty_diff_reroder&lt;0;blue:virtual_available&gt;=0 and state in ('draft', 'end', 'obsolete');black:virtual_available&gt;=0 and state not in ('draft', 'end', 'obsolete') </attribute>
-				</xpath>            	
+            <field eval="8" name="priority"/>
+            <field name="arch" type="xml">    	
             	<xpath expr="/tree/field[@name='qty_available']" position="after">
-                  <field name="qty_reorder"/> 
-                  <field name="qty_diff_reroder"/>  	             	  
+                  <field name="qty_reorder" invisible="not context.get('reorder_flag',False)"/> 
+                  <field name="qty_diff_reroder" invisible="not context.get('reorder_flag',False)"/>  	             	  
 				</xpath>           					
             </field>
         </record>
