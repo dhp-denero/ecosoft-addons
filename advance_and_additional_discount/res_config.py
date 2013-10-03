@@ -30,6 +30,8 @@ _logger = logging.getLogger(__name__)
 class account_config_settings(osv.osv_memory):
     _inherit = 'account.config.settings'
     _columns = {
+        'property_account_add_disc_customer': fields.many2one('account.account', 'Account Additional Discount Customer'),
+        'property_account_add_disc_supplier': fields.many2one('account.account', 'Account Additional Discount Supplier'),
         'property_account_advance_customer': fields.many2one('account.account', 'Account Advance Customer'),
         'property_account_advance_supplier': fields.many2one('account.account', 'Account Advance Supplier'),
         'property_account_deposit_customer': fields.many2one('account.account', 'Account Deposit Customer'),
@@ -44,6 +46,8 @@ class account_config_settings(osv.osv_memory):
         property_obj = self.pool.get('ir.property')
         field_obj = self.pool.get('ir.model.fields')
         todo_list = [
+            ('property_account_add_disc_customer','res.partner','account.account'),
+            ('property_account_add_disc_supplier','res.partner','account.account'),
             ('property_account_advance_customer','res.partner','account.account'),
             ('property_account_advance_supplier','res.partner','account.account'),
             ('property_account_deposit_customer','res.partner','account.account'),
@@ -75,6 +79,8 @@ class account_config_settings(osv.osv_memory):
         ir_property_obj = self.pool.get('ir.property')
         fiscal_obj = self.pool.get('account.fiscal.position')
         todo_list = [
+            ('property_account_add_disc_customer','res.partner'),
+            ('property_account_add_disc_supplier','res.partner'),
             ('property_account_advance_customer','res.partner'),
             ('property_account_advance_supplier','res.partner'),
             ('property_account_deposit_customer','res.partner'),
@@ -90,26 +96,5 @@ class account_config_settings(osv.osv_memory):
             account_id = fiscal_obj.map_account(cr, uid, False, prop_id)
             res.update({record[0]: account_id})
         return res   
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        ir_property_obj = self.pool.get('ir.property')
-        prop = ir_property_obj.get(cr, uid,
-                    'property_account_advance_customer', 'res.partner', context=context)
-        prop_id = prop and prop.id or False
-
-        ir_values = self.pool.get('ir.values')
-        config = self.browse(cr, uid, ids[0], context)
-        ir_values.set_default(cr, uid, 'account.account', 'property_account_advance_customer', config.property_account_advance_customer)
-        ir_values.set_default(cr, uid, 'account.account', 'property_account_advance_supplier', config.property_account_advance_supplier)
-
+    
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

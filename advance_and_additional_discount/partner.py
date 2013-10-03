@@ -28,6 +28,27 @@ class res_partner(osv.osv):
     _inherit = 'res.partner'
 
     _columns = {
+        'property_account_add_disc_customer': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Additional Discount Customer",
+            view_load=True,
+            domain="[('type', '=', 'payable')]",
+            help="This account will be used instead of the default one as the additional discount account for the current partner",
+            required=True,
+            readonly=True),
+        'property_account_add_disc_supplier': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Additional Discount Supplier",
+            view_load=True,
+            domain="[('type', '=', 'receivable')]",
+            help="This account will be used instead of the default one as the additional discount account for the current partner",
+            required=True,
+            readonly=True),
+                
         'property_account_advance_customer': fields.property(
             'account.account',
             type='many2one',

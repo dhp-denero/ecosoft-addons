@@ -9,7 +9,20 @@
             <field name="arch" type="xml">
                 <field name="purchase_refund_journal_id" position="after">
                     <separator string="Accounting"/>
-                    <group name="account_advance">
+                    <group name="account_add_disc">
+                        <label for="id" string="Account Additional Discount"/>
+                        <div>
+		                    <div>
+		                        <label string="Customer"/>
+		                        <field name="property_account_add_disc_customer" class="oe_inline"/>
+		                    </div>
+		                    <div>
+		                        <label string="Supplier"/>
+		                        <field name="property_account_add_disc_supplier" class="oe_inline"/>
+		                    </div>
+                        </div>
+                    </group>  
+					<group name="account_advance">
                         <label for="id" string="Account Advance"/>
                         <div>
 		                    <div>

@@ -152,23 +152,48 @@ class account_invoice_line(osv.osv):
         'is_deposit': False,             
     }
     
-    def move_line_get_item(self, cr, uid, line, context=None):
-        res = super(account_invoice_line, self).move_line_get_item(cr, uid, line, context=context)
-        price = res['price']
-        res.update({'price': price * (100.0 - (line.invoice_id.add_disc or 0.0))/100.0})
-        return res
+#     def move_line_get_item(self, cr, uid, line, context=None):
+#         cur_pool = self.pool.get('res.currency')
+#         res = super(account_invoice_line, self).move_line_get_item(cr, uid, line, context=context)
+#         price = res['price']
+#         new_price = cur_pool.round(cr, uid, line.invoice_id.currency_id, (price * (100.0 - (line.invoice_id.add_disc or 0.0))/100.0))
+#         res.update({'price': new_price})
+#         return res
     
     # kittiu: also dr/cr advance, force creating new move_line
     def move_line_get(self, cr, uid, invoice_id, context=None):
         
         res = super(account_invoice_line,self).move_line_get(cr, uid, invoice_id, context=context)
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
+        
+        if inv.add_disc_amt > 0.0:        
+            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+            # account code for advance
+            prop = inv.type in ('out_invoice','out_refund') \
+                        and self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_customer', 'res.partner', context=context) \
+                        or self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_supplier', 'res.partner', context=context)
+            prop_id = prop and prop.id or False
+            account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
+    
+            res.append({
+                'type':'src',
+                'name': _('Additional Discount'),
+                'price_unit':sign * inv.add_disc_amt,
+                'quantity': 1,
+                'price':sign * inv.add_disc_amt,
+                'account_id':account_id,
+                'product_id':False,
+                'uos_id':False,
+                'account_analytic_id':False,
+                'taxes':False,
+            })
+            
         if inv.amount_advance > 0.0:        
             sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
-                        and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
-                        or self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_supplier', 'res.partner', context=context)
+                        and self.pool.get('ir.property').get(cr, uid, 'property_account_advance_customer', 'res.partner', context=context) \
+                        or self.pool.get('ir.property').get(cr, uid, 'property_account_advance_supplier', 'res.partner', context=context)
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
     
@@ -263,15 +288,15 @@ class account_invoice_tax(osv.Model):
             val_after_disco = base * (1.0 - (add_disc / 100.0))
             advance_amount_tax = val_after_disco * advance_percent
             val_before_tax = val_after_disco - advance_amount_tax - deposit_amount
-            new_base = cur_pool.round(cr, uid, cur, val_before_tax)
-            tax_grouped[line]['base'] = new_base
+            new_base = val_before_tax
+            tax_grouped[line]['base'] = cur_pool.round(cr, uid, cur, new_base)
             if not base:
                 continue
             ratio = new_base / base
             # Adjust others
-            tax_grouped[line]['amount'] = tax_grouped[line]['amount'] * ratio
-            tax_grouped[line]['base_amount'] = tax_grouped[line]['base_amount'] * ratio
-            tax_grouped[line]['tax_amount'] = tax_grouped[line]['tax_amount'] * ratio
+            tax_grouped[line]['amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['amount'] * ratio)
+            tax_grouped[line]['base_amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['base_amount'] * ratio)
+            tax_grouped[line]['tax_amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['tax_amount'] * ratio)
 
         return tax_grouped
 
