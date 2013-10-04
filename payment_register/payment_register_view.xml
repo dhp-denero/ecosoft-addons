@@ -9,6 +9,10 @@
                     <filter string="Draft" domain="[('state','=','draft')]" help="Draft Payment Detail"/>
                     <filter string="Posted" domain="[('state','=','posted')]" help="Posted Payment Detail"/>
                     <filter string="Cancelled" domain="[('state','=','cancel')]" help="Draft Payment Detail"/>
+                    <separator/>
+                    <filter string="Check" domain="[('type','=','check')]" help="Type Check"/>
+                    <filter string="Cash" domain="[('type','=','cash')]" help="Type Cash"/>
+                    <filter string="Transfer" domain="[('type','=','transfer')]" help="Type Transfer"/>
                     <field name="number" string="Payment Detail"/>
                     <field name="date"/>	
                     <field name="partner_id" string="Customer"/>
@@ -18,6 +22,7 @@
                         <filter string="Customer" domain="[]" context="{'group_by':'partner_id'}"/>
                         <filter string="Payment" domain="[]" context="{'group_by':'voucher_id'}"/>
                         <filter string="Period" domain="[]" context="{'group_by':'period_id','visible':True}"/>
+                        <filter string="Type" domain="[]" context="{'group_by':'type'}"/>
                         <filter string="Status" domain="[]" context="{'group_by':'state'}"/>
                     </group>
                 </search>
