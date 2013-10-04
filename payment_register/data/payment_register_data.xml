@@ -3,13 +3,13 @@
     <data noupdate="1">
         
 
-		<!-- Receipt Voucher Sequence-->
+		<!-- Bank in Transit Sequence-->
         <record id="seq_type_bank_receipt_voucher" model="ir.sequence.type">
-            <field name="name">Receipt Voucher</field>
+            <field name="name">Bank in Transit</field>
             <field name="code">bank_receipt_voucher</field>
         </record>
         <record id="sequence_receipt_voucher_journal" model="ir.sequence">
-            <field name="name">Receipt Voucher</field>
+            <field name="name">Bank in Transit</field>
             <field name="code">bank_receipt_voucher</field>
             <field name="prefix">RV%(year)s/</field>
             <field name="padding">4</field>
