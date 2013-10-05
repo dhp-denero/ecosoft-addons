@@ -22,10 +22,12 @@
 {
     'name' : 'Invoice(s) Create Payment ',
     'version' : '1.0',
-    'author' : 'DBuasri',
+    'author' : 'Ecosoft',
     'summary': 'Create voucher from the all the selected open invoices',
     'description': """
-        Create voucher each invoice or group by partner 
+    
+Create voucher from the all the selected open invoices
+        
      """,
     'category': 'Accounting & Finance',
     'sequence': 4,
