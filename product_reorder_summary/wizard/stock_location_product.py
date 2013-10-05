@@ -29,6 +29,7 @@ class stock_location_product(osv.osv_memory):
         #Show CheckBox in view
         'reorder_flag': fields.boolean('Show Product in Reorder'), 
     }
+    
     def _get_reorder_action(self, cr, uid, ids, context=None):
         mod_obj = self.pool.get('ir.model.data')
         act_obj = self.pool.get('ir.actions.act_window')
@@ -51,10 +52,6 @@ class stock_location_product(osv.osv_memory):
         
         location_products = self.read(cr, uid, ids, ['reorder_flag','negative_flag'], context=context)
         
-        
-#         if location_products[0]['reorder_flag']:
-#             res = self._get_reorder_action(cr, uid, ids, context)
-#         else:
         res = super(stock_location_product, self).action_open_window(cr, uid, ids,  context=context)
             
         if location_products:
@@ -69,11 +66,6 @@ class stock_location_product(osv.osv_memory):
             # Data filter only "Reorder Point Rule"     
             res['domain']+=[tuple(['orderpoint_ids','<>',False])]+[tuple(['orderpoint_ids.location_id','in',location_ids])]
             
-#         if location_products[0]['negative_flag']:
-#             if location_products[0]['reorder_flag']:
-#                 res['domain']+= [tuple(['qty_diff_reroder','<',0])]
-#             else:
-#                 res['domain']+= [tuple(['virtual_available','<',0])]
         return res
 stock_location_product()
 

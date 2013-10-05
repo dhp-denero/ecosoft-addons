@@ -21,19 +21,12 @@
 
 {
     'name' : "Product Reorder Point",
-    'author' : 'DBuasri',
+    'author' : 'Ecosoft',
     'summary': 'Summary Reorder point of product by location',
     'description': """
-*Enhance Feature #1048, 
-    Product Tree View to also show Reorder Point and Difference for its selected location.
-* *  Ecosof-addons/
-* * * product_reorder_summary module
-* * * 1. New qty_reorder,qty_diff_reroder Name field
-* * * 2. New _get_reorder_summary method for summary Min QTY in Reorder Point Rule and QTY is difference between QTY on hand  and Min QTY 
-* * * 3. New _get_location method for retrieve location ids follow user selected
-* * * product_reorder_summary/Wizard
-* * * 1. New reorder_flag Name field
-* * * 2. Override action_open_window method, add domain for checking product has reorder point rule  
+
+When called from Location Structure menu, the result Product Tree View will show Reorder Point and Difference for its selected location.
+  
     """,
     'category': 'Sales',
     'sequence': 8,
@@ -42,8 +35,8 @@
     'depends' : ['product','stock'],
     'demo' : [],
     'data' : [
-              'product_view.xml',
-              'wizard/stock_location_product_view.xml',
+          'product_view.xml',
+          'wizard/stock_location_product_view.xml',
     ],
     'test' : [
     ],

@@ -24,14 +24,6 @@ from osv import osv, fields
 from tools.translate import _
 import openerp.addons.decimal_precision as dp
 from lxml import etree
-#class product_category(osv.osv):
-#    
-#    _inherit = "product.category"
-#    _columns = {
-#        'product_cat_code': fields.char('Category Code', size=3, help="Cateory Code Max Size = 3 characters"),
-#    }
-#
-#product_category()
 
 class product_product(osv.osv):
 
@@ -126,15 +118,6 @@ class product_product(osv.osv):
             #Put reorder point and difference into return object
             res[obj.product_id.id]={'qty_reorder':res[obj.product_id.id]['qty_reorder']+amount
                                     ,'qty_diff_reroder':product_info[0].qty_available -  (res[obj.product_id.id]['qty_reorder']+amount)}
-#             item =  res[456]
-#             item['qty_reorder']= obj.product_min_qty
-#             res[456]=item
-#             res[obj.product_id.id]['qty_diff_reroder']=0.0
-            
-#         summary = {obj.product_id.id: math.fsum(o2m for o2m in obj.product_min_qty)
-#             for obj in reorder_obj.browse(cr, uid, reorder_ids, context=context)}
-#         
-#         res.update(summary)
             
         return res
     
@@ -151,7 +134,6 @@ class product_product(osv.osv):
                 node.set('colors', "red:qty_diff_reroder and qty_diff_reroder<0;blue:virtual_available>=0 and state in ('draft', 'end', 'obsolete');black:virtual_available>=0 and state not in ('draft', 'end', 'obsolete')")
         result['arch'] = etree.tostring(doc)
  
-
         return result
     
     _inherit = "product.product"
@@ -159,5 +141,6 @@ class product_product(osv.osv):
         'qty_reorder': fields.function(_get_reorder_summary, type='float', string='Reorder Point',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure'),store=False),
         'qty_diff_reroder': fields.function(_get_reorder_summary, type='float', string='Difference',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure')),
     }
+    
 product_product()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
