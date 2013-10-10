@@ -21,25 +21,21 @@
 
 from openerp.osv import fields, osv
 
-class account_partner_ledger(osv.osv_memory):
-    """
-    This wizard will provide the partner Ledger report by periods, between any two dates.
-    """
-    _name = 'account.partner.ledger'
-    _inherit = ['account.partner.ledger','account.common.partner.report']
-    _description = 'Account Partner Ledger'
+class account_common_partner_report(osv.osv_memory):
 
-    
-    def _print_report(self, cr, uid, ids, data, context=None):
-        res = super(account_partner_ledger,self)._print_report( cr, uid, ids, data, context)
-        data['form'].update(self.read(cr, uid, ids, ['partner_ids'], context=context)[0])
-        data['model']='res.partner'
-        if data['form']['page_split']:
-            res.update({'report_name': 'account.third_party_ledger_ext'})
-        else:
-            res.update({'report_name' :'account.third_party_ledger_other_ext'}),
-        return res
-    
-account_partner_ledger()
+    _inherit = "account.common.partner.report"
+    _columns = {
+        'partner_ids': fields.many2many('res.partner', string='Partner',domain=[('is_company','=',True)]),
+    }
 
+    def pre_print_report(self, cr, uid, ids, data, context=None):
+        if context is None:
+            context = {}
+        data = super(account_common_partner_report,self).pre_print_report(cr, uid, ids, data, context)
+        data['form'].update(self.read(cr, uid, ids, ['partner_ids',], context=context)[0])
+        return data
+
+account_common_partner_report()
+
+#vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

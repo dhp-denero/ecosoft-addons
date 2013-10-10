@@ -38,6 +38,7 @@ Features
     'demo' : [],
     'data' : [
               'wizard/account_report_partner_ledger_view.xml',
+              'wizard/account_report_general_ledger_view.xml',
               'account_report.xml',
     ],
     'test' : [

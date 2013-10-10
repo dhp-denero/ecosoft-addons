@@ -27,16 +27,11 @@ class third_party_ledger_ext(third_party_ledger):
         partner_ids = data['form'].get('partner_ids',False)
         if partner_ids:
             res = super(third_party_ledger_ext, self).set_context(objects, data, partner_ids, report_type)
-            self.query+=' AND l.partner_id in (%s) ' % (tuple(partner_ids))
-            self.init_query+= ' AND l.partner_id in (%s) ' % (tuple(partner_ids))
+            self.query+=' AND l.partner_id in (%s) ' % ','.join(str(x) for x in partner_ids)
+            self.init_query+= ' AND l.partner_id in (%s) ' % ','.join(str(x) for x in partner_ids)
         else:
             res = super(third_party_ledger_ext, self).set_context(objects, data, ids, report_type)
         return res
-
-    def _display_currency(self, data):
-        if self.amount_currency:
-            return True
-        return False
     
 report_sxw.report_sxw('report.account.third_party_ledger_ext', 'res.partner',
         'addons/account/report/account_partner_ledger.rml',parser=third_party_ledger_ext,

@@ -10,7 +10,7 @@
 	            <data>
 			        <xpath expr="//page[@string='Journals']" position="after">
 			            <page string="Partner" name="partner_ids">
-                        	<field name="partner_ids" context="{'search_default_attr':1}"/>
+                        	<field name="partner_ids" context="{'search_default_attr':0}"/>
                     	</page>
 			        </xpath>
 	            </data>
