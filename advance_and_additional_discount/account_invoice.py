@@ -167,7 +167,7 @@ class account_invoice_line(osv.osv):
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
         
         if inv.add_disc_amt > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_customer', 'res.partner', context=context) \
@@ -189,7 +189,7 @@ class account_invoice_line(osv.osv):
             })
             
         if inv.amount_advance > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_advance_customer', 'res.partner', context=context) \
@@ -211,7 +211,7 @@ class account_invoice_line(osv.osv):
             })
             
         if inv.amount_deposit > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+            sign = inv.type in ('out_invoice','out_refund') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
