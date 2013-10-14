@@ -41,7 +41,7 @@ class product_make_bom(osv.osv_memory):
         'type': 'product',
         'procure_method': 'make_to_order',
         'supply_method': 'produce',
-        'valuation': 'real_time',    }
+        'valuation': 'manual_periodic',    }
 
     def make_bom(self, cr, uid, ids, context=None):
         if context is None:
