@@ -74,3 +74,15 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             res = inv_id
         return res
 
+
+    def copy(self, cr, uid, id, default=None, context=None):
+        if not default:
+            default = {}
+        default.update({
+            'advance_type': False,
+            'amount_deposit': False,
+            'advance_percentage': False,
+        })
+        return super(purchase_order, self).copy(cr, uid, id, default, context=context)
+    
+purchase_order()
