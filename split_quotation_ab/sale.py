@@ -60,6 +60,15 @@ class sale_order(osv.osv):
             action['domain'] = "[('id','in',[%s, %s])]" % (order.id, new_order_id)
         return action    
 
+    def copy(self, cr, uid, id, default=None, context=None):
+        if default is None:
+            default = {}
+        if context is None:
+            context = {}
+        default = default.copy()
+        default['split_ab_ref'] = False
+        return super(sale_order, self).copy(cr, uid, id, default, context=context)
+
 sale_order()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
