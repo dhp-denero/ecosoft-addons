@@ -17,7 +17,7 @@
                     		attrs="{'invisible':['|',('is_paydetail_created','=',True),('state','!=','posted')]}" />
                     </button>	
                     <field name="journal_id" position="attributes">
-                    	<attribute name="readonly">False</attribute>
+                    	<attribute name="readonly">True</attribute>
                     </field>	
 					<field name="journal_id" position="after">
                     	<field name="is_paydetail_created" />
