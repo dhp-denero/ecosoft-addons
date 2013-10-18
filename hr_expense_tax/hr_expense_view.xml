@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="view_expenses_form_ext" model="ir.ui.view">
+            <field name="name">view.expenses.form.ext</field>
+            <field name="inherit_id" ref="hr_expense.view_expenses_form" />
+            <field name="model">hr.expense.expense</field>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="/form/sheet/notebook/page/field/tree//field[@name='ref']" position="after">
+						<field name="supplier_name" />
+						<field name="supplier_type" />
+						<field name="vat" />
+						<field name="branch" />
+					</xpath>
+                    <xpath expr="/form/sheet/notebook/page/field/tree//field[@name='total_amount']" position="after">
+						<field name="vat_amount" sum="VAT Total"/>
+						<field name="wht_amount" sum="WHT Total"/>
+						<field name="total_net_amount" sum="Net Total"/>
+					</xpath>
+                    <xpath expr="/form/sheet/notebook/page/field/form//field[@name='ref']" position="after">
+						<field name="supplier_name" />
+						<field name="supplier_type" />
+						<field name="vat" />
+						<field name="branch" />
+					</xpath>
+                    <xpath expr="/form/sheet/notebook/page/field/form//field[@name='date_value']" position="after">
+						<field name="vat_amount" />
+						<field name="wht_amount" />
+						<field name="total_net_amount"/>
+					</xpath>				
+				</data>
+            </field>
+        </record>
+    </data>
+</openerp>
