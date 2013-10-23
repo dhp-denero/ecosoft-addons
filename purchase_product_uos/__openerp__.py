@@ -39,7 +39,7 @@ This addon is not full feature, will apply concept of UOS only in the following 
     'category': 'Purchase',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['product','sale','purchase','purchase_requisition'],
+    'depends' : ['product','sale','purchase','purchase_requisition','web_m2o_enhanced'],
     'demo' : [],
     'data' : [
               'product_data.xml',

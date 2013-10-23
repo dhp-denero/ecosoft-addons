@@ -25,9 +25,22 @@ from openerp import netsvc
 import openerp.addons.decimal_precision as dp
 
 
-class hr_expense(osv.osv):
-
+class hr_expense_expense(osv.osv):
+    
+    def _amount(self, cr, uid, ids, field_name, arg, context=None):
+        res= {}
+        for expense in self.browse(cr, uid, ids, context=context):
+            total = 0.0
+            for line in expense.line_ids:
+                total += line.total_net_amount
+            res[expense.id] = total
+        return res
+    
     _inherit = 'hr.expense.expense'
+    
+    _columns = {
+            'amount': fields.function(_amount, string='Total Amount', digits_compute=dp.get_precision('Account')),
+    }
 
     def move_line_get(self, cr, uid, expense_id, context=None):
         res = []
@@ -50,35 +63,37 @@ class hr_expense(osv.osv):
             if not (input_vat_tax_id and personal_wht_tax_id and company_wht_tax_id):
                 raise osv.except_osv(_('Error!'), _('VAT and WHT Tax is not defined.\nPlease go to HR module configuration and assign them!'))
             # VAT
-            vat = tax_obj.browse(cr, uid, input_vat_tax_id)
-            vat_tax = {
-                         'type':'tax',
-                         'name':vat.name,
-                         'price_unit': line.vat_amount,
-                         'quantity': 1,
-                         'price':  line.vat_amount * vat.base_sign or 0.0,
-                         'account_id': vat.account_collected_id and vat.account_collected_id.id,
-                         'tax_code_id': vat.tax_code_id and vat.tax_code_id.id,
-                         'tax_amount': line.vat_amount or 0.0
-            }
-            res.append(vat_tax)
+            if line.vat_amount:
+                vat = tax_obj.browse(cr, uid, input_vat_tax_id)
+                vat_tax = {
+                             'type':'tax',
+                             'name':vat.name,
+                             'price_unit': line.vat_amount,
+                             'quantity': 1,
+                             'price':  line.vat_amount * vat.base_sign or 0.0,
+                             'account_id': vat.account_collected_id and vat.account_collected_id.id,
+                             'tax_code_id': vat.tax_code_id and vat.tax_code_id.id,
+                             'tax_amount': line.vat_amount or 0.0
+                }
+                res.append(vat_tax)
             # WHT
-            wht_tax_id = line.supplier_type == 'personal' and personal_wht_tax_id or company_wht_tax_id
-            wht = tax_obj.browse(cr, uid, wht_tax_id)
-            wht_tax = {
-                         'type':'tax',
-                         'name':wht.name,
-                         'price_unit': line.wht_amount,
-                         'quantity': 1,
-                         'price':  line.wht_amount * wht.base_sign or 0.0,
-                         'account_id': wht.account_collected_id and wht.account_collected_id.id,
-                         'tax_code_id': wht.tax_code_id and wht.tax_code_id.id,
-                         'tax_amount': line.wht_amount or 0.0
-            }
-            res.append(wht_tax)                        
+            if line.wht_amount:
+                wht_tax_id = line.supplier_type == 'personal' and personal_wht_tax_id or company_wht_tax_id
+                wht = tax_obj.browse(cr, uid, wht_tax_id)
+                wht_tax = {
+                             'type':'tax',
+                             'name':wht.name,
+                             'price_unit': line.wht_amount,
+                             'quantity': 1,
+                             'price':  line.wht_amount * wht.base_sign or 0.0,
+                             'account_id': wht.account_collected_id and wht.account_collected_id.id,
+                             'tax_code_id': wht.tax_code_id and wht.tax_code_id.id,
+                             'tax_amount': line.wht_amount or 0.0
+                }
+                res.append(wht_tax)                        
         return res
 
-hr_expense()
+hr_expense_expense()
 
 class hr_expense_line(osv.osv):
 
@@ -92,15 +107,15 @@ class hr_expense_line(osv.osv):
         return res
     
     _columns = {
-        'supplier_name': fields.char('Supplier', size=64, required=True),
+        'supplier_name': fields.char('Supplier', size=64, required=False),
         'supplier_type': fields.selection([
                     ('personal', 'Personal'),
                     ('company', 'Company')
-                    ], 'Type', required=True),      
+                    ], 'Type', required=False),      
         'vat': fields.char('Tax ID', size=64),
         'branch': fields.char('Branch ID', size=64),
-        'vat_amount': fields.float('VAT', digits_compute=dp.get_precision('Account'), required=True),
-        'wht_amount': fields.float('WHT', digits_compute=dp.get_precision('Account'), required=True),
+        'vat_amount': fields.float('VAT', digits_compute=dp.get_precision('Account'), required=False),
+        'wht_amount': fields.float('WHT', digits_compute=dp.get_precision('Account'), required=False),
         'total_net_amount': fields.function(_net_amount, string='Net Total', digits_compute=dp.get_precision('Account')),
     }
     

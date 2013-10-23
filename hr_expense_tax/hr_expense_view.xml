@@ -8,10 +8,10 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="/form/sheet/notebook/page/field/tree//field[@name='ref']" position="after">
-						<field name="supplier_name" />
-						<field name="supplier_type" />
-						<field name="vat" />
-						<field name="branch" />
+						<field name="supplier_name" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="supplier_type" attrs="{'required':[('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="vat" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="branch" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
 					</xpath>
                     <xpath expr="/form/sheet/notebook/page/field/tree//field[@name='total_amount']" position="after">
 						<field name="vat_amount" sum="VAT Total"/>
@@ -19,10 +19,10 @@
 						<field name="total_net_amount" sum="Net Total"/>
 					</xpath>
                     <xpath expr="/form/sheet/notebook/page/field/form//field[@name='ref']" position="after">
-						<field name="supplier_name" />
-						<field name="supplier_type" />
-						<field name="vat" />
-						<field name="branch" />
+						<field name="supplier_name" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="supplier_type" attrs="{'required':[('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="vat" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
+						<field name="branch" attrs="{'required':['|',('vat_amount','&lt;&gt;',0),('wht_amount','&lt;&gt;',0)]}"/>
 					</xpath>
                     <xpath expr="/form/sheet/notebook/page/field/form//field[@name='date_value']" position="after">
 						<field name="vat_amount" />

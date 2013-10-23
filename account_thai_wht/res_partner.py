@@ -26,6 +26,7 @@ from tools.translate import _
 class res_partner(osv.osv):
     _inherit = "res.partner"
     _columns = {
+        'branch': fields.char('Branch', size=32),
         'partner_type': fields.selection([('foundation', 'Foundation'), ('company', 'Company'),
                                    ('partnership', 'Partnership'), ('personal', 'Personal')], 'Partner Type',
             help="Partner Type selected here will be relate to the type of Withholding Certificate"),

@@ -162,6 +162,7 @@ class account_voucher(osv.osv):
             line_total = move_line_brw.debit - move_line_brw.credit
             rec_list_ids = []
             rec_wht_ids = []
+            net_tax = 0.0
             if voucher.type == 'sale':
                 line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
             elif voucher.type == 'purchase':

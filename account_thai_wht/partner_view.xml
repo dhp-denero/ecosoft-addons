@@ -8,7 +8,8 @@
 		    <field name="inherit_id" ref="base.view_partner_form"/>
 		    <field name="arch" type="xml">
 		        <field name="function" position="before">
-		            <field name="vat"/>
+		            <field name="vat" string="Tax ID"/>
+		            <field name="branch" string="Branch ID"/>
 		            <field name="partner_type"/>
 		        </field>
 		    </field>
