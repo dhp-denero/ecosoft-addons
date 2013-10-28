@@ -37,7 +37,8 @@ This module will ignore the Account Posting for Product Tax, but use the VAT and
     'demo' : [],
     'data' : ['hr_expense_view.xml',
               'product_view.xml',
-              'res_config_view.xml'
+              'res_config_view.xml',
+              'hr_expense_report.xml',
               ],
     'test' : [],
     'auto_install': False,
