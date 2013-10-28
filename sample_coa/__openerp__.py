@@ -20,7 +20,7 @@
 
 
 {
-    'name': 'TameTech - Chart of Account',
+    'name': 'Sample - Chart of Account',
     'version': '1.0',
     'category': 'Localization/Account Charts',
     'description': """
