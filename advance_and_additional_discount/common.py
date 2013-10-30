@@ -52,7 +52,10 @@ class AdditionalDiscountable(object):
 
             # we apply a discount on the tax as well.
             # We might have rounding issue
-            o_res['amount_tax'] = cur_round(o_res['amount_tax'] - add_disc_amt)
+            o_res['amount_tax'] = cur_round(
+                o_res['amount_tax'] * (100.0 - (add_disc or 0.0))/100.0)
+            
+            
             o_res['amount_total'] = o_res['amount_net'] + o_res['amount_tax']
 
         return res
