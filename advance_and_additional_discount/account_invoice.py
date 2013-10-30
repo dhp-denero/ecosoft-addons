@@ -274,28 +274,43 @@ class account_invoice_tax(osv.Model):
             raise osv.except_osv(_('Discount error'),
                  _('Unable (for now) to compute a global '
                 'discount with non percent-type taxes'))
+
+        # Start calculating Tax, taking advance and deposit into consideration
         invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
         add_disc = invoice.add_disc
         cur = invoice.currency_id
-        # Getting Order Object (SO/PO)
         order_ids = invoice.sale_order_ids or invoice.purchase_order_ids
         advance_percent = not invoice.is_advance and order_ids and (order_ids[0].advance_percentage / 100) or 0.0
         deposit_amount = not invoice.is_deposit and order_ids and order_ids[0].num_invoice == 2 \
                                 and order_ids[0].amount_deposit or 0.0
+        new_base = new_tax_total = total_amount = total_base_amount = total_tax_amount = 0.0
+        
+        # Recalculate *New Tax*, based on assumption that all invoice lines has same **base** and same **tax_ids**.
         for line in tax_grouped:
-            # Get new base
             base = tax_grouped[line]['base']
             val_after_disco = cur_pool.round(cr, uid, cur, base * (1.0 - (add_disc / 100.0)))
             advance_amount_tax = cur_pool.round(cr, uid, cur, val_after_disco * advance_percent)
             new_base = val_after_disco - advance_amount_tax - deposit_amount
-            tax_grouped[line]['base'] = new_base
-            if not base:
-                continue
-            ratio = new_base / base
-            # Adjust others
-            tax_grouped[line]['amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['amount'] * ratio)
-            tax_grouped[line]['base_amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['base_amount'] * ratio)
-            tax_grouped[line]['tax_amount'] = cur_pool.round(cr, uid, cur, tax_grouped[line]['tax_amount'] * ratio)
+            for tax in tax_pool.compute_all(cr, uid, invoice.invoice_line[0].invoice_line_tax_id, new_base, 1)['taxes']:
+                new_tax_total += tax['amount']
+            break # 1 loop is enough as we have only
+        
+        # Calculate Total Existing Tax
+        for line in tax_grouped:
+            # Get new base
+            total_amount += tax_grouped[line]['amount']
+            total_base_amount += tax_grouped[line]['base_amount']
+            total_tax_amount += tax_grouped[line]['tax_amount']
+            
+        # Reassign them back to tax_grouped
+        for line in tax_grouped:
+            # Get new base
+            if not tax_grouped[line]['base']:
+                continue            
+            tax_grouped[line]['base'] = new_base # All same
+            tax_grouped[line]['amount'] = cur_pool.round(cr, uid, cur, new_tax_total * tax_grouped[line]['amount'] / total_amount)
+            tax_grouped[line]['base_amount'] = cur_pool.round(cr, uid, cur, new_tax_total * tax_grouped[line]['base_amount'] / total_base_amount)
+            tax_grouped[line]['tax_amount'] = cur_pool.round(cr, uid, cur, new_tax_total * tax_grouped[line]['tax_amount'] / total_tax_amount)
 
         return tax_grouped
 
