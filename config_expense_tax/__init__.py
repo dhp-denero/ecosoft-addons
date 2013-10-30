@@ -20,5 +20,7 @@
 ##############################################################################
 
 import hr_expense
+import res_config
+import product
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

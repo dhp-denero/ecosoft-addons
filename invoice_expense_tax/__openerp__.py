@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,6 +19,29 @@
 #
 ##############################################################################
 
-import hr_expense
+{
+    'name' : 'Invoice Expense Tax',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Add Tax for Invoice Expense',
+    'description': """
+    
+This module will ignore the Account Posting for Product Tax, but use the VAT and WHT amount provided by user in Expense Line
+
+    """,
+    'category': 'Accounting & Finance',
+    'sequence': 4,
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['web_m2o_enhanced','invoice_expense','config_expense_tax'],
+    'demo' : [],
+    'data' : ['invoice_expense_view.xml',
+              'invoice_expense_report.xml',
+              ],
+    'test' : [],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

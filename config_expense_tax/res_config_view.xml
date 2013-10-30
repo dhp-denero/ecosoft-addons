@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record id="view_human_resources_configuration_ext" model="ir.ui.view">
-            <field name="name">view.human.resources.configuration.ext</field>
-            <field name="inherit_id" ref="hr.view_human_resources_configuration" />
-            <field name="model">hr.config.settings</field>
+        <record id="view_account_config_settings_ext" model="ir.ui.view">
+            <field name="name">view.account.config.settings</field>
+            <field name="inherit_id" ref="account.view_account_config_settings" />
+            <field name="model">account.config.settings</field>
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="/form[1]" position="inside">

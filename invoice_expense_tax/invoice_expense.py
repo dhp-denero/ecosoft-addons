@@ -25,7 +25,7 @@ from openerp import netsvc
 import openerp.addons.decimal_precision as dp
 
 
-class hr_expense_expense(osv.osv):
+class invoice_expense_expense(osv.osv):
     
     def _amount(self, cr, uid, ids, field_name, arg, context=None):
         res= {}
@@ -36,7 +36,7 @@ class hr_expense_expense(osv.osv):
             res[expense.id] = total
         return res
     
-    _inherit = 'hr.expense.expense'
+    _inherit = 'invoice.expense.expense'
     
     _columns = {
             'amount': fields.function(_amount, string='Total Amount', digits_compute=dp.get_precision('Account')),
@@ -61,7 +61,7 @@ class hr_expense_expense(osv.osv):
             company_wht_tax_id = line.product_id.property_expense_company_wht_tax.id
             
             if not (input_vat_tax_id and personal_wht_tax_id and company_wht_tax_id):
-                raise osv.except_osv(_('Error!'), _('VAT and WHT Tax is not defined.\nPlease go to Account module configuration and assign them!'))
+                raise osv.except_osv(_('Error!'), _('VAT and WHT Tax is not defined.\nPlease go to Accounting module configuration and assign them!'))
             # VAT
             if line.vat_amount:
                 vat = tax_obj.browse(cr, uid, input_vat_tax_id)
@@ -93,16 +93,16 @@ class hr_expense_expense(osv.osv):
                 res.append(wht_tax)                        
         return res
 
-hr_expense_expense()
+invoice_expense_expense()
 
-class hr_expense_line(osv.osv):
+class invoice_expense_line(osv.osv):
 
-    _inherit = 'hr.expense.line'
+    _inherit = 'invoice.expense.line'
     
     def _net_amount(self, cr, uid, ids, field_name, arg, context=None):
         if not ids:
             return {}
-        cr.execute("SELECT l.id,COALESCE(SUM(l.unit_amount*l.unit_quantity+vat_amount+wht_amount),0) AS amount FROM hr_expense_line l WHERE id IN %s GROUP BY l.id ",(tuple(ids),))
+        cr.execute("SELECT l.id,COALESCE(SUM(l.unit_amount*l.unit_quantity+vat_amount+wht_amount),0) AS amount FROM invoice_expense_line l WHERE id IN %s GROUP BY l.id ",(tuple(ids),))
         res = dict(cr.fetchall())
         return res
     
@@ -119,5 +119,5 @@ class hr_expense_line(osv.osv):
         'total_net_amount': fields.function(_net_amount, string='Net Total', digits_compute=dp.get_precision('Account')),
     }
     
-hr_expense_line()
+invoice_expense_line()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -19,6 +19,38 @@
 #
 ##############################################################################
 
-import hr_expense
 
+{
+    'name': 'Invoice Expense',
+    'version': 'Accounting & Finance',
+    'sequence': 29,
+    'summary': 'Expenses Validation, Invoicing',
+    'description': """
+    
+This module is exactly the same as hr_expense, except it is being used for Supplier instead of Employee
+
+    """,
+    'author': 'Ecosoft',
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': ['hr_expense', 'account_voucher', 'account_accountant'],
+    'data': [
+        'security/ir.model.access.csv',
+        'invoice_expense_data.xml',
+        'invoice_expense_sequence.xml',
+        'invoice_expense_workflow.xml',
+        'invoice_expense_view.xml',
+        'invoice_expense_report.xml',
+        'process/invoice_expense_process.xml',
+        'security/ir_rule.xml',
+    ],
+    'demo': ['hr_expense_demo.xml'],
+    'test': [
+        'test/expense_demo.yml',
+        'test/expense_process.yml',
+    ],
+    'installable': True,
+    'auto_install': False,
+    'application': True,
+}
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

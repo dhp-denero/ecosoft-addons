@@ -27,9 +27,9 @@ from openerp.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
-class hr_config_settings(osv.osv_memory):
+class account_config_settings(osv.osv_memory):
     
-    _inherit = 'hr.config.settings'
+    _inherit = 'account.config.settings'
     
     _columns = {
         'property_expense_input_vat_tax': fields.many2one('account.tax', 'Input VAT', domain="[('type_tax_use', '=', 'purchase')]"),
@@ -81,6 +81,6 @@ class hr_config_settings(osv.osv_memory):
             res.update({record[0]: tax_id})
         return res   
     
-hr_config_settings()
+account_config_settings()
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

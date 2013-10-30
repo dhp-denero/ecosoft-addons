@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,6 +19,31 @@
 #
 ##############################################################################
 
-import hr_expense
+{
+    'name' : 'Config Expense Tax',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': '',
+    'description': """
+    
+This module is the prerequisite for hr_expense_tax and invoice_expense_tax.
+
+It simply add the configuration for VAT in Accounting Config
+    """,
+    'category': 'Accounting & Finance',
+    'sequence': 4,
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['account','hr_expense'],
+    'demo' : [],
+    'data' : [
+              'product_view.xml',
+              'res_config_view.xml',
+              ],
+    'test' : [],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
