@@ -285,11 +285,10 @@ class account_invoice_tax(osv.Model):
         for line in tax_grouped:
             # Get new base
             base = tax_grouped[line]['base']
-            val_after_disco = base * (1.0 - (add_disc / 100.0))
-            advance_amount_tax = val_after_disco * advance_percent
-            val_before_tax = val_after_disco - advance_amount_tax - deposit_amount
-            new_base = val_before_tax
-            tax_grouped[line]['base'] = cur_pool.round(cr, uid, cur, new_base)
+            val_after_disco = cur_pool.round(cr, uid, cur, base * (1.0 - (add_disc / 100.0)))
+            advance_amount_tax = cur_pool.round(cr, uid, cur, val_after_disco * advance_percent)
+            new_base = val_after_disco - advance_amount_tax - deposit_amount
+            tax_grouped[line]['base'] = new_base
             if not base:
                 continue
             ratio = new_base / base

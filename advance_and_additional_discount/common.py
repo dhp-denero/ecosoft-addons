@@ -52,8 +52,7 @@ class AdditionalDiscountable(object):
 
             # we apply a discount on the tax as well.
             # We might have rounding issue
-            o_res['amount_tax'] = cur_round(
-                o_res['amount_tax'] * (100.0 - (add_disc or 0.0))/100.0)
+            o_res['amount_tax'] = cur_round(o_res['amount_tax'] - add_disc_amt)
             o_res['amount_total'] = o_res['amount_net'] + o_res['amount_tax']
 
         return res
@@ -105,7 +104,7 @@ class AdditionalDiscountable(object):
                 if not record.is_advance:
                     advance_percentage = order.advance_percentage
                     if advance_percentage:
-                        o_res['amount_advance'] = (o_res['amount_net'] * advance_percentage/100)
+                        o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage/100)
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
                 if not record.is_deposit:
                     # Deposit will occur only in the second invoice.
