@@ -48,7 +48,7 @@
                     <field name="amount"/>
                     <field name="state"/>
                     <button name="confirm" states="draft" string="Confirm" type="workflow" icon="gtk-apply"/>
-                    <button name="refuse" states="confirm,draft,accepted" string="Refuse" type="workflow" icon="gtk-no" groups="account.group_account_user"/>
+                    <button name="refuse" states="confirm,draft,accepted" string="Refuse" type="workflow" icon="gtk-no" groups="account.group_account_invoice"/>
                 </tree>
             </field>
         </record>
@@ -61,8 +61,8 @@
                 <form string="Expenses Sheet" version="7.0">
                 <header>
                     <button name="confirm" states="draft" string="Confirm" type="workflow" class="oe_highlight"/>
-                    <button name="refuse" states="confirm" string="Cancel" type="workflow" groups="account.group_account_user" />
-                    <button name="draft" states="cancelled" string="Set to Draft" type="workflow" groups="account.group_account_user" />
+                    <button name="refuse" states="confirm" string="Cancel" type="workflow" groups="account.group_account_invoice" />
+                    <button name="draft" states="cancelled" string="Set to Draft" type="workflow" groups="account.group_account_invoice" />
                     <button name="done" states="confirm" string="Generate Accounting Entries" type="workflow" groups="account.group_account_invoice" class="oe_highlight"/>
                     <button name="action_view_receipt" states="done" string="Open Accounting Entries" type="object" groups="account.group_account_invoice"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done,paid" statusbar_colors='{"confirm":"blue","cancelled":"red"}'/>
@@ -125,7 +125,7 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Accounting" groups="account.group_account_user">
+                        <page string="Accounting" groups="account.group_account_invoice">
                             <group>
                                 <group string="Accounting Data">
                                     <field name="journal_id" widget="selection" domain="[('type', '=', 'purchase')]"/>
