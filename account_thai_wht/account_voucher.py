@@ -419,7 +419,7 @@ class account_voucher_tax(osv.osv):
                         vals['sequence'] = tax['sequence']
                         vals['base'] = - cur_obj.round(cr, uid, cur, tax['price_unit'] * line.quantity) * payment_ratio * line_sign # Reverse Sign
                         # Check the product are services, which has been using suspend account. This time, it needs to cr: non-suspend acct and dr: suspend acct
-                        use_suspend_acct = line.product_id.id in tax_obj.read(cr, uid, [tax['id']], ['product_ids'])[0]['product_ids']
+                        use_suspend_acct = line.product_id.use_suspend_account
                         is_wht = tax_obj.browse(cr, uid, tax['id']).is_wht
                         # -------------------> Adding Tax for Posting
                         if is_wht: 

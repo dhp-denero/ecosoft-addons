@@ -31,9 +31,6 @@ class account_tax(osv.osv):
         'threshold_wht': fields.float("Threshold Amount", help="Withholding Tax will be applied only if base amount more or equal to threshold amount"),
         'account_suspend_collected_id':fields.many2one('account.account', 'Invoice Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Invoice Tax Account"),
         'account_suspend_paid_id':fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
-        'product_ids': fields.many2many('product.product', 'suspend_taxes_products_rel',
-            'tax_id', 'product_id', 'Products require suspend account...',
-            domain=[('type','=','service')]),
     }
     
     # This is a complete overwrite method.

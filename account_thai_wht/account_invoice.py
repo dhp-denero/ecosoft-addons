@@ -80,8 +80,8 @@ class account_invoice_tax(osv.osv):
                 val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity'])
                 
                 # start kittiu for Thai Accounting, 
-                # Check the product are services (which need suspend account)
-                use_suspend_acct = line.product_id.id in tax_obj.read(cr, uid, [tax['id']], ['product_ids'])[0]['product_ids']
+                # For Service and have suspend_account
+                use_suspend_acct = line.product_id.use_suspend_account
                 # end kittiu
                 
                 if inv.type in ('out_invoice','in_invoice'):

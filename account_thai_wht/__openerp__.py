@@ -38,13 +38,14 @@ Note:
     'sequence': 8,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['sale','purchase','account','account_voucher','customer_supplier_voucher'],
+    'depends' : ['product','sale','purchase','account','account_voucher','customer_supplier_voucher'],
     'demo' : [],
     'data' : ['account_view.xml','partner_view.xml',
               'voucher_payment_receipt_view.xml',
               'customer_supplier_voucher.xml',
               'security/ir.model.access.csv',
-              'reports/custom_reports.xml'
+              'reports/custom_reports.xml',
+              'product_view.xml'
     ],
     'test' : [
     ],
