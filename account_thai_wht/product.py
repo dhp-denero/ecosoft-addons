@@ -28,13 +28,15 @@ class product_product(osv.osv):
         'use_suspend_account': fields.boolean('Use Suspend Tax Account', help='By default, product of type service will use suspend tax account. This can be overwritten for special case.'),
     }
     
-    def onchange_type(self, cr, uid, ids, type, context=None):
-        res = {}
-        if type == 'service':
-            res['use_suspend_account'] = True
-        else:
-            res['use_suspend_account'] = False
-        return {'value': res}
+#     Lek think we do not need to link Suspend with Service. So just comment out, jut in case.
+#     def onchange_type(self, cr, uid, ids, type, context=None):
+#         res = {}
+#         if type == 'service':
+#             res['use_suspend_account'] = True
+#         else:
+#             res['use_suspend_account'] = False
+#         return {'value': res}
+    
 product_product()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

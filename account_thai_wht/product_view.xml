@@ -8,9 +8,9 @@
             <field name="inherit_id" ref="product.product_normal_form_view"/>
             <field name="priority">26</field>
             <field name="arch" type="xml">
-                <field name="type" position="attributes">
+                <!-- field name="type" position="attributes">
                 	<attribute name="on_change">onchange_type(type)</attribute>
-                </field>
+                </field -->
                 <xpath expr="//group[@name='properties']" position="after">
                     <group colspan="2" col="2">
                         <field name="use_suspend_account"/>
