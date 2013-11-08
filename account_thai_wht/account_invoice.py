@@ -24,35 +24,35 @@ from osv import osv, fields
 from tools.translate import _
 import openerp.addons.decimal_precision as dp
 import time
-
-class account_invoice(osv.osv):
-    
-    _inherit="account.invoice"
-    
-    def _check_tax(self, cr, uid, ids, context=None):
-        # loop through each lines, check if tax different.
-        if not isinstance(ids, list) :
-            ids = [ids]        
-        invoices = self.browse(cr, uid, ids, context=context)
-        for invoice in invoices:
-            i = 0
-            tax_ids = []
-            for line in invoice.invoice_line:
-                next_line_tax_id = [x.id for x in line.invoice_line_tax_id]
-                if i > 0 and set(tax_ids) != set(next_line_tax_id):
-                    raise osv.except_osv(
-                        _('Error!'),
-                        _('You cannot create lines with different taxes!'))
-                tax_ids = next_line_tax_id
-                i += 1
-        return True
-        
-    def write(self, cr, uid, ids, vals, context=None):
-        res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
-        self._check_tax(cr, uid, ids, context=context)
-        return res
-    
-account_invoice()
+# 
+# class account_invoice(osv.osv):
+#     
+#     _inherit="account.invoice"
+#     
+#     def _check_tax(self, cr, uid, ids, context=None):
+#         # loop through each lines, check if tax different.
+#         if not isinstance(ids, list) :
+#             ids = [ids]        
+#         invoices = self.browse(cr, uid, ids, context=context)
+#         for invoice in invoices:
+#             i = 0
+#             tax_ids = []
+#             for line in invoice.invoice_line:
+#                 next_line_tax_id = [x.id for x in line.invoice_line_tax_id]
+#                 if i > 0 and set(tax_ids) != set(next_line_tax_id):
+#                     raise osv.except_osv(
+#                         _('Error!'),
+#                         _('You cannot create lines with different taxes!'))
+#                 tax_ids = next_line_tax_id
+#                 i += 1
+#         return True
+#         
+#     def write(self, cr, uid, ids, vals, context=None):
+#         res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
+#         self._check_tax(cr, uid, ids, context=context)
+#         return res
+#     
+# account_invoice()
 
 
 class account_invoice_tax(osv.osv):

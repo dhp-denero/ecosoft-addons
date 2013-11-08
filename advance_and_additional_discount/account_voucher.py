@@ -45,7 +45,7 @@ class account_voucher_tax(osv.osv):
                 first_invoice_line = invoice_lines and invoice_lines[0]
                 # As we have protected for all invoice line to have same tax, we can then assume,
                 if first_invoice_line and tax_grouped[line]['tax_id'] in [x.id for x in first_invoice_line.invoice_line_tax_id]:
-                    payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / voucher_line.amount_original)
+                    payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / (voucher_line.amount_original or 1.0))
                     new_base -= (invoice.add_disc_amt + invoice.amount_advance + invoice.amount_deposit) * payment_ratio * line_sign
             # New base
             base = abs(tax_grouped[line]['base'])
