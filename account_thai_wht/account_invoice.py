@@ -24,43 +24,46 @@ from osv import osv, fields
 from tools.translate import _
 import openerp.addons.decimal_precision as dp
 import time
-# 
-# class account_invoice(osv.osv):
-#     
-#     _inherit="account.invoice"
-#     
-#     def _check_tax(self, cr, uid, ids, context=None):
-#         # loop through each lines, check if tax different.
-#         if not isinstance(ids, list) :
-#             ids = [ids]        
-#         invoices = self.browse(cr, uid, ids, context=context)
-#         for invoice in invoices:
-#             i = 0
-#             tax_ids = []
-#             for line in invoice.invoice_line:
-#                 next_line_tax_id = [x.id for x in line.invoice_line_tax_id]
-#                 if i > 0 and set(tax_ids) != set(next_line_tax_id):
-#                     raise osv.except_osv(
-#                         _('Error!'),
-#                         _('You cannot create lines with different taxes!'))
-#                 tax_ids = next_line_tax_id
-#                 i += 1
-#         return True
-#         
-#     def write(self, cr, uid, ids, vals, context=None):
-#         res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
-#         self._check_tax(cr, uid, ids, context=context)
-#         return res
-#     
-# account_invoice()
 
+class account_invoice(osv.osv):
+
+    _inherit = 'account.invoice'
+    
+    def _amount_all(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        for invoice in self.browse(cr, uid, ids, context=context):
+            res[invoice.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0
+            }
+            for line in invoice.invoice_line:
+                res[invoice.id]['amount_untaxed'] += line.price_subtotal
+            for line in invoice.tax_line: # Exclude WHT
+                if not line.is_wht:
+                    res[invoice.id]['amount_tax'] += line.amount
+            res[invoice.id]['amount_total'] = res[invoice.id]['amount_tax'] + res[invoice.id]['amount_untaxed']
+        return res
+    
+account_invoice()
 
 class account_invoice_tax(osv.osv):
     
     _inherit = 'account.invoice.tax'
-
-    # This is a complete overwrite method.
+    
+    _columns = {
+        'is_wht': fields.boolean("Withholding Tax", readonly=True, help="Tax will be withhold and will be used in Payment"),
+    }
+    _defaults = {
+        'is_wht': False
+    }
+    
     def compute(self, cr, uid, invoice_id, context=None):
+        tax_grouped = self.compute_ex(cr, uid, invoice_id, add_disc=0.0, advance=0.0, deposit=0.0, context=context)
+        return tax_grouped
+
+    # Enhanced from compute() method, to detail with Additional Discount / Advance / Deposit
+    def compute_ex(self, cr, uid, invoice_id, add_disc=0.0, advance=0.0, deposit=0.0, context=None):
         tax_grouped = {}
         tax_obj = self.pool.get('account.tax')
         cur_obj = self.pool.get('res.currency')
@@ -70,7 +73,9 @@ class account_invoice_tax(osv.osv):
 
         for line in inv.invoice_line:
 
-            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, inv.partner_id)['taxes']:
+            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, 
+                (line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0)), 
+                    line.quantity, line.product_id, inv.partner_id)['taxes']:
                 val={}
                 val['invoice_id'] = inv.id
                 val['name'] = tax['name']
@@ -78,6 +83,7 @@ class account_invoice_tax(osv.osv):
                 val['manual'] = False
                 val['sequence'] = tax['sequence']
                 val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity'])
+                val['is_wht'] = tax_obj.browse(cr, uid, tax['id']).is_wht
                 
                 # start kittiu for Thai Accounting, 
                 # For Service and have suspend_account
@@ -115,15 +121,39 @@ class account_invoice_tax(osv.osv):
                     tax_grouped[key]['base'] += val['base']
                     tax_grouped[key]['base_amount'] += val['base_amount']
                     tax_grouped[key]['tax_amount'] += val['tax_amount']
+                    tax_grouped[key]['is_wht'] = val['is_wht']
 
         for t in tax_grouped.values():
             t['base'] = cur_obj.round(cr, uid, cur, t['base'])
             t['amount'] = cur_obj.round(cr, uid, cur, t['amount'])
             t['base_amount'] = cur_obj.round(cr, uid, cur, t['base_amount'])
             t['tax_amount'] = cur_obj.round(cr, uid, cur, t['tax_amount'])
+            
         return tax_grouped
     
-    
+
+    def move_line_get(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_tax WHERE is_wht=False and invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            if not t['amount'] \
+                    and not t['tax_code_id'] \
+                    and not t['tax_amount']:
+                continue
+            res.append({
+                'type':'tax',
+                'name':t['name'],
+                'price_unit': t['amount'],
+                'quantity': 1,
+                'price': t['amount'] or 0.0,
+                'account_id': t['account_id'],
+                'tax_code_id': t['tax_code_id'],
+                'tax_amount': t['tax_amount'],
+                'account_analytic_id': t['account_analytic_id'],
+            })
+        return res
+ 
+
 account_invoice_tax()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

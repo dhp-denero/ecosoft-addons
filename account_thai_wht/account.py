@@ -68,12 +68,12 @@ class account_tax(osv.osv):
         tex = []
         for tax in taxes:
             # start kittiu
-            if (not tax.is_wht) or (tax.is_wht and context.get('is_voucher', False)): # If withholding tax, will be used in Payment
+            #if (not tax.is_wht) or (tax.is_wht and context.get('is_voucher', False)): # If withholding tax, will be used in Payment
             # end kittiu
-                if not tax.price_include or force_excluded:
-                    tex.append(tax)
-                else:
-                    tin.append(tax)
+            if not tax.price_include or force_excluded:
+                tex.append(tax)
+            else:
+                tin.append(tax)
         tin = self.compute_inv(cr, uid, tin, price_unit, quantity, product=product, partner=partner, precision=tax_compute_precision)
         for r in tin:
             totalex -= r.get('amount', 0.0)
@@ -126,7 +126,7 @@ class account_tax(osv.osv):
             elif tax.type=='fixed':
                 data['amount'] = tax.amount
                 data['tax_amount']=quantity
-               # data['amount'] = quantity
+                # data['amount'] = quantity
             elif tax.type=='code':
                 localdict = {'price_unit':cur_price_unit, 'product':product, 'partner':partner}
                 exec tax.python_compute in localdict

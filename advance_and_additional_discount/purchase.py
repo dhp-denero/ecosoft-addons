@@ -2,6 +2,7 @@ from osv import osv, fields
 import decimal_precision as dp
 from tools.translate import _
 from common import AdditionalDiscountable
+import types
 
 class purchase_order(AdditionalDiscountable, osv.osv):
 
@@ -84,5 +85,29 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             'advance_percentage': False,
         })
         return super(purchase_order, self).copy(cr, uid, id, default, context=context)
-    
+
+    def _check_tax(self, cr, uid, ids, context=None):
+        # loop through each lines, check if tax different.
+        if not isinstance(ids, types.ListType): # Make it a list
+            ids = [ids]
+        orders = self.browse(cr, uid, ids, context=context)
+        for order in orders:
+            if order.advance_type in ['advance','deposit']:
+                i = 0
+                tax_ids = []
+                for line in order.order_line:
+                    next_line_tax_id = [x.id for x in line.taxes_id]
+                    if i > 0 and set(tax_ids) != set(next_line_tax_id):
+                        raise osv.except_osv(
+                            _('Advance/Deposit!'),
+                            _('You cannot create lines with different taxes!'))
+                    tax_ids = next_line_tax_id
+                    i += 1
+        return True
+         
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(purchase_order, self).write(cr, uid, ids, vals, context=context)
+        self._check_tax(cr, uid, ids, context=context)
+        return res
+
 purchase_order()

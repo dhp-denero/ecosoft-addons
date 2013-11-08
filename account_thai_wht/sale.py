@@ -1,56 +1,38 @@
-# -*- coding: utf-8 -*-
-##############################################################################
-#
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-import types
-import netsvc
-from osv import osv, fields
+from osv import fields, osv
+import decimal_precision as dp
 from tools.translate import _
-# 
-# class sale_order(osv.osv):
-#     
-#     _inherit="sale.order"
-#      
-#     def _check_tax(self, cr, uid, ids, context=None):
-#         # loop through each lines, check if tax different.
-#         if not isinstance(ids, types.ListType): # Make it a list
-#             ids = [ids]
-#         orders = self.browse(cr, uid, ids, context=context)
-#         for order in orders:
-#             i = 0
-#             tax_ids = []
-#             for line in order.order_line:
-#                 next_line_tax_id = [x.id for x in line.tax_id]
-#                 if i > 0 and set(tax_ids) != set(next_line_tax_id):
-#                     raise osv.except_osv(
-#                         _('Error!'),
-#                         _('You cannot create lines with different taxes!'))
-#                 tax_ids = next_line_tax_id
-#                 i += 1
-#         return True
-#          
-#     def write(self, cr, uid, ids, vals, context=None):
-#         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
-#         self._check_tax(cr, uid, ids, context=context)
-#         return res
-#     
-# sale_order()
+import types
 
+class sale_order(osv.osv):
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+    _inherit = 'sale.order'
+    
+    def _amount_line_tax_ex(self, cr, uid, line, add_disc=0.0, context=None):
+        val = 0.0
+        tax_obj = self.pool.get('account.tax')
+        for c in self.pool.get('account.tax').compute_all(cr, uid, line.tax_id, 
+                            line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0), 
+                            line.product_uom_qty, line.product_id, line.order_id.partner_id)['taxes']:
+            if not tax_obj.browse(cr, uid, c['id']).is_wht:
+                val += c.get('amount', 0.0)
+        return val
+    
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            res[order.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val = val1 = 0.0
+            cur = order.pricelist_id.currency_id
+            for line in order.order_line:
+                val1 += line.price_subtotal
+                val += self._amount_line_tax_ex(cr, uid, line, order.add_disc, context=context) # Call new method.
+            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
+            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
+            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+        return res    
+    

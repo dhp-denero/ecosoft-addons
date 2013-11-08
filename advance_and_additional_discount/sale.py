@@ -2,11 +2,11 @@ from osv import fields, osv
 import decimal_precision as dp
 from tools.translate import _
 from common import AdditionalDiscountable
+import types
 
 class sale_order(AdditionalDiscountable, osv.osv):
 
     _inherit = 'sale.order'
-
     _tax_column = 'tax_id'
     _line_column = 'order_line'
     
@@ -21,8 +21,6 @@ class sale_order(AdditionalDiscountable, osv.osv):
     
     def _amount_all(self, *args, **kwargs):
         return self._amount_all_generic(sale_order, *args, **kwargs)
-
-
 
     def _get_amount_retained(self, cr, uid, ids, field_names, arg, context=None):
         if context is None:
@@ -126,4 +124,28 @@ class sale_order(AdditionalDiscountable, osv.osv):
                 lines.remove(result['id'])                
                 
         res = super(sale_order, self)._prepare_invoice(cr, uid, order, lines, context=context)
+        return res
+    
+    def _check_tax(self, cr, uid, ids, context=None):
+        # For Advance or Deposit case, loop through each lines, check if tax different.
+        if not isinstance(ids, types.ListType): # Make it a list
+            ids = [ids]
+        orders = self.browse(cr, uid, ids, context=context)
+        for order in orders:
+            if order.advance_type in ['advance','deposit']:
+                i = 0
+                tax_ids = []
+                for line in order.order_line:
+                    next_line_tax_id = [x.id for x in line.tax_id]
+                    if i > 0 and set(tax_ids) != set(next_line_tax_id):
+                        raise osv.except_osv(
+                            _('Advance/Deposit!'),
+                            _('You cannot create lines with different taxes!'))
+                    tax_ids = next_line_tax_id
+                    i += 1
+        return True
+          
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
+        self._check_tax(cr, uid, ids, context=context)
         return res

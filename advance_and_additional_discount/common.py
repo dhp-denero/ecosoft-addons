@@ -49,13 +49,6 @@ class AdditionalDiscountable(object):
             add_disc_amt = cur_round(amount_untaxed * add_disc / 100)
             o_res['add_disc_amt'] = add_disc_amt
             o_res['amount_net'] = o_res['amount_untaxed'] - add_disc_amt
-
-            # we apply a discount on the tax as well.
-            # We might have rounding issue
-            o_res['amount_tax'] = cur_round(
-                o_res['amount_tax'] * (100.0 - (add_disc or 0.0))/100.0)
-            
-            
             o_res['amount_total'] = o_res['amount_net'] + o_res['amount_tax']
 
         return res

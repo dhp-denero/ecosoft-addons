@@ -378,14 +378,18 @@ class account_voucher_tax(osv.osv):
         'base_amount': 0.0,
         'tax_amount': 0.0,
     }
+    
     def compute(self, cr, uid, voucher_id, context=None):
+        tax_grouped = self.compute_ex(cr, uid, voucher_id, advance_and_discount={}, context=context)
+        return tax_grouped    
+
+    def compute_ex(self, cr, uid, voucher_id, advance_and_discount={}, context=None):
         tax_grouped = {}
         tax_obj = self.pool.get('account.tax')
         cur_obj = self.pool.get('res.currency')
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=context)
         cur = voucher.currency_id or voucher.journal_id.company_id.currency_id
         company_currency = voucher.company_id.currency_id.id
-
         for voucher_line in voucher.line_ids:
             line_sign = 1
             if voucher.type in ('sale','receipt'):
@@ -394,12 +398,19 @@ class account_voucher_tax(osv.osv):
                 line_sign = voucher_line.type == 'dr' and 1 or -1
             # Each voucher line is equal to an invoice, we will need to go through all of them.
             if voucher_line.move_line_id.invoice:
-                
                 payment_ratio = voucher_line.amount_original == 0.0 and 0.0 or (voucher_line.amount / (voucher_line.amount_original or 1))
-                                
+                # Retrieve Additional Discount, Advance and Deposit in percent.
+                add_disc = advance = deposit = 0.0
+                if advance_and_discount:
+                    invoice = voucher_line.move_line_id.invoice
+                    add_disc = advance_and_discount[invoice.id]['add_disc']
+                    advance = advance_and_discount[invoice.id]['advance']
+                    deposit = advance_and_discount[invoice.id]['deposit']      
                 for line in voucher_line.move_line_id.invoice.invoice_line:
                     # Each invoice line, calculate tax
-                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, (line.price_unit* (1-(line.discount or 0.0)/100.0)), line.quantity, line.product_id, voucher.partner_id, force_excluded=False, context={'is_voucher': True})['taxes']:
+                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, 
+                        (line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0)), 
+                            line.quantity, line.product_id, voucher.partner_id, force_excluded=False, context={'is_voucher': True})['taxes']:
                         # For Normal
                         val={}
                         val['voucher_id'] = voucher.id
