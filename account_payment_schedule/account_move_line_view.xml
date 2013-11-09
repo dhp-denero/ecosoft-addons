@@ -38,7 +38,7 @@
             <field name="name">Payment Schedule</field>
             <field name="res_model">account.move.line</field>
             <field name="view_id" ref="view_move_line_tree"/>
-            <field name="domain">[('is_payment_schedule','=',True),('date_maturity','!=',False),('reconcile_id','=',False)]</field>
+            <field name="domain">[('is_payment_schedule','=',True)]</field>
         	<field name="limit">2000</field>
 		</record>
 

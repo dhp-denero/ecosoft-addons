@@ -27,7 +27,10 @@ class account_move_line(osv.osv):
     def _is_payment_schedule(self, cr, uid, ids, fieldnames, args, context=None):
         result = dict.fromkeys(ids, 0)
         for record in self.browse(cr, uid, ids, context=context):
-            if record.journal_id.type in ['sale','sale_refund','purchase','purchase_refund']:
+            # Display only record with following conditions
+            if record.account_id.type in ('payable', 'receivable') \
+                        and not record.reconcile_id \
+                        and record.data_maturity:
                 result[record.id] = True
             else:
                 result[record.id] = False
@@ -37,7 +40,7 @@ class account_move_line(osv.osv):
         res = {}
         cr.execute("select id from account_account where type = 'liquidity'")
         cash_ids = map(lambda x: x[0], cr.fetchall())
-        begin_balance = self.pool.get('account.account').get_total_account_balance(cr, uid, cash_ids, ['balance'])
+        begin_balance = self.pool.get('account.account').get_total_account_balance_ex(cr, uid, cash_ids, ['balance'])
         if context is None:
             context = {}
         cur_obj = self.pool.get('res.currency')
@@ -48,11 +51,6 @@ class account_move_line(osv.osv):
                 'amount_residual_currency2': 0.0,
                 'amount_end_balance': 0.0,
             }
-
-            if move_line.reconcile_id:
-                continue
-            if not move_line.account_id.type in ('payable', 'receivable'):
-                continue
 
             if move_line.currency_id:
                 move_line_total = move_line.amount_currency
@@ -95,12 +93,17 @@ class account_move_line(osv.osv):
     }
 
     def init(self, cr):
-        cr.execute("update account_move_line ml set is_payment_schedule = \
-                    (select case when type in ('sale','sale_refund','purchase','purchase_refund') \
+        # Only when first install, update the is_payment_schedule status. 
+        cr.execute("update account_move_line m1 \
+                    set is_payment_schedule = \
+                    (select case when type in ('payable','receivable') \
+                    and reconcile_id is null \
+                    and date_maturity is not null \
                     then true else false end \
-                    from account_move m \
-                    left outer join account_journal j on m.journal_id = j.id \
-                    where m.id = ml.move_id) where is_payment_schedule is null")
+                    from account_move_line m2 \
+                    inner join account_account a on m2.account_id = a.id \
+                    where m2.id = m1.id)\
+                    where is_payment_schedule is null")
 
 account_move_line()
 

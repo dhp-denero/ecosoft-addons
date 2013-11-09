@@ -35,8 +35,8 @@ Functions:
 
 Explanation:
 ============
-* The new column Begin Balance of the first row is based on sum balance for all account of type "liquidity"
-* The records of in and out payment are based on journal of type ['sale','sale_refund','purchase','purchase_refund']
+* The new column Begin Balance of the first row is based on sum balance for all account of type "liquidity", but exclude Opening Entries (type = 'situation')
+* The records of in and out payment are based on account_type ['payable', 'receivable']
    
     """,
     'category': 'Accounting & Finance',
