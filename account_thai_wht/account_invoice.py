@@ -72,10 +72,8 @@ class account_invoice_tax(osv.osv):
         company_currency = inv.company_id.currency_id.id
 
         for line in inv.invoice_line:
-
-            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, 
-                (line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0)), 
-                    line.quantity, line.product_id, inv.partner_id)['taxes']:
+            revised_price = (line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0))
+            for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, revised_price, line.quantity, line.product_id, inv.partner_id)['taxes']:
                 val={}
                 val['invoice_id'] = inv.id
                 val['name'] = tax['name']
@@ -85,10 +83,13 @@ class account_invoice_tax(osv.osv):
                 val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity'])
                 val['is_wht'] = tax_obj.browse(cr, uid, tax['id']).is_wht
                 
-                # start kittiu for Thai Accounting, 
-                # For Service and have suspend_account
+                if val['is_wht']:
+                    # Check Threshold first
+                    base = revised_price * line.quantity
+                    if abs(base) and abs(base) < tax_obj.read(cr, uid, tax['id'], ['threshold_wht'])['threshold_wht']:
+                        continue
+                
                 use_suspend_acct = line.product_id.use_suspend_account
-                # end kittiu
                 
                 if inv.type in ('out_invoice','in_invoice'):
                     val['base_code_id'] = tax['base_code_id']
