@@ -30,7 +30,7 @@ class account_move_line(osv.osv):
             # Display only record with following conditions
             if record.account_id.type in ('payable', 'receivable') \
                         and not record.reconcile_id \
-                        and record.data_maturity:
+                        and record.date_maturity:
                 result[record.id] = True
             else:
                 result[record.id] = False
