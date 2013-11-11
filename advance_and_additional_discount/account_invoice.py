@@ -152,14 +152,6 @@ class account_invoice_line(osv.osv):
         'is_deposit': False,             
     }
     
-#     def move_line_get_item(self, cr, uid, line, context=None):
-#         cur_pool = self.pool.get('res.currency')
-#         res = super(account_invoice_line, self).move_line_get_item(cr, uid, line, context=context)
-#         price = res['price']
-#         new_price = cur_pool.round(cr, uid, line.invoice_id.currency_id, (price * (100.0 - (line.invoice_id.add_disc or 0.0))/100.0))
-#         res.update({'price': new_price})
-#         return res
-    
     # kittiu: also dr/cr advance, force creating new move_line
     def move_line_get(self, cr, uid, invoice_id, context=None):
         
