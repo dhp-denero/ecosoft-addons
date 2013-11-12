@@ -33,6 +33,7 @@ class purchase_line_invoice(osv.osv_memory):
         domain = ast.literal_eval(res.get('domain'))
         invoice_ids = domain[0][2]
         self.pool.get('account.invoice').button_compute(cr, uid, invoice_ids, context=context)
+        self.pool.get('account.invoice').button_reset_taxes(cr, uid, invoice_ids, context)
         return res
     
 purchase_line_invoice()

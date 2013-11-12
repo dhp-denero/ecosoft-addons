@@ -10,8 +10,18 @@ class purchase_order(AdditionalDiscountable, osv.osv):
     _description = "Purchase Order"
 
     _tax_column = 'taxes_id'
-    _line_column = 'order_line'
+    _line_column = 'order_line'    
     
+    def _invoiced(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        deposit_invoiced = self._deposit_invoiced(cursor, user, ids, name, arg, context=context)
+        for purchase in self.browse(cursor, user, ids, context=context):
+            invoiced = False
+            if purchase.invoiced_rate >= 100.00 and deposit_invoiced[purchase.id]:
+                invoiced = True
+            res[purchase.id] = invoiced
+        return res
+        
     def _deposit_invoiced(self, cursor, user, ids, name, arg, context=None):
         res = {}
         for purchase in self.browse(cursor, user, ids, context=context):
@@ -40,6 +50,9 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         return self._amount_all_generic(purchase_order, *args, **kwargs)
 
     _columns={
+            'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
+
+              
             'add_disc': fields.float('Additional Discount(%)', digits=(4,6),
                                      states={'confirmed': [('readonly',True)],
                                              'approved': [('readonly',True)],
@@ -71,7 +84,6 @@ class purchase_order(AdditionalDiscountable, osv.osv):
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
-            'deposit_invoiced': fields.function(_deposit_invoiced, string='Deposit Invoiced Rate', type='boolean', store=True),
             }
 
     _defaults={

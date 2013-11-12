@@ -54,12 +54,11 @@
                     <field name="add_disc" colspan="2"/>
                     <field name="add_disc_amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     <field name="amount_net" sum="Net Amount" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                </field>  
+                </field>
 				<xpath expr="/form/sheet/notebook/page[@string='Incoming Shipments &amp; Invoices']/group" position="inside">
                     <group>
                         <field name="advance_type" />
 						<field name="amount_deposit" />
-						<field name="deposit_invoiced"/>
 						<field name="advance_percentage" readonly="True" />
                         <field name="num_invoice" />                   
 					</group>

@@ -109,7 +109,7 @@ class AdditionalDiscountable(object):
                                     and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit
-                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']                        
+                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']   
 
             # add retention amount, if is_retention = True and retention_percentage > 0
             o_res['amount_beforeretention'] = o_res['amount_beforetax'] + o_res['amount_tax']
