@@ -66,6 +66,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_obj.write(cr, uid, [sale_id], {'retention_percentage': wizard.retention})
 
         advance_percent = 0.0
+        advance_amount = 0.0
         amount_deposit = 0.0
         if sale_id:
             sale = sale_obj.browse(cr, uid, sale_id)
@@ -78,14 +79,19 @@ class sale_advance_payment_inv(osv.osv_memory):
                 # calculate the percentage of advancement
                 if wizard.advance_payment_method == 'percentage':
                     advance_percent = wizard.amount
-                elif wizard.advance_payment_method == 'fixed':      
+                    advance_amount = (wizard.amount/100) * sale.amount_net
+                elif wizard.advance_payment_method == 'fixed':     
+                    advance_amount = wizard.amount
                     advance_percent = (wizard.amount / sale.amount_net) * 100
             if advance_type == 'deposit':
                 # calculate the amount of deposit
                 if wizard.advance_payment_method == 'percentage':
                     amount_deposit = (wizard.amount / 100) * sale.amount_net
                 elif wizard.advance_payment_method == 'fixed':
-                    amount_deposit = wizard.amount           
+                    amount_deposit = wizard.amount
+            if advance_amount > sale.amount_net or amount_deposit > sale.amount_net:
+                raise osv.except_osv(_('Amount Error!'),
+                        _('Deposit amount > Sales Order amount!'))            
             # write back to sale_order
             sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
             sale_obj.write(cr, uid, [sale_id], {'amount_deposit': amount_deposit})
