@@ -103,8 +103,9 @@ class AdditionalDiscountable(object):
                         o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage/100)
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
                 if not record.is_deposit:
-                    # Deposit will occur only in the second invoice.
-                    amount_deposit = order.num_invoice == 2 \
+                    # Deposit will occur only in the last invoice (invoice that make it 100%)
+                    this_invoice_rate = (o_res['amount_beforetax'] - order.amount_deposit) * 100 / order.amount_net
+                    amount_deposit = order.invoiced_rate + this_invoice_rate >= 100 \
                                     and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit

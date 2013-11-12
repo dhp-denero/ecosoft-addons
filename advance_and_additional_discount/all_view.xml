@@ -59,6 +59,7 @@
                     <group>
                         <field name="advance_type" />
 						<field name="amount_deposit" />
+						<field name="deposit_invoiced"/>
 						<field name="advance_percentage" readonly="True" />
                         <field name="num_invoice" />                   
 					</group>
