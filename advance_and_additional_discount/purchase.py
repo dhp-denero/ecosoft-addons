@@ -87,8 +87,8 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             }
 
     _defaults={
-               'add_disc': 0.0,
-               }
+            'add_disc': 0.0,
+    }
 
     def action_invoice_create(self, cr, uid, ids, context=None):
         """Add a discount in the invoice after creation, and recompute the total

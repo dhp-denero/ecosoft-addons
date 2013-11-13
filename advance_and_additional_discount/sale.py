@@ -71,7 +71,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Total',
                                             store = True,multi='sums', help="The total amount."),
             # Advance Feature
-            'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
+            'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=False),
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
@@ -85,7 +85,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
 
     _defaults = {
             'add_disc': 0.0,
-        }
+    }
     
     def copy(self, cr, uid, id, default=None, context=None):
         if not default:

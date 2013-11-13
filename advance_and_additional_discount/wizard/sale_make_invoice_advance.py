@@ -91,7 +91,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                     amount_deposit = wizard.amount
             if advance_amount > sale.amount_net or amount_deposit > sale.amount_net:
                 raise osv.except_osv(_('Amount Error!'),
-                        _('Deposit amount > Sales Order amount!'))            
+                        _('Amount > Sales Order amount!'))            
             # write back to sale_order
             sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
             sale_obj.write(cr, uid, [sale_id], {'amount_deposit': amount_deposit})

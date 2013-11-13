@@ -13,7 +13,6 @@ class AdditionalDiscountable(object):
         """
         return record.pricelist_id.currency_id
 
-
     def _amount_all_generic(self, cls, cr, uid, ids, field_name, arg,
                             context=None):
         """Generic overload of the base method to add discount infos
