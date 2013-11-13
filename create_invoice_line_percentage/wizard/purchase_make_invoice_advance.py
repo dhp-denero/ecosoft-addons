@@ -41,6 +41,16 @@ class purchase_advance_payment_inv(osv.osv_memory):
             purchase_ids = context.get('active_ids', [])
             order = purchase_obj.browse(cr, uid, purchase_ids[0])
             order_line_ids = []
+            # For Deposit, check the deposit percent must either 
+            #  1) Make whole amount 100%
+            #  2) Make whole amount left off equal to deposit amount (for the next invoice not become negative)
+            if order.advance_type == 'deposit':
+                percent_deposit = (order.amount_deposit / order.amount_net) * 100
+                percent_after = (order.invoiced_rate - percent_deposit + wizard.line_percent)
+                if not (percent_after >= 100.00) and not (100.00 - percent_after >= percent_deposit):
+                    raise osv.except_osv(_('Amount Error!'),
+                            _('This percentage amount will make negative invoice in the next payment.'))
+
             for order_line in order.order_line:
                 order_line_ids.append(order_line.id)
             # Assign them into active_ids
