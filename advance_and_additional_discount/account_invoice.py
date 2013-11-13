@@ -264,7 +264,7 @@ class account_invoice_tax(osv.Model):
         advance = not invoice.is_advance and order_ids and (order_ids[0].advance_percentage) or 0.0
         # Percent Deposit
         deposit_amount = not invoice.is_deposit and invoice.amount_deposit or 0.0
-        deposit = order_ids and (deposit_amount / (invoice.amount_net) * 100) or 0.0
+        deposit = order_ids and invoice.amount_net and (deposit_amount / (invoice.amount_net) * 100) or 0.0
         tax_grouped = super(account_invoice_tax, self).compute_ex(cr, uid, invoice_id, add_disc, advance, deposit, context)
 
         return tax_grouped
