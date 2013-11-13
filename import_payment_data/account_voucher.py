@@ -45,8 +45,6 @@ class account_voucher(osv.osv):
             vals.update({'amount': vals['import_amount']})        
         res = super(account_voucher, self).write(cr, uid, ids, vals, context=context)
         return res
-    
-    
         
     def onchange_import_file(self, cr, uid, ids, import_file, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None):
         # Prepare Import FIle Data
@@ -117,8 +115,7 @@ class account_voucher(osv.osv):
             # Test to get full wht first
             original_amount, original_wht_amt = self.pool.get('account.voucher.line')._get_amount_wht(cr, uid, partner_id, line['move_line_id'], line['amount_original'], line['amount_original'], adv_disc, context=context)
             # Amount to reconcile
-            payment_line_amt = line['move_line_id'] in payment_lines and payment_lines[line['move_line_id']] or 0.0
-            amount_alloc = original_amount > 0.0 and (payment_line_amt * (original_amount-original_wht_amt) / original_amount) or 0.0
+            amount_alloc = line['move_line_id'] in payment_lines and payment_lines[line['move_line_id']] or 0.0
             # ** Calculate withholding amount ** 
             amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
             # Adjust remaining
