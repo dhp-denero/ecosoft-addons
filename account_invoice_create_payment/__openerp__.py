@@ -33,7 +33,7 @@ Create voucher from the all the selected open invoices
     'sequence': 15,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account_voucher'],
+    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount'],
     'demo' : [],
     'data' : [
         'wizard/invoice_create_confirm_view.xml',
