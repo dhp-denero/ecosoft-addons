@@ -35,7 +35,7 @@ class account_voucher(osv.osv):
     def recompute_voucher_lines(self, cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context=None):
         res = super(account_voucher, self).recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, price, currency_id, ttype, date, context)
         
-        if not context.get('create_payment',False):
+        if not context.get('active_ids',False):
             return res
 
         data_inv = self.pool.get('account.invoice').read(cr, uid, context['active_ids'], ['state','number'], context=context)        
