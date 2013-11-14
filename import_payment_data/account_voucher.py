@@ -37,14 +37,16 @@ class account_voucher(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('import_amount', False):
             vals.update({'amount': vals['import_amount']})
-        res = super(account_voucher, self).create(cr, uid, vals, context=context)
-        return res
+        if vals.get('mismatch', False):
+            vals.update({'mismatch': vals['mismatch']})
+        return super(account_voucher, self).create(cr, uid, vals, context=context)
         
     def write(self, cr, uid, ids, vals, context=None):
         if vals.get('import_amount', False):
-            vals.update({'amount': vals['import_amount']})        
-        res = super(account_voucher, self).write(cr, uid, ids, vals, context=context)
-        return res
+            vals.update({'amount': vals['import_amount']})   
+        if vals.get('mismatch', False):
+            vals.update({'mismatch': vals['mismatch']})
+        return super(account_voucher, self).write(cr, uid, ids, vals, context=context)
         
     def onchange_import_file(self, cr, uid, ids, import_file, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None):
         # Prepare Import FIle Data
@@ -135,7 +137,7 @@ class account_voucher(osv.osv):
         for key in payment_lines.keys():
             matched = False
             for move_line in move_lines:
-                if key == move_line['name']:
+                if key == move_line['name'] or key == move_line['reference']:
                     new_payment_lines.update({move_line['move_line_id']: payment_lines[key]})
                     matched = True
                     break

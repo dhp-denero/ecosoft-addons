@@ -15,8 +15,8 @@
 						</div>
 					</xpath>
                     <xpath expr="/form/sheet/group/group[2]" position="inside">
-	                 	<field name="import_amount" invisible="0" />
-						<field name="mismatch" attrs="{'invisible':[('mismatch','=',0)]}" groups="base.group_user" />                        
+	                 	<field name="import_amount" attrs="{'invisible':[('import_file','=',False)]}" />
+						<field name="mismatch" attrs="{'invisible':[('import_file','=',False)]}" groups="base.group_user" />                        
 					</xpath>				
 				</data>
 			</field>

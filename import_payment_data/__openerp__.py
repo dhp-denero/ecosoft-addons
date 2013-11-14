@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name' : 'Import Payment Lines from Excel',
+    'name' : 'Import Payment Lines from CSV',
     'version' : '1.0',
     'author' : 'Ecosoft',
     'summary': 'Import Pyament Lines from CSV',
