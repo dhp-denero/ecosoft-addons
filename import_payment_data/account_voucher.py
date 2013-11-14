@@ -116,8 +116,8 @@ class account_voucher(osv.osv):
                 adv_disc = advance_and_discount[invoice.id]
             # Test to get full wht first
             original_amount, original_wht_amt = self.pool.get('account.voucher.line')._get_amount_wht(cr, uid, partner_id, line['move_line_id'], line['amount_original'], line['amount_original'], adv_disc, context=context)
-            # Amount to reconcile
-            amount_alloc = line['move_line_id'] in payment_lines and payment_lines[line['move_line_id']] or 0.0
+            # Amount to reconcile, always positive value -> make abs(..)
+            amount_alloc = line['move_line_id'] in payment_lines and abs(payment_lines[line['move_line_id']]) or 0.0
             # ** Calculate withholding amount ** 
             amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
             # Adjust remaining
