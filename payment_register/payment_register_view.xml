@@ -14,7 +14,9 @@
                     <filter string="Cash" domain="[('type','=','cash')]" help="Type Cash"/>
                     <filter string="Transfer" domain="[('type','=','transfer')]" help="Type Transfer"/>
                     <field name="number" string="Payment Detail"/>
-                    <field name="date"/>	
+                    <field name="voucher_id" />
+					<field name="date"/>
+                    <field name="check_no"/>
                     <field name="partner_id" string="Customer"/>
                     <field name="journal_id" context="{'journal_id': self, 'set_visible':False}" domain="[('type','in',('bank','cash'))]"/>
                     <field name="period_id"/>
@@ -41,6 +43,7 @@
                     <field name="journal_transit_id" groups="account.group_account_user"/>
                	 	<field name="period_id"/>
                     <field name="type"/>
+                    <field name="check_no"/>
                     <field name="amount" sum="Amount"/>
                     <field name="state"/>
                 </tree>
@@ -55,6 +58,7 @@
                     <button name="validate_register" string="Validate" states="draft" class="oe_highlight"/>
                     <button name="cancel_register" string="Cancel" states="draft"/>
                     <button name="cancel_register" string="Cancel" type="object" states="posted" confirm="Are you sure to cancel this record ?"/>
+                    <button name="bounce_check" string="Bounced Check" type="object" states="posted" confirm="Are you sure to mark this as bounced check and create new one ?"/>
                     <button name="cancel_to_draft" string="Set to Draft" type="object" states="cancel" invisible="0"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"posted":"blue"}'/>
                 </header>
@@ -76,6 +80,7 @@
                             <field name="paid_amount_in_company_currency" invisible="1" widget="monetary" options="{'currency_field': 'company_currency_id'}"/>
                             <field name="reference"/>
                             <field name="memo"/>
+                            <field name="new_register_id" attrs="{'invisible':[('new_register_id','=',False)]}"/>
                         </group>
                     </group>
                    	<group>
