@@ -434,20 +434,28 @@ class payment_register(osv.osv):
             if register.move_id:
                 move_pool.button_cancel(cr, uid, [register.move_id.id])
                 move_pool.unlink(cr, uid, [register.move_id.id])
+            
+            message = "Payment Register <b>cancelled</b>."
+            self.message_post(cr, uid, [register.id], body=message, subtype="payment_register.mt_register", context=context)
+                
         res = {
             'state':'cancel',
             'move_id':False,
         }
         self.write(cr, uid, ids, res)
-        return True
-
-    def action_cancel_draft(self, cr, uid, ids, context=None):
+        return True 
+    
+    def cancel_to_draft(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for register_id in ids:
+            message = "Payment Register <b>set to draft</b>."
+            self.message_post(cr, uid, [register_id], body=message, subtype="payment_register.mt_register", context=context)
+            wf_service.trg_delete(uid, 'payment.register', register_id, cr)
             wf_service.trg_create(uid, 'payment.register', register_id, cr)
+        
         self.write(cr, uid, ids, {'state':'draft'})
-        return True
-
+        return True 
+    
     def _get_company_currency(self, cr, uid, register_id, context=None):
         return self.pool.get('payment.register').browse(cr,uid,register_id,context).journal_id.company_id.currency_id.id
 
