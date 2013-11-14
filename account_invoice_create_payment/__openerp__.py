@@ -30,7 +30,7 @@ Create voucher from the all the selected open invoices
         
      """,
     'category': 'Accounting & Finance',
-    'sequence': 4,
+    'sequence': 15,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
     'depends' : ['account_voucher'],

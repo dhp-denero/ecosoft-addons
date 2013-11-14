@@ -200,15 +200,17 @@ class invoice_create_payment_confirm(osv.osv_memory):
       
         data = self.read(cr, uid, ids, ['date_due','group_flag'], context)
         
+        active_ids=context.get('active_ids',False)
+        
         for record in data:
             for partner_id in partner_ids:#Create payment each partner
                 due_date = record['date_due']
                
                 if record['group_flag']:#Merge invoice by partner
-                    voucher_id,ttype=self._create_group_payment(cr, uid, ids,partner_id, context['active_ids'],due_date,context)
+                    voucher_id,ttype=self._create_group_payment(cr, uid, ids,partner_id, active_ids,due_date,context)
                     voucher_ids += voucher_id
                 else:#s
-                    voucher_id,ttype,=self._create_single_payment(cr, uid, ids,partner_id,context['active_ids'],due_date,context)
+                    voucher_id,ttype,=self._create_single_payment(cr, uid, ids,partner_id,active_ids,due_date,context)
                     voucher_ids += voucher_id
         
         if len(voucher_ids)<=0:#Error on create payment
@@ -224,7 +226,7 @@ class invoice_create_payment_confirm(osv.osv_memory):
         id = result and result[1] or False
         result = act_obj.read(cr, uid, [id], context=context)[0]
         result['domain'] = "[('id','in', [" + ','.join(map(str, voucher_ids)) + "])]"
-        result['context']={'create_payment':False}
+        result['context']={'create_payment':True,'active_ids':active_ids}
         return result
     
 invoice_create_payment_confirm()
