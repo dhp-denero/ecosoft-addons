@@ -32,7 +32,7 @@ This module adding a new button in Payment window, allowing user to import a pre
     'category': 'Accounting',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount','vat_novat'],
+    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount'],
     'demo' : [],
     'data' : [
               'account_voucher_view.xml',
