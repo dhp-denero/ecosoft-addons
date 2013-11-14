@@ -28,7 +28,6 @@ class account_invoice(AdditionalDiscountable, osv.Model):
 
     _inherit = "account.invoice"
     _description = 'Invoice'
-
     _line_column = 'invoice_line'
     _tax_column = 'invoice_line_tax_id'
 
@@ -135,7 +134,7 @@ class account_invoice(AdditionalDiscountable, osv.Model):
                'is_deposit': False,
                'is_retention': False
     }
-
+    
 account_invoice()
 
 class account_invoice_line(osv.osv):
@@ -264,9 +263,8 @@ class account_invoice_tax(osv.Model):
         # Percent Advance
         advance = not invoice.is_advance and order_ids and (order_ids[0].advance_percentage) or 0.0
         # Percent Deposit
-        deposit_amount = not invoice.is_deposit and order_ids and order_ids[0].num_invoice == 2 \
-                                 and order_ids[0].amount_deposit or 0.0
-        deposit = order_ids and (deposit_amount / (order_ids[0].amount_net) * 100) or 0.0
+        deposit_amount = not invoice.is_deposit and invoice.amount_deposit or 0.0
+        deposit = order_ids and invoice.amount_net and (deposit_amount / (invoice.amount_net) * 100) or 0.0
         tax_grouped = super(account_invoice_tax, self).compute_ex(cr, uid, invoice_id, add_disc, advance, deposit, context)
 
         return tax_grouped

@@ -10,8 +10,33 @@ class purchase_order(AdditionalDiscountable, osv.osv):
     _description = "Purchase Order"
 
     _tax_column = 'taxes_id'
-    _line_column = 'order_line'
+    _line_column = 'order_line'    
     
+    def _invoiced(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        deposit_invoiced = self._deposit_invoiced(cursor, user, ids, name, arg, context=context)
+        for purchase in self.browse(cursor, user, ids, context=context):
+            invoiced = False
+            if purchase.invoiced_rate >= 100.00 and deposit_invoiced[purchase.id]:
+                invoiced = True
+            res[purchase.id] = invoiced
+        return res
+        
+    def _deposit_invoiced(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        for purchase in self.browse(cursor, user, ids, context=context):
+            tot = 0.0
+            for invoice in purchase.invoice_ids:
+                if invoice.state not in ('draft','cancel'):
+                    tot += invoice.amount_deposit
+            if purchase.amount_deposit > 0.0:
+                res[purchase.id] = False
+                if tot >= purchase.amount_deposit:
+                    res[purchase.id] = True
+            else:
+                res[purchase.id] = True
+        return res
+        
     def _num_invoice(self, cursor, user, ids, name, args, context=None):
         '''Return the amount still to pay regarding all the payment orders'''
         if not ids:
@@ -25,6 +50,9 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         return self._amount_all_generic(purchase_order, *args, **kwargs)
 
     _columns={
+            'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
+
+              
             'add_disc': fields.float('Additional Discount(%)', digits=(4,6),
                                      states={'confirmed': [('readonly',True)],
                                              'approved': [('readonly',True)],
@@ -55,12 +83,12 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
-            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account'))
+            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
             }
 
     _defaults={
-               'add_disc': 0.0,
-               }
+            'add_disc': 0.0,
+    }
 
     def action_invoice_create(self, cr, uid, ids, context=None):
         """Add a discount in the invoice after creation, and recompute the total

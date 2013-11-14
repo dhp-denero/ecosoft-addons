@@ -18,26 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import ast
 
-from openerp.osv import osv
-from openerp.tools.translate import _
-
-class purchase_line_invoice(osv.osv_memory):
-
-    _inherit = 'purchase.order.line_invoice'
-
-    def makeInvoices(self, cr, uid, ids, context=None):
-        res = super(purchase_line_invoice, self).makeInvoices(cr, uid, ids, context=context)
-        # retrieve invoice_ids from domain, and compute it.
-        domain = ast.literal_eval(res.get('domain'))
-        invoice_ids = domain[0][2]
-        self.pool.get('account.invoice').button_compute(cr, uid, invoice_ids, context=context)
-        self.pool.get('account.invoice').button_reset_taxes(cr, uid, invoice_ids, context)
-        return res
-    
-purchase_line_invoice()
-
+import account_voucher
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

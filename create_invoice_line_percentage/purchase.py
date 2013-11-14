@@ -28,17 +28,7 @@ class purchase_order(osv.osv):
     
     _inherit = 'purchase.order'
     
-    def _invoiced(self, cursor, user, ids, name, arg, context=None):
-        res = {}
-        for purchase in self.browse(cursor, user, ids, context=context):
-            invoiced = False
-            if purchase.invoiced_rate >= 100.00:
-                invoiced = True
-            res[purchase.id] = invoiced
-        return res
-    
     _columns = {
-        'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
         'invoice_method': fields.selection([('manual','Based on Purchase Order lines'),
                                             ('order','Based on generated draft invoice'),
                                             ('picking','Based on incoming shipments'),

@@ -30,7 +30,7 @@ class account_move_line(osv.osv):
             # Display only record with following conditions
             if record.account_id.type in ('payable', 'receivable') \
                         and not record.reconcile_id \
-                        and record.date_maturity:
+                        and (record.date_maturity or not record.reconcile_partial_id):
                 result[record.id] = True
             else:
                 result[record.id] = False
@@ -81,11 +81,22 @@ class account_move_line(osv.osv):
             res[move_line.id]['amount_end_balance'] = ending_balance
             begin_balance = ending_balance
         return res
-
+    
+    def _get_move_line(self, cr, uid, ids, context=None):
+        """ return all account_move_line for the same partner_id of the updated account_voucher """
+        move_line_ids = []
+        for voucher in self.browse(cr, uid, ids, context=context):
+            move_line_ids += self.pool.get('account.move.line').search(cr, uid, [('partner_id', '=', voucher.partner_id.id)], context=context)
+        return move_line_ids   
+    
     _inherit = 'account.move.line'
     _order = 'date_maturity, id'
     _columns = {
-        'is_payment_schedule': fields.function(_is_payment_schedule, type='boolean', string='Is Payment Schedule', store=True),
+        'is_payment_schedule': fields.function(_is_payment_schedule, type='boolean', string='Is Payment Schedule', 
+                                store={
+                                       'account.move.line': (lambda self, cr, uid, ids, c={}: ids, None, 10),
+                                       'account.voucher': (_get_move_line, ['state'], 10)
+                                       }),
         'amount_begin_balance': fields.function(_amount_residual2, type='float', digits_compute=dp.get_precision('Account'), string='Begin Balance', multi="residual"),
         'amount_residual_currency2': fields.function(_amount_residual2, type='float', digits_compute=dp.get_precision('Account'), string='Residual Amount Currency', multi="residual"),
         'amount_residual2': fields.function(_amount_residual2, type='float', digits_compute=dp.get_precision('Account'), string='Residual Amount', multi="residual"),
@@ -98,7 +109,7 @@ class account_move_line(osv.osv):
                     set is_payment_schedule = \
                     (select case when type in ('payable','receivable') \
                     and reconcile_id is null \
-                    and date_maturity is not null \
+                    and (date_maturity is not null or reconcile_partial_id is null) \
                     then true else false end \
                     from account_move_line m2 \
                     inner join account_account a on m2.account_id = a.id \

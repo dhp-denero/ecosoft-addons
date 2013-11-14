@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,26 +18,30 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import ast
 
-from openerp.osv import osv
-from openerp.tools.translate import _
-
-class purchase_line_invoice(osv.osv_memory):
-
-    _inherit = 'purchase.order.line_invoice'
-
-    def makeInvoices(self, cr, uid, ids, context=None):
-        res = super(purchase_line_invoice, self).makeInvoices(cr, uid, ids, context=context)
-        # retrieve invoice_ids from domain, and compute it.
-        domain = ast.literal_eval(res.get('domain'))
-        invoice_ids = domain[0][2]
-        self.pool.get('account.invoice').button_compute(cr, uid, invoice_ids, context=context)
-        self.pool.get('account.invoice').button_reset_taxes(cr, uid, invoice_ids, context)
-        return res
+{
+    'name' : 'Import Payment Lines from Excel',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Import Pyament Lines from CSV',
+    'description': """
     
-purchase_line_invoice()
+This module adding a new button in Payment window, allowing user to import a pre-formatted excel to fill payment lines.
 
+    """,
+    'category': 'Accounting',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount'],
+    'demo' : [],
+    'data' : [
+              'account_voucher_view.xml',
+    ],
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

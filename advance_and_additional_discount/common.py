@@ -13,7 +13,6 @@ class AdditionalDiscountable(object):
         """
         return record.pricelist_id.currency_id
 
-
     def _amount_all_generic(self, cls, cr, uid, ids, field_name, arg,
                             context=None):
         """Generic overload of the base method to add discount infos
@@ -103,12 +102,13 @@ class AdditionalDiscountable(object):
                         o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage/100)
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
                 if not record.is_deposit:
-                    # Deposit will occur only in the second invoice.
-                    amount_deposit = order.num_invoice == 2 \
+                    # Deposit will occur only in the last invoice (invoice that make it 100%)
+                    this_invoice_rate = order.amount_net and ((o_res['amount_beforetax'] - order.amount_deposit) * 100 / order.amount_net) or 0.0
+                    amount_deposit = order.invoiced_rate + this_invoice_rate >= 100 \
                                     and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit
-                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']                        
+                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']   
 
             # add retention amount, if is_retention = True and retention_percentage > 0
             o_res['amount_beforeretention'] = o_res['amount_beforetax'] + o_res['amount_tax']
