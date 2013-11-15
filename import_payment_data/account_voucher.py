@@ -30,8 +30,9 @@ class account_voucher(osv.osv):
     _inherit = 'account.voucher'
     _columns = {
         'import_file': fields.binary('Import File (*.csv)', readonly=True, states={'draft':[('readonly',False)]}),
-        'import_amount': fields.float('Import Amount', digits_compute=dp.get_precision('Account')),
-        'mismatch': fields.integer('Import Mismatched', readonly=True),
+        'import_amount': fields.float('Import Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
+        'mismatch': fields.integer('Import Mismatched', readonly=True, states={'draft':[('readonly',False)]}),
+        'mismatch_list': fields.char('Mismatch List', readonly=True, states={'draft':[('readonly',False)]}),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -107,25 +108,28 @@ class account_voucher(osv.osv):
         
         move_line_obj = self.pool.get('account.move.line')
         # Match payment_lines with lines's move_line_id
-        payment_lines, mismatch = self.matched_payment_lines(payment_lines, lines)
+        payment_lines, mismatch, mismatch_list = self.matched_payment_lines(payment_lines, lines)
         for line in lines:        
-            adv_disc = {}   
-            if advance_and_discount:
-                move_line = move_line_obj.browse(cr, uid, line['move_line_id'])
-                invoice = move_line.invoice
-                adv_disc = advance_and_discount[invoice.id]
-            # Test to get full wht first
-            original_amount, original_wht_amt = self.pool.get('account.voucher.line')._get_amount_wht(cr, uid, partner_id, line['move_line_id'], line['amount_original'], line['amount_original'], adv_disc, context=context)
-            # Amount to reconcile, always positive value -> make abs(..)
-            amount_alloc = line['move_line_id'] in payment_lines and abs(payment_lines[line['move_line_id']]) or 0.0
-            # ** Calculate withholding amount ** 
-            amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
+            if line['move_line_id'] in payment_lines:
+                adv_disc = {}   
+                if advance_and_discount:
+                    move_line = move_line_obj.browse(cr, uid, line['move_line_id'])
+                    invoice = move_line.invoice
+                    adv_disc = invoice and advance_and_discount[invoice.id] or {}
+                # Test to get full wht first
+                original_amount, original_wht_amt = self.pool.get('account.voucher.line')._get_amount_wht(cr, uid, partner_id, line['move_line_id'], line['amount_original'], line['amount_original'], adv_disc, context=context)
+                # Amount to reconcile, always positive value -> make abs(..)
+                amount_alloc = abs(payment_lines[line['move_line_id']]) or 0.0
+                # ** Calculate withholding amount ** 
+                amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
+            else:
+                amount, amount_wht = 0.0, 0.0
             # Adjust remaining
             line['amount'] = amount+amount_wht
             line['amount_wht'] = -amount_wht
             line['reconcile'] = line['amount'] == line['amount_unreconciled']
             
-        vals = {'value': {'mismatch': mismatch}}
+        vals = {'value': {'mismatch': mismatch, 'mismatch_list': mismatch_list}}
         for key in vals.keys():
             res[key].update(vals[key])
              
@@ -134,6 +138,7 @@ class account_voucher(osv.osv):
     def matched_payment_lines(self, payment_lines, move_lines):
         new_payment_lines = {}
         mismatch = 0
+        mismatch_list = False
         for key in payment_lines.keys():
             matched = False
             for move_line in move_lines:
@@ -142,8 +147,12 @@ class account_voucher(osv.osv):
                     matched = True
                     break
             if not matched:
+                if not mismatch_list:
+                    mismatch_list = key
+                else:
+                    mismatch_list = ('%s,%s') % (mismatch_list, key)
                 mismatch += 1
-        return new_payment_lines, mismatch
+        return new_payment_lines, mismatch, mismatch_list
 
 account_voucher()
 
