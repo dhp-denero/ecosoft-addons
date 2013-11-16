@@ -117,6 +117,7 @@ class account_voucher(osv.osv):
             lines =  line_dr_ids + line_cr_ids
         
         for line in lines:
+            amount, amount_wht = 0.0, 0.0 
             adv_disc = {}   
             if advance_and_discount:
                 move_line = move_line_obj.browse(cr, uid, line['move_line_id'])
@@ -150,7 +151,8 @@ class account_voucher(osv.osv):
                         amount_alloc = amount_alloc > remain_amount and remain_amount or amount_alloc  
                                   
             # ** Calculate withholding amount ** 
-            amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
+            if amount_alloc:
+                amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
             # Adjust remaining
             remain_amount = remain_amount + (sign * amount_alloc)
             line['amount'] = amount+amount_wht
