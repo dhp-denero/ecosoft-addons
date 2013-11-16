@@ -10,6 +10,22 @@ class sale_order(AdditionalDiscountable, osv.osv):
     _tax_column = 'tax_id'
     _line_column = 'order_line'
     
+    def _invoiced_rate(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        for sale in self.browse(cursor, user, ids, context=context):
+            if sale.invoiced:
+                res[sale.id] = 100.0
+                continue
+            tot = 0.0
+            for invoice in sale.invoice_ids:
+                if invoice.state not in ('draft', 'cancel'):
+                    tot += invoice.amount_net
+            if tot:
+                res[sale.id] = min(100.0, tot * 100.0 / (sale.amount_net or 1.00))
+            else:
+                res[sale.id] = 0.0
+        return res
+        
     def _num_invoice(self, cursor, user, ids, name, args, context=None):
         '''Return the amount still to pay regarding all the payment orders'''
         if not ids:
@@ -58,6 +74,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
         return res
 
     _columns = {
+            'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced Ratio', type='float'),
             # Additional Discount Feature
             'add_disc':fields.float('Additional Discount(%)',digits_compute= dp.get_precision('Additional Discount'), readonly=True, states={'draft': [('readonly', False)]}),
             'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',

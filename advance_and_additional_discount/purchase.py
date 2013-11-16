@@ -12,6 +12,19 @@ class purchase_order(AdditionalDiscountable, osv.osv):
     _tax_column = 'taxes_id'
     _line_column = 'order_line'    
     
+    def _invoiced_rate(self, cursor, user, ids, name, arg, context=None):
+        res = {}
+        for purchase in self.browse(cursor, user, ids, context=context):
+            tot = 0.0
+            for invoice in purchase.invoice_ids:
+                if invoice.state not in ('draft','cancel'):
+                    tot += invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
+            if purchase.amount_net:
+                res[purchase.id] = tot * 100.0 / purchase.amount_net
+            else:
+                res[purchase.id] = 0.0
+        return res
+    
     def _invoiced(self, cursor, user, ids, name, arg, context=None):
         res = {}
         deposit_invoiced = self._deposit_invoiced(cursor, user, ids, name, arg, context=context)
@@ -50,6 +63,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         return self._amount_all_generic(purchase_order, *args, **kwargs)
 
     _columns={
+            'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced', type='float'),
             'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
 
               
