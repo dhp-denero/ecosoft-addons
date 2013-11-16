@@ -32,8 +32,8 @@ class account_voucher_tax(osv.osv):
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=context)
         advance_and_discount = {}
         for voucher_line in voucher.line_ids:
-            if voucher_line.move_line_id.invoice:
-                invoice = voucher_line.move_line_id.invoice
+            invoice = voucher_line.move_line_id.invoice
+            if invoice:
                 adv_disc_param = self.pool.get('account.voucher.line').get_adv_disc_param(cr, uid, invoice)
                 # Add to dict
                 advance_and_discount.update({invoice.id: adv_disc_param})
@@ -57,8 +57,8 @@ class account_voucher(osv.osv):
         advance_and_discount = {}
         for line in line_cr_ids + line_dr_ids:
             move_line = move_line_obj.browse(cr, uid, line['move_line_id'])
-            if move_line.invoice:
-                invoice = move_line.invoice
+            invoice = move_line.invoice
+            if invoice:
                 adv_disc_param = self.pool.get('account.voucher.line').get_adv_disc_param(cr, uid, invoice)
                 # Add to dict
                 advance_and_discount.update({invoice.id: adv_disc_param})
@@ -68,8 +68,8 @@ class account_voucher(osv.osv):
     def _get_amount_wht_ex(self, cr, uid, partner_id, move_line_id, amount_original, original_wht_amt, amount, advance_and_discount={}, context=None):
         move_line = self.pool.get('account.move.line').browse(cr, uid, move_line_id)
         adv_disc_param= {}
-        if move_line.invoice:
-            invoice = move_line.invoice
+        invoice = move_line.invoice
+        if invoice:
             adv_disc_param = self.pool.get('account.voucher.line').get_adv_disc_param(cr, uid, invoice)
             # Add to dict
         amount, amount_wht = super(account_voucher, self)._get_amount_wht_ex(cr, uid, partner_id, move_line_id, amount_original, original_wht_amt, amount, adv_disc_param, context=context)
@@ -84,8 +84,8 @@ class account_voucher_line(osv.osv):
     def _get_amount_wht(self, cr, uid, partner_id, move_line_id, amount_original, amount, advance_and_discount={}, context=None):
         move_line = self.pool.get('account.move.line').browse(cr, uid, move_line_id)
         adv_disc_param = {}
-        if move_line.invoice:
-            invoice = move_line.invoice
+        invoice = move_line.invoice
+        if invoice:
             adv_disc_param = self.pool.get('account.voucher.line').get_adv_disc_param(cr, uid, invoice)
         amount, amount_wht = super(account_voucher_line, self)._get_amount_wht(cr, uid, partner_id, move_line_id, amount_original, amount, adv_disc_param, context=context)
         return float(amount), float(amount_wht)
