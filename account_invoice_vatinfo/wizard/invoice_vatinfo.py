@@ -93,11 +93,12 @@ class invoice_vatinfo(osv.osv_memory):
 
     def onchange_vat(self, cr, uid, ids, vatinfo_tax_id, vatinfo_tax_amount, context=None):
         res = {}
-        vatinfo_tax = self.pool.get('account.tax').browse(cr, uid, vatinfo_tax_id)
-        if vatinfo_tax and vatinfo_tax.type == 'percent' and vatinfo_tax_amount:
-            tax_percent = vatinfo_tax.amount or 0.0
-            if tax_percent > 0.0:
-                res['vatinfo_base_amount'] = vatinfo_tax_amount / tax_percent
+        if vatinfo_tax_id:
+            vatinfo_tax = self.pool.get('account.tax').browse(cr, uid, vatinfo_tax_id)
+            if vatinfo_tax and vatinfo_tax.type == 'percent' and vatinfo_tax_amount:
+                tax_percent = vatinfo_tax.amount or 0.0
+                if tax_percent > 0.0:
+                    res['vatinfo_base_amount'] = vatinfo_tax_amount / tax_percent
         return {'value': res}
          
 invoice_vatinfo()
