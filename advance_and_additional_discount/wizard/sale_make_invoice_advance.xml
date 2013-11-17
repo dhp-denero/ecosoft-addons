@@ -21,7 +21,7 @@
 						<attribute name="attrs">{'invisible': True}</attribute>
 					</xpath>					
 					<xpath expr="/form/group" position="after">
-						<group invisible="(context.get('advance_type', False) and not context.get('num_invoice', False)) or context.get('retention', False)">					
+						<group invisible="(context.get('advance_type', False) and not context.get('num_invoice', False))" >					
 							<group>
 								<label for="retention" />
 								<div>

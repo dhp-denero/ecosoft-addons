@@ -54,6 +54,10 @@ class sale_advance_payment_inv(osv.osv_memory):
         'retention': fields.float('Retention', digits_compute= dp.get_precision('Account'),
             help="The amount to be retained from invoices. The amount will be retained from this invoice onwards."),                  
         }
+    
+    _defaults = {
+        'retention': lambda self,cr,uid,c: c.get('retention', False)
+    }
                
     def create_invoices(self, cr, uid, ids, context=None):
         
