@@ -107,6 +107,10 @@ class account_voucher(osv.osv):
                 pids = period_pool.find(cr, uid, payment_detail.date_due, context=ctx)
                 res = { 'voucher_id':voucher.id,
                         'pay_detail_id':payment_detail.id,
+                        'name':payment_detail.name,
+                        'type':payment_detail.type,
+                        'check_no':payment_detail.check_no,
+                        'date_due':payment_detail.date_due,
                         'original_pay_currency_id':voucher.currency_id and voucher.currency_id.id or voucher.company_id.currency_id.id,
                         'original_pay_amount':payment_detail.amount,
                         'amount':payment_detail.amount,

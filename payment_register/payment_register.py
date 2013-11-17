@@ -29,13 +29,6 @@ from openerp.tools.translate import _
 
 class payment_register(osv.osv):
     
-#    def _get_period(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        if context.get('period_id', False):
-#            return context.get('period_id')
-#        periods = self.pool.get('account.period').find(cr, uid)
-#        return periods and periods[0] or False
-
     def _get_reference(self, cr, uid, context=None):
         if context is None: context = {}
         return context.get('reference', False)
@@ -47,35 +40,6 @@ class payment_register(osv.osv):
     def _make_journal_search(self, cr, uid, ttype, context=None):
         journal_pool = self.pool.get('account.journal')
         return journal_pool.search(cr, uid, [('type', '=', ttype)], limit=1)
-
-#    def _get_journal(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        invoice_pool = self.pool.get('account.invoice')
-#        journal_pool = self.pool.get('account.journal')
-#        if context.get('invoice_id', False):
-#            currency_id = invoice_pool.browse(cr, uid, context['invoice_id'], context=context).currency_id.id
-#            journal_id = journal_pool.search(cr, uid, [('currency', '=', currency_id)], limit=1)
-#            return journal_id and journal_id[0] or False
-#        if context.get('journal_id', False):
-#            return context.get('journal_id')
-#        if not context.get('journal_id', False) and context.get('search_default_journal_id', False):
-#            return context.get('search_default_journal_id')
-
-#        ttype = context.get('type', 'bank')
-#        if ttype in ('payment', 'receipt'):
-#        ttype = 'bank'
-#        res = self._make_journal_search(cr, uid, ttype, context=context)
-#        return res and res[0] or False
-    
-#    def _get_currency(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        journal_pool = self.pool.get('account.journal')
-#        journal_id = context.get('journal_id', False)
-#        if journal_id:
-#            journal = journal_pool.browse(cr, uid, journal_id, context=context)
-#            if journal.currency:
-#                return journal.currency.id
-#        return False    
 
     def _get_exchange_rate_currency(self, cr, uid, context=None):
         """
@@ -91,15 +55,6 @@ class payment_register(osv.osv):
                 return journal.currency.id
         #no journal given in the context, use company currency as default
         return self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.currency_id.id
-
-#    def _get_writeoff_amount(self, cr, uid, ids, name, args, context=None):
-#        if not ids: return {}
-#        currency_obj = self.pool.get('res.currency')
-#        res = {}
-#        for register in self.browse(cr, uid, ids, context=context):
-#            currency = register.currency_id or register.company_id.currency_id
-#            res[register.id] =  currency_obj.round(cr, uid, currency, (register.amount - register.amount_payin))
-#        return res
 
     def _paid_amount_in_company_currency(self, cr, uid, ids, name, args, context=None):
         if not ids: return {}
@@ -152,10 +107,14 @@ class payment_register(osv.osv):
 
         # Payment Detail
         'pay_detail_id': fields.many2one('account.voucher.pay.detail', 'Payment Detail Ref', ondelete='restrict', select=True),
-        'name': fields.related('pay_detail_id', 'name', type='char', relation='account.voucher.pay.detail', string='Bank/Branch', store=True, readonly=True),
-        'type': fields.related('pay_detail_id', 'type', type='selection', selection=[('check','Check'),('cash','Cash'),('transfer','Transfer')], relation='account.voucher.pay.detail', string='Type', store=True, readonly=True),
-        'check_no': fields.related('pay_detail_id', 'check_no', type='char', relation='account.voucher.pay.detail', string='Check No.', store=True, readonly=True),
-        'date_due': fields.related('pay_detail_id', 'date_due', type='date', relation='account.voucher.pay.detail', string='Due Date', store=True, readonly=True),
+        'name': fields.char('Bank/Branch', size=128, readonly=True, states={'draft':[('readonly',False)]}),
+        'type': fields.selection([
+            ('check','Check'),
+            ('cash','Cash'),
+            ('transfer','Transfer'),
+            ],'Type', required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'check_no': fields.char('Check No.', size=64, readonly=True, states={'draft':[('readonly',False)]}),
+        'date_due': fields.date('Date Due', readonly=True, states={'draft':[('readonly',False)]}),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
         
         # Payment Register
