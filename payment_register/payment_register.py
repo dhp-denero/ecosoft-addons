@@ -147,7 +147,7 @@ class payment_register(osv.osv):
         'writeoff_acc_id': fields.many2one('account.account', 'Counterpart Account', required=False, readonly=True, states={'draft': [('readonly', False)]}),
         'comment': fields.char('Counterpart Comment', size=64, required=False, readonly=False),
         
-        'new_register_id': fields.many2one('payment.register', 'New Payment Register', readonly=True, help='This new Payment Register is created to replace the one with bounced check.'),
+        'new_register_id': fields.many2one('payment.register', 'New Payment Detail', readonly=True, help='This new Payment Register is created to replace the one with bounced check.'),
 
     }
     _defaults = {
