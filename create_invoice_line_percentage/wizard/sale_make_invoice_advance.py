@@ -76,8 +76,8 @@ class sale_advance_payment_inv(osv.osv_memory):
             # Update retention
             if wizard.retention > 0.0:
                 sale_obj.write(cr, uid, sale_ids, {'retention_percentage': wizard.retention})
-            if order.retention_percentage > 0.0 and res.get('res_id'):
-                self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
+                if res.get('res_id', False):
+                    self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
             # Update invoice
             if res.get('res_id'):
                 self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
