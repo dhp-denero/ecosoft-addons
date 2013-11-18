@@ -49,7 +49,7 @@ class purchase_advance_payment_inv(osv.osv_memory):
                 percent_after = (order.invoiced_rate + wizard.line_percent)
                 if not (percent_after >= 100.00) and not (percent_deposit + percent_after <= 100):
                     raise osv.except_osv(_('Amount Error!'),
-                            _('This percentage amount will make negative invoice in the next payment.'))
+                            _('This percentage will make negative amount in the next invoice.'))
 
             for order_line in order.order_line:
                 order_line_ids.append(order_line.id)
