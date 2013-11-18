@@ -197,6 +197,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             inv_values = {
                 'name': sale.client_order_ref or sale.name,
                 'origin': sale.name,
+                'user_id': sale.user_id.id,
                 'type': 'out_invoice',
                 'reference': False,
                 'account_id': sale.partner_id.property_account_receivable.id,

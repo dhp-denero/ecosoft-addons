@@ -18,7 +18,8 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             tot = 0.0
             for invoice in purchase.invoice_ids:
                 if invoice.state not in ('draft','cancel'):
-                    tot += invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
+                    # Do not add amount, it this is a deposit/advance
+                    tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
             if purchase.amount_net:
                 res[purchase.id] = tot * 100.0 / purchase.amount_net
             else:

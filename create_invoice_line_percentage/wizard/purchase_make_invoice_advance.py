@@ -46,8 +46,8 @@ class purchase_advance_payment_inv(osv.osv_memory):
             #  2) Make whole amount left off equal to deposit amount (for the next invoice not become negative)
             if order.advance_type == 'deposit':
                 percent_deposit = (order.amount_deposit / order.amount_net) * 100
-                percent_after = (order.invoiced_rate - percent_deposit + wizard.line_percent)
-                if not (percent_after >= 100.00) and not (100.00 - percent_after >= percent_deposit):
+                percent_after = (order.invoiced_rate + wizard.line_percent)
+                if not (percent_after >= 100.00) and not (percent_deposit + percent_after <= 100):
                     raise osv.except_osv(_('Amount Error!'),
                             _('This percentage amount will make negative invoice in the next payment.'))
 
