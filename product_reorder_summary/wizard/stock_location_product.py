@@ -28,6 +28,7 @@ class stock_location_product(osv.osv_memory):
     _columns = {
         #Show CheckBox in view
         'reorder_flag': fields.boolean('Show Product in Reorder'), 
+        'negative_flag': fields.boolean('Show only negative result'), 
     }
     
     def _get_reorder_action(self, cr, uid, ids, context=None):
@@ -65,7 +66,8 @@ class stock_location_product(osv.osv_memory):
             location_ids = location_obj._get_location(cr, uid, ids, context=res['context'])
             # Data filter only "Reorder Point Rule"     
             res['domain']+=[tuple(['orderpoint_ids','<>',False])]+[tuple(['orderpoint_ids.location_id','in',location_ids])]
-            
+            if location_products[0]['negative_flag']:  
+                res['domain']+=[tuple(['qty_diff_reroder','<',0])]
         return res
 stock_location_product()
 

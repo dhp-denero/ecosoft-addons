@@ -27,6 +27,35 @@ from lxml import etree
 
 class product_product(osv.osv):
 
+    
+    def _search_reorder_summary(self, cr, uid, obj, name, args, domain=None, context=None):
+        
+        if not len(args) and len(args[0]) <3:
+            return []
+        
+        res=[]
+        reorder_obj = self.pool.get('stock.warehouse.orderpoint')
+         
+        location_ids = self._get_location(cr, uid, [], context)
+                  
+        if location_ids:#location done,it will filter by product and location
+            reorder_ids = reorder_obj.search(cr, uid,[('location_id','in',location_ids)])
+        else:
+            reorder_ids = reorder_obj.search(cr, uid,[])
+        
+        #Get Product in Reorder Point Table        
+        reorder_info = reorder_obj.read(cr, uid, reorder_ids,['product_id'], context=context)
+         
+        ids = [x['product_id'][0] for x in reorder_info]
+        product_reorder = self._get_common_reorder(cr, uid, ids, name, args, True, context)
+       
+        for id in ids:
+            #Concatenate is condition 
+            con = str(product_reorder[id]["qty_diff_reroder"]) + str(args[0][1]) + str(args[0][2])
+            if eval(con):
+                res.append(id)
+        return [('id', 'in', res)]
+    
     #There are some copy from  get_product_available of stock/product 
     def _get_location(self, cr, uid, ids, context=None):
         if context is None:
@@ -67,8 +96,7 @@ class product_product(osv.osv):
         
         return location_ids
     
-    def _get_reorder_summary(self, cr, uid, ids, name, arg, context=None):
-         
+    def _get_common_reorder(self, cr, uid, ids, name, arg, is_search=False, context=None):
         if not ids:
             ids = self.search(cr, uid, [])
         res = {}.fromkeys(ids, {'qty_reorder':False,'qty_diff_reroder':False})
@@ -116,10 +144,18 @@ class product_product(osv.osv):
             amount = uom_obj._compute_qty_obj(cr, uid, uoms_o[obj.product_uom.id], obj.product_min_qty,
                      uoms_o[context.get('uom', False) or product2uom[obj.product_id.id]], context=context)
             #Put reorder point and difference into return object
+#             if is_search:
+#                 res[obj.product_id.id]={'qty_reorder':res[obj.product_id.id]['qty_reorder']+amount
+#                                     ,'qty_diff_reroder':product_info[0].qty_available - (res[obj.product_id.id]['qty_reorder']+amount)
+#                                     ,}
+#             else:
             res[obj.product_id.id]={'qty_reorder':res[obj.product_id.id]['qty_reorder']+amount
-                                    ,'qty_diff_reroder':product_info[0].qty_available -  (res[obj.product_id.id]['qty_reorder']+amount)}
-            
+                                ,'qty_diff_reroder':product_info[0].qty_available - (res[obj.product_id.id]['qty_reorder']+amount)
+                                ,}
         return res
+    
+    def _get_reorder_summary(self, cr, uid, ids, name, arg, context=None):
+        return self._get_common_reorder(cr, uid, ids, name, arg, is_search=False, context=context)
     
     #Overriding from product_product Class
     def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
@@ -139,7 +175,7 @@ class product_product(osv.osv):
     _inherit = "product.product"
     _columns = {
         'qty_reorder': fields.function(_get_reorder_summary, type='float', string='Reorder Point',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure'),store=False),
-        'qty_diff_reroder': fields.function(_get_reorder_summary, type='float', string='Difference',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure')),
+        'qty_diff_reroder': fields.function(_get_reorder_summary, type='float', fnct_search=_search_reorder_summary, string='Difference',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure')),
     }
     
 product_product()
