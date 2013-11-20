@@ -39,7 +39,10 @@ class sale_order_line(osv.osv):
                 iline_qty = 0.0
                 for iline in this.invoice_lines:
                     if iline.invoice_id.state != 'cancel':
-                        iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
+                        if not this.product_uos: # Normal Case
+                            iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
+                        else: # UOS case.
+                            iline_qty += iline.quantity / (iline.product_id.uos_id and iline.product_id.uos_coeff or 1)                        
                 # Test quantity
                 res[this.id] = iline_qty >= oline_qty
             else:

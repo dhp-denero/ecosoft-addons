@@ -62,14 +62,17 @@ class purchase_order_line(osv.osv):
         res = dict.fromkeys(ids, False)
         uom_obj = self.pool.get('product.uom')
         for this in self.browse(cr, uid, ids, context=context):
-            if this.product_id and not this.product_uos: # TODO: uos case is not covered yet.
+            if this.product_id:
                 oline_qty = uom_obj._compute_qty(cr, uid, this.product_uom.id, this.product_qty, this.product_id.uom_id.id)
                 iline_qty = 0.0
                 for iline in this.invoice_lines:
                     if iline.invoice_id.state != 'cancel':
-                        iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
+                        if not this.product_uos: # Normal Case
+                            iline_qty += uom_obj._compute_qty(cr, uid, iline.uos_id.id, iline.quantity, iline.product_id.uom_id.id)
+                        else: # UOS case.
+                            iline_qty += iline.quantity / (iline.product_id.uos_id and iline.product_id.uos_coeff or 1)
                 # Test quantity
-                res[this.id] = iline_qty >= oline_qty
+                res[this.id] = iline_qty >= oline_qty                
             else:
                 res[this.id] = this.invoice_lines and \
                 all(iline.invoice_id.state != 'cancel' for iline in this.invoice_lines) 
@@ -77,10 +80,11 @@ class purchase_order_line(osv.osv):
     
     def _order_lines_from_invoice(self, cr, uid, ids, context=None):
         # direct access to the m2m table is the less convoluted way to achieve this (and is ok ACL-wise)
-        cr.execute("""SELECT DISTINCT pol.id FROM purchase_order_line_invoice_rel rel JOIN
-                                                  purchase_order_line pol ON (pol.id = rel.order_line_id)
+        cr.execute("""SELECT DISTINCT pol.id FROM purchase_invoice_rel rel JOIN
+                                                  purchase_order_line pol ON (pol.order_id = rel.purchase_id)
                                     WHERE rel.invoice_id = ANY(%s)""", (list(ids),))
-        return [i[0] for i in cr.fetchall()]
+        res = [i[0] for i in cr.fetchall()]
+        return res
             
     _columns = {
         'invoiced': fields.function(_fnct_line_invoiced, string='Invoiced', type='boolean',
