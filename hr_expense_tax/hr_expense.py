@@ -63,17 +63,17 @@ class hr_expense_expense(osv.osv):
             if not (input_vat_tax_id and personal_wht_tax_id and company_wht_tax_id):
                 raise osv.except_osv(_('Error!'), _('VAT and WHT Tax is not defined.\nPlease go to Account module configuration and assign them!'))
             # VAT
-            if line.vat_amount:
+            if line.tax_amount:
                 vat = tax_obj.browse(cr, uid, input_vat_tax_id)
                 vat_tax = {
                              'type':'tax',
                              'name':vat.name,
-                             'price_unit': line.vat_amount,
+                             'price_unit': line.tax_amount,
                              'quantity': 1,
-                             'price':  line.vat_amount * vat.base_sign or 0.0,
+                             'price':  line.tax_amount * vat.base_sign or 0.0,
                              'account_id': vat.account_collected_id and vat.account_collected_id.id,
                              'tax_code_id': vat.tax_code_id and vat.tax_code_id.id,
-                             'tax_amount': line.vat_amount or 0.0
+                             'tax_amount': line.tax_amount or 0.0
                 }
                 res.append(vat_tax)
             # WHT
@@ -99,10 +99,24 @@ class hr_expense_line(osv.osv):
 
     _inherit = 'hr.expense.line'
     
+    def onchange_tax_id(self, cr, uid, ids, tax_id, wht_tax_id, unit_amount, unit_quantity, context=None):
+        res = {}
+        tax = self.pool.get('account.tax').browse(cr, uid, tax_id, context)
+        wht = self.pool.get('account.tax').browse(cr, uid, wht_tax_id, context)
+        tax_percent = 0.0
+        wht_percent = 0.0
+        if tax_id and tax.type == 'percent':
+            tax_percent = tax.amount or 0.0  
+            res.update({'tax_amount': tax_percent * unit_amount * unit_quantity})
+        if wht_tax_id and wht.type == 'percent':
+            wht_percent = wht.amount or 0.0
+            res.update({'wht_amount': wht_percent * unit_amount * unit_quantity})
+        return {'value': res}  
+    
     def _net_amount(self, cr, uid, ids, field_name, arg, context=None):
         if not ids:
             return {}
-        cr.execute("SELECT l.id,COALESCE(SUM(l.unit_amount*l.unit_quantity+vat_amount+wht_amount),0) AS amount FROM hr_expense_line l WHERE id IN %s GROUP BY l.id ",(tuple(ids),))
+        cr.execute("SELECT l.id,COALESCE(SUM(l.unit_amount*l.unit_quantity+tax_amount+wht_amount),0) AS amount FROM hr_expense_line l WHERE id IN %s GROUP BY l.id ",(tuple(ids),))
         res = dict(cr.fetchall())
         return res
     
@@ -114,8 +128,10 @@ class hr_expense_line(osv.osv):
                     ], 'Type', required=False),      
         'vat': fields.char('Tax ID', size=64),
         'branch': fields.char('Branch ID', size=64),
-        'vat_amount': fields.float('VAT', digits_compute=dp.get_precision('Account'), required=False),
-        'wht_amount': fields.float('WHT', digits_compute=dp.get_precision('Account'), required=False),
+        'tax_id': fields.many2one('account.tax', 'Tax', domain=[('type_tax_use','=',('purchase')), ('is_wht','=',False)], required=False),
+        'tax_amount': fields.float('Tax Amount', digits_compute=dp.get_precision('Account'), required=False),
+        'wht_tax_id': fields.many2one('account.tax', 'WHT', domain=[('type_tax_use','=',('purchase')), ('is_wht','=',True)], required=False),
+        'wht_amount': fields.float('WHT Amount', digits_compute=dp.get_precision('Account'), required=False),
         'total_net_amount': fields.function(_net_amount, string='Net Total', digits_compute=dp.get_precision('Account')),
     }
     
