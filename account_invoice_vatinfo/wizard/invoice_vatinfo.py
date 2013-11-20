@@ -64,7 +64,7 @@ class invoice_vatinfo(osv.osv_memory):
         'vatinfo_tin': fields.char('Tax ID', required=True, size=64),
         'vatinfo_branch': fields.char('Branch No.', required=True, size=64),
         'vatinfo_base_amount': fields.float('Base', required=True, digits_compute=dp.get_precision('Account')),
-        'vatinfo_tax_id': fields.many2one('account.tax', 'Tax', required=True, ),
+        'vatinfo_tax_id': fields.many2one('account.tax', 'Tax', domain=[('type_tax_use','=','purchase'), ('is_wht','=',False)], required=True, ),
         'vatinfo_tax_amount': fields.float('VAT', required=True, digits_compute=dp.get_precision('Account')),
     }
     
@@ -91,16 +91,19 @@ class invoice_vatinfo(osv.osv_memory):
         return {'type': 'ir.actions.client',
                 'tag': 'reload'}   
 
-    def onchange_vat(self, cr, uid, ids, vatinfo_tax_id, vatinfo_tax_amount, context=None):
+    def onchange_vat(self, cr, uid, ids, vatinfo_tax_id, vatinfo_base_amount, vatinfo_tax_amount, context=None):
         res = {}
         if vatinfo_tax_id:
+            change_field = context.get('change_field', False)
             vatinfo_tax = self.pool.get('account.tax').browse(cr, uid, vatinfo_tax_id)
-            if vatinfo_tax and vatinfo_tax.type == 'percent' and vatinfo_tax_amount:
+            if vatinfo_tax and vatinfo_tax.type == 'percent':
                 tax_percent = vatinfo_tax.amount or 0.0
-                if tax_percent > 0.0:
-                    res['vatinfo_base_amount'] = vatinfo_tax_amount / tax_percent
+                if change_field in ['tax_id','base_amt']: 
+                    res['vatinfo_tax_amount'] = round(tax_percent * vatinfo_base_amount, 2)
+                if change_field == 'tax_amt':
+                    res['vatinfo_base_amount'] = round(vatinfo_tax_amount / tax_percent, 2)
         return {'value': res}
-         
+    
 invoice_vatinfo()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

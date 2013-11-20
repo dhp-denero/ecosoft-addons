@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
+from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 from openerp.osv import fields, osv
 
@@ -63,14 +63,18 @@ class account_invoice_line(osv.osv):
     
     def action_add_vatinfo(self, cr, uid, ids, data, context=None):
         for vatinfo in self.browse(cr, uid, ids, context=context):
+            if vatinfo.invoice_id.state != 'draft':
+                raise osv.except_osv(_('Error!'),
+                    _('VAT Info can be changed only if invoice is in Draft state'))
+            
             self.write(cr, uid, vatinfo.id, {'vatinfo_date': data.vatinfo_date,
-                                             'vatinfo_number': data.vatinfo_number,
-                                             'vatinfo_supplier_name': data.vatinfo_supplier_name,
-                                             'vatinfo_tin': data.vatinfo_tin,
-                                             'vatinfo_branch': data.vatinfo_branch,
-                                             'vatinfo_base_amount': data.vatinfo_base_amount,
-                                             'vatinfo_tax_id': data.vatinfo_tax_id.id,
-                                             'vatinfo_tax_amount': data.vatinfo_tax_amount,})
+                                                 'vatinfo_number': data.vatinfo_number,
+                                                 'vatinfo_supplier_name': data.vatinfo_supplier_name,
+                                                 'vatinfo_tin': data.vatinfo_tin,
+                                                 'vatinfo_branch': data.vatinfo_branch,
+                                                 'vatinfo_base_amount': data.vatinfo_base_amount,
+                                                 'vatinfo_tax_id': data.vatinfo_tax_id.id,
+                                                 'vatinfo_tax_amount': data.vatinfo_tax_amount,})
         return True  
 
 
