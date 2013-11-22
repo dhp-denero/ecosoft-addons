@@ -86,7 +86,7 @@ class account_move_line(osv.osv):
         """ return all account_move_line for the same partner_id of the updated account_voucher """
         move_line_ids = []
         for voucher in self.browse(cr, uid, ids, context=context):
-            move_line_ids += self.pool.get('account.move.line').search(cr, uid, [('partner_id', '=', voucher.partner_id.id)], context=context)
+            move_line_ids += self.pool.get('account.move.line').search(cr, uid, [('move_id', '=', voucher.move_id.id)], context=context)
         return move_line_ids   
     
     _inherit = 'account.move.line'
