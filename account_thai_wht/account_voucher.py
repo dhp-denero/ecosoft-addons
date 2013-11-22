@@ -82,7 +82,7 @@ class account_voucher(osv.osv):
                 if is_wht:                
                     for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, 
                                                    revised_price * ((amount_original-original_wht_amt) and amount/(amount_original-original_wht_amt) or 0.0), 
-                                                   line.quantity, line.product_id, partner, force_excluded=False, context=context)['taxes']:
+                                                   line.quantity, line.product_id, partner, force_excluded=False)['taxes']:
                         if tax_obj.browse(cr, uid, tax['id']).is_wht:
                             # Check Threshold first
                             base = revised_price * line.quantity
@@ -356,7 +356,7 @@ class account_voucher_line(osv.osv):
                 if is_wht:
                     for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id,
                             revised_price * (amount_original and (amount/amount_original) or 0.0),
-                            line.quantity, line.product_id, partner, force_excluded=False, context=context)['taxes']:
+                            line.quantity, line.product_id, partner, force_excluded=False)['taxes']:
                         if tax_obj.browse(cr, uid, tax['id']).is_wht:
                             amount_wht += tax['amount']
 
@@ -460,7 +460,7 @@ class account_voucher_tax(osv.osv):
                 for line in voucher_line.move_line_id.invoice.invoice_line:
                     # Each invoice line, calculate tax
                     revised_price = line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0)
-                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, revised_price, line.quantity, line.product_id, voucher.partner_id, force_excluded=False, context=context)['taxes']:
+                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, revised_price, line.quantity, line.product_id, voucher.partner_id, force_excluded=False)['taxes']:
                         # For Normal
                         val={}
                         val['voucher_id'] = voucher.id
