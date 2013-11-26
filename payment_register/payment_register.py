@@ -29,13 +29,6 @@ from openerp.tools.translate import _
 
 class payment_register(osv.osv):
     
-#    def _get_period(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        if context.get('period_id', False):
-#            return context.get('period_id')
-#        periods = self.pool.get('account.period').find(cr, uid)
-#        return periods and periods[0] or False
-
     def _get_reference(self, cr, uid, context=None):
         if context is None: context = {}
         return context.get('reference', False)
@@ -47,35 +40,6 @@ class payment_register(osv.osv):
     def _make_journal_search(self, cr, uid, ttype, context=None):
         journal_pool = self.pool.get('account.journal')
         return journal_pool.search(cr, uid, [('type', '=', ttype)], limit=1)
-
-#    def _get_journal(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        invoice_pool = self.pool.get('account.invoice')
-#        journal_pool = self.pool.get('account.journal')
-#        if context.get('invoice_id', False):
-#            currency_id = invoice_pool.browse(cr, uid, context['invoice_id'], context=context).currency_id.id
-#            journal_id = journal_pool.search(cr, uid, [('currency', '=', currency_id)], limit=1)
-#            return journal_id and journal_id[0] or False
-#        if context.get('journal_id', False):
-#            return context.get('journal_id')
-#        if not context.get('journal_id', False) and context.get('search_default_journal_id', False):
-#            return context.get('search_default_journal_id')
-
-#        ttype = context.get('type', 'bank')
-#        if ttype in ('payment', 'receipt'):
-#        ttype = 'bank'
-#        res = self._make_journal_search(cr, uid, ttype, context=context)
-#        return res and res[0] or False
-    
-#    def _get_currency(self, cr, uid, context=None):
-#        if context is None: context = {}
-#        journal_pool = self.pool.get('account.journal')
-#        journal_id = context.get('journal_id', False)
-#        if journal_id:
-#            journal = journal_pool.browse(cr, uid, journal_id, context=context)
-#            if journal.currency:
-#                return journal.currency.id
-#        return False    
 
     def _get_exchange_rate_currency(self, cr, uid, context=None):
         """
@@ -91,15 +55,6 @@ class payment_register(osv.osv):
                 return journal.currency.id
         #no journal given in the context, use company currency as default
         return self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.currency_id.id
-
-#    def _get_writeoff_amount(self, cr, uid, ids, name, args, context=None):
-#        if not ids: return {}
-#        currency_obj = self.pool.get('res.currency')
-#        res = {}
-#        for register in self.browse(cr, uid, ids, context=context):
-#            currency = register.currency_id or register.company_id.currency_id
-#            res[register.id] =  currency_obj.round(cr, uid, currency, (register.amount - register.amount_payin))
-#        return res
 
     def _paid_amount_in_company_currency(self, cr, uid, ids, name, args, context=None):
         if not ids: return {}
@@ -122,7 +77,7 @@ class payment_register(osv.osv):
     _description = 'Payment Register'
     _inherit = ['mail.thread']
     _order = "date desc, id desc"
-#    _rec_name = 'number'
+    _rec_name = 'number'
     _columns = {
                 
         # Document
@@ -152,10 +107,14 @@ class payment_register(osv.osv):
 
         # Payment Detail
         'pay_detail_id': fields.many2one('account.voucher.pay.detail', 'Payment Detail Ref', ondelete='restrict', select=True),
-        'name': fields.related('pay_detail_id', 'name', type='char', relation='account.voucher.pay.detail', string='Bank/Branch', store=True, readonly=True),
-        'type': fields.related('pay_detail_id', 'type', type='selection', selection=[('check','Check'),('cash','Cash'),('transfer','Transfer')], relation='account.voucher.pay.detail', string='Type', store=True, readonly=True),
-        'check_no': fields.related('pay_detail_id', 'check_no', type='char', relation='account.voucher.pay.detail', string='Check No.', store=True, readonly=True),
-        'date_due': fields.related('pay_detail_id', 'date_due', type='date', relation='account.voucher.pay.detail', string='Due Date', store=True, readonly=True),
+        'name': fields.char('Bank/Branch', size=128, readonly=True, states={'draft':[('readonly',False)]}),
+        'type': fields.selection([
+            ('check','Check'),
+            ('cash','Cash'),
+            ('transfer','Transfer'),
+            ],'Type', required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'check_no': fields.char('Check No.', size=64, readonly=True, states={'draft':[('readonly',False)]}),
+        'date_due': fields.date('Date Due', readonly=True, states={'draft':[('readonly',False)]}),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
         
         # Payment Register
@@ -167,11 +126,12 @@ class payment_register(osv.osv):
         'amount_payin': fields.float('Pay-in Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
 
         # Miscellenous
-        'narration':fields.text('Notes', readonly=True, states={'draft':[('readonly',False)]}),
+        'narration':fields.text('Notes', readonly=False),
         'state':fields.selection(
             [('draft','Draft'),
              ('cancel','Cancelled'),
-             ('posted','Posted')
+             ('posted','Posted'),
+             ('bounce_check','Bounced Check'),
             ], 'Status', readonly=True, size=32,
             help=' * The \'Draft\' status is used when a user is encoding a new and unconfirmed payment register. \
                         \n* The \'Posted\' status is used when user create payment register,a Register number is generated and accounting entries are created in account \
@@ -185,8 +145,10 @@ class payment_register(osv.osv):
         'payment_option':fields.selection([('with_writeoff', 'Reconcile Payment Balance'),
                                            ], 'Payment Difference', required=True, readonly=True, states={'draft': [('readonly', False)]}, help="This field helps you to choose what you want to do with the eventual difference between the paid amount and the sum of allocated amounts. You can either choose to keep open this difference on the partner's account, or reconcile it with the payment(s)"),
         'writeoff_acc_id': fields.many2one('account.account', 'Counterpart Account', required=False, readonly=True, states={'draft': [('readonly', False)]}),
-        'comment': fields.char('Counterpart Comment', size=64, required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'comment': fields.char('Counterpart Comment', size=64, required=False, readonly=False),
         
+        'new_register_id': fields.many2one('payment.register', 'New Payment Detail', readonly=True, help='This new Payment Register is created to replace the one with bounced check.'),
+
     }
     _defaults = {
         #'active': True,
@@ -401,26 +363,14 @@ class payment_register(osv.osv):
             res['value']['amount_payin'] = original_pay_amount / exchange_rate
             res['value']['amount'] = original_pay_amount / exchange_rate
         return res
-
-#    def onchange_amount_payin(self, cr, uid, ids, amount, rate, journal_id, currency_id, date, original_pay_amount, company_id, context=None):
-#        if context is None:
-#            context = {}
-#        #res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=context)
-#        ctx = context.copy()
-#        ctx.update({'date': date})
-#        vals = self.onchange_rate(cr, uid, ids, rate, amount, currency_id, original_pay_amount, company_id, context=ctx)
-##        for key in vals.keys():
-##            res[key].update(vals[key])
-#        return vals    
     
     def onchange_amount(self, cr, uid, ids, amount, amount_payin, context=None):
         diff = (amount or 0.0) - (amount_payin or 0.0)
         return {'value': {'writeoff_amount':diff}}
-
-    def cancel_register(self, cr, uid, ids, context=None):
+    
+    def _unpost_register(self, cr, uid, ids, context=None):
         reconcile_pool = self.pool.get('account.move.reconcile')
         move_pool = self.pool.get('account.move')
-
         for register in self.browse(cr, uid, ids, context=context):
             recs = []
             for line in register.move_ids:
@@ -434,20 +384,46 @@ class payment_register(osv.osv):
             if register.move_id:
                 move_pool.button_cancel(cr, uid, [register.move_id.id])
                 move_pool.unlink(cr, uid, [register.move_id.id])
+        return True
+    
+    def cancel_register(self, cr, uid, ids, context=None):
+        self._unpost_register(cr, uid, ids, context=context)
+        message = "Payment Register <b>cancelled</b>."
+        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)     
         res = {
             'state':'cancel',
             'move_id':False,
         }
         self.write(cr, uid, ids, res)
+        return True 
+    
+    # Case bounce check, same as cancel, but status to 'bounce_check' then create new one with reference to the old.
+    def bounce_check(self, cr, uid, ids, context=None):    
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self._unpost_register(cr, uid, ids, context=context)
+        message = "Payment Register <b>bounced check</b>."
+        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)     
+        # Create a new document
+        new_register_id = self.copy(cr, uid, ids[0], {'date': False, 'journal_id': False, 'amount_payin': False})   
+        res = {
+            'state':'bounce_check',
+            'move_id':False,
+            'new_register_id': new_register_id,
+        }
+        self.write(cr, uid, ids, res)           
         return True
-
-    def action_cancel_draft(self, cr, uid, ids, context=None):
+    
+    def cancel_to_draft(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for register_id in ids:
+            message = "Payment Register <b>set to draft</b>."
+            self.message_post(cr, uid, [register_id], body=message, subtype="payment_register.mt_register", context=context)
+            wf_service.trg_delete(uid, 'payment.register', register_id, cr)
             wf_service.trg_create(uid, 'payment.register', register_id, cr)
+        
         self.write(cr, uid, ids, {'state':'draft'})
-        return True
-
+        return True 
+    
     def _get_company_currency(self, cr, uid, register_id, context=None):
         return self.pool.get('payment.register').browse(cr,uid,register_id,context).journal_id.company_id.currency_id.id
 

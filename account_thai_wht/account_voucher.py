@@ -82,7 +82,7 @@ class account_voucher(osv.osv):
                 if is_wht:                
                     for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, 
                                                    revised_price * ((amount_original-original_wht_amt) and amount/(amount_original-original_wht_amt) or 0.0), 
-                                                   line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+                                                   line.quantity, line.product_id, partner, force_excluded=False)['taxes']:
                         if tax_obj.browse(cr, uid, tax['id']).is_wht:
                             # Check Threshold first
                             base = revised_price * line.quantity
@@ -117,6 +117,7 @@ class account_voucher(osv.osv):
             lines =  line_dr_ids + line_cr_ids
         
         for line in lines:
+            amount, amount_wht = 0.0, 0.0 
             adv_disc = {}   
             if advance_and_discount:
                 move_line = move_line_obj.browse(cr, uid, line['move_line_id'])
@@ -150,7 +151,8 @@ class account_voucher(osv.osv):
                         amount_alloc = amount_alloc > remain_amount and remain_amount or amount_alloc  
                                   
             # ** Calculate withholding amount ** 
-            amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
+            if amount_alloc:
+                amount, amount_wht = self._get_amount_wht_ex(cr, uid, partner_id, line['move_line_id'], line['amount_original'], original_wht_amt, amount_alloc, advance_and_discount, context=context)
             # Adjust remaining
             remain_amount = remain_amount + (sign * amount_alloc)
             line['amount'] = amount+amount_wht
@@ -354,7 +356,7 @@ class account_voucher_line(osv.osv):
                 if is_wht:
                     for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id,
                             revised_price * (amount_original and (amount/amount_original) or 0.0),
-                            line.quantity, line.product_id, partner, force_excluded=False, context={'is_voucher': True})['taxes']:
+                            line.quantity, line.product_id, partner, force_excluded=False)['taxes']:
                         if tax_obj.browse(cr, uid, tax['id']).is_wht:
                             amount_wht += tax['amount']
 
@@ -458,7 +460,7 @@ class account_voucher_tax(osv.osv):
                 for line in voucher_line.move_line_id.invoice.invoice_line:
                     # Each invoice line, calculate tax
                     revised_price = line.price_unit * (1-(line.discount or 0.0)/100.0) * (1-(add_disc or 0.0)/100.0) * (1-(advance or 0.0)/100.0) * (1-(deposit or 0.0)/100.0)
-                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, revised_price, line.quantity, line.product_id, voucher.partner_id, force_excluded=False, context={'is_voucher': True})['taxes']:
+                    for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id, revised_price, line.quantity, line.product_id, voucher.partner_id, force_excluded=False)['taxes']:
                         # For Normal
                         val={}
                         val['voucher_id'] = voucher.id

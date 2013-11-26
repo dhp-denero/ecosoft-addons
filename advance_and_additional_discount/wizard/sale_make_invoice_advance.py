@@ -54,6 +54,10 @@ class sale_advance_payment_inv(osv.osv_memory):
         'retention': fields.float('Retention', digits_compute= dp.get_precision('Account'),
             help="The amount to be retained from invoices. The amount will be retained from this invoice onwards."),                  
         }
+    
+    _defaults = {
+        'retention': lambda self,cr,uid,c: c.get('retention', False)
+    }
                
     def create_invoices(self, cr, uid, ids, context=None):
         
@@ -176,6 +180,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             inv_line_values = {
                 'name': res.get('name'),
                 'origin': sale.name,
+                'user_id': sale.user_id.id,
                 'account_id': res['account_id'],
                 'price_unit': inv_amount,
                 'quantity': wizard.qtty or 1.0,
@@ -192,6 +197,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             inv_values = {
                 'name': sale.client_order_ref or sale.name,
                 'origin': sale.name,
+                'user_id': sale.user_id.id,
                 'type': 'out_invoice',
                 'reference': False,
                 'account_id': sale.partner_id.property_account_receivable.id,

@@ -26,7 +26,8 @@
     'summary': 'Add Tax for HR Expense',
     'description': """
     
-This module will ignore the Account Posting for Product Tax, but use the VAT and WHT amount provided by user in Expense Line
+* This module will ignore the Account Posting for Product Tax, but use the VAT and WHT amount provided by user in Expense Line
+* Sequence numbering for HR Expense
 
     """,
     'category': 'Accounting & Finance',

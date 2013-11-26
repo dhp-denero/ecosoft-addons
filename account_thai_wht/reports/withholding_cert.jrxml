@@ -348,7 +348,7 @@ $F{partner_type} == "partnership"]]></printWhenExpression>
 			<textField isBlankWhenNull="true">
 				<reportElement x="172" y="643" width="364" height="20"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Tahoma" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[(new Scriptlet()).getAmtInWords((new BigDecimal($F{wht_amount}.toString()==""?0:$F{wht_amount}.toString())).setScale(2).toString(),"THB")]]></textFieldExpression>
 			</textField>

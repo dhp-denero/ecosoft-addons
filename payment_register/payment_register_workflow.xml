@@ -55,5 +55,6 @@
             <field name="act_to" ref="act_draft"/>
             <field name="signal">cancel_to_draft</field>
         </record>
+        
     </data>
 </openerp>

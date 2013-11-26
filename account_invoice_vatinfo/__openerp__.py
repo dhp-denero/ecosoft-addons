@@ -34,7 +34,7 @@ This is useful when we pay VAT through other supplier, e.g., Invoice to a shippi
     'category': 'Accounting',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account'],
+    'depends' : ['account','web_m2o_enhanced'],
     'demo' : [],
     'data' : ['wizard/invoice_vatinfo_view.xml',
               'account_invoice_view.xml',

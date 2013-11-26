@@ -56,6 +56,16 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_ids = context.get('active_ids', [])
             order = sale_obj.browse(cr, uid, sale_ids[0])
             order_line_ids = []
+            # For Deposit, check the deposit percent must either 
+            #  1) Make whole amount 100%
+            #  2) Make whole amount left off equal to deposit amount (for the next invoice not become negative)
+            if order.advance_type == 'deposit':
+                percent_deposit = (order.amount_deposit / order.amount_net) * 100
+                percent_after = (order.invoiced_rate + wizard.line_percent)
+                if not (percent_after >= 100.00) and not (percent_deposit + percent_after <= 100):
+                    raise osv.except_osv(_('Amount Error!'),
+                            _('This percentage will make negative amount in the next invoice.'))
+            
             for order_line in order.order_line:
                 order_line_ids.append(order_line.id)
             # Assign them into active_ids
@@ -66,8 +76,8 @@ class sale_advance_payment_inv(osv.osv_memory):
             # Update retention
             if wizard.retention > 0.0:
                 sale_obj.write(cr, uid, sale_ids, {'retention_percentage': wizard.retention})
-            if order.retention_percentage > 0.0 and res.get('res_id'):
-                self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
+                if res.get('res_id', False):
+                    self.pool.get('account.invoice').write(cr, uid, [res.get('res_id')], {'is_retention': True})
             # Update invoice
             if res.get('res_id'):
                 self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)

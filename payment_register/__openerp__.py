@@ -23,8 +23,13 @@
     'name' : 'Payment Register',
     'version' : '1.0',
     'author' : 'Ecosoft',
-    'summary': "Extra step to normal Customer Payment, to register payment to appropriate payment channel",
+    'summary': "",
     'description': """
+
+Extra step to normal Customer Payment, to register payment to appropriate payment channel.
+
+* Allow cancellation and set to draft.
+* Adding bounced check feature.
 
     """,
     'category': 'Accounting & Finance',

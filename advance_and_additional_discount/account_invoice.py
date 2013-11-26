@@ -134,7 +134,16 @@ class account_invoice(AdditionalDiscountable, osv.Model):
                'is_deposit': False,
                'is_retention': False
     }
-    
+
+    # For refund case, we also copy the Additional Discount. The rest are not copied yet.
+    # To copy, we will need to set the relation between refund with SO. This is yet to decide.
+    def _prepare_refund(self, cr, uid, invoice, date=None, period_id=None, description=None, journal_id=None, context=None):
+        invoice_data = super(account_invoice, self)._prepare_refund(cr, uid, invoice, date=date, period_id=period_id, description=description, journal_id=journal_id, context=context)
+        invoice_data.update({
+            'add_disc': invoice.add_disc
+        })
+        return invoice_data
+
 account_invoice()
 
 class account_invoice_line(osv.osv):
@@ -157,8 +166,9 @@ class account_invoice_line(osv.osv):
         res = super(account_invoice_line,self).move_line_get(cr, uid, invoice_id, context=context)
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
         
-        if inv.add_disc_amt > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+        if inv.add_disc_amt > 0.0:   
+            sign = -1
+            #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_customer', 'res.partner', context=context) \
@@ -179,8 +189,9 @@ class account_invoice_line(osv.osv):
                 'taxes':False,
             })
             
-        if inv.amount_advance > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+        if inv.amount_advance > 0.0: 
+            sign = -1
+            #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_advance_customer', 'res.partner', context=context) \
@@ -201,8 +212,9 @@ class account_invoice_line(osv.osv):
                 'taxes':False,
             })
             
-        if inv.amount_deposit > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+        if inv.amount_deposit > 0.0: 
+            sign = -1
+            #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
@@ -225,8 +237,9 @@ class account_invoice_line(osv.osv):
                 'taxes':False,
             })
             
-        if inv.amount_retention > 0.0:        
-            sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
+        if inv.amount_retention > 0.0:  
+            sign = -1
+            #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
             prop = inv.type in ('out_invoice','out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_retention_customer', 'res.partner', context=context) \

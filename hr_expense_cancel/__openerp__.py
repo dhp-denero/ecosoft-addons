@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,26 +20,25 @@
 ##############################################################################
 
 {
-    'name' : 'Invoice(s) Create Payment ',
+    'name' : 'HR Expense Cancel',
     'version' : '1.0',
     'author' : 'Ecosoft',
-    'summary': 'Create voucher from the all the selected open invoices',
+    'summary': 'Cancel HR Expense that has been posted',
     'description': """
     
-Create voucher from the all the selected open invoices
-        
-     """,
+* Allowing the cancellation of document after account entry has been created.
+
+    """,
     'category': 'Accounting & Finance',
-    'sequence': 15,
+    'sequence': 4,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount'],
+    'depends' : ['hr_expense'],
     'demo' : [],
-    'data' : [
-        'wizard/invoice_create_confirm_view.xml',
-    ],
-    'test' : [
-    ],
+    'data' : ['hr_expense_view.xml',
+              'hr_expense_workflow.xml',
+              ],
+    'test' : [],
     'auto_install': False,
     'application': True,
     'installable': True,

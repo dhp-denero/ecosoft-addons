@@ -19,30 +19,6 @@
 #
 ##############################################################################
 
-{
-    'name' : 'Invoice(s) Create Payment ',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Create voucher from the all the selected open invoices',
-    'description': """
-    
-Create voucher from the all the selected open invoices
-        
-     """,
-    'category': 'Accounting & Finance',
-    'sequence': 15,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['account_voucher','account_thai_wht','advance_and_additional_discount'],
-    'demo' : [],
-    'data' : [
-        'wizard/invoice_create_confirm_view.xml',
-    ],
-    'test' : [
-    ],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
+import hr_expense
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
