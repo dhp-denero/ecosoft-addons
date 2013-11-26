@@ -39,8 +39,13 @@ class hr_expense_expense(osv.osv):
     _inherit = 'hr.expense.expense'
     
     _columns = {
-            'amount': fields.function(_amount, string='Total Amount', digits_compute=dp.get_precision('Account')),
+        'number': fields.char('Expense Number', size=128, required=False, readonly=True),   
+        'amount': fields.function(_amount, string='Total Amount', digits_compute=dp.get_precision('Account')),
     }
+        
+    def create(self, cr, uid, vals, context=None):
+        vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'hr.expense.invoice') or '/'
+        return super(hr_expense_expense, self).create(cr, uid, vals, context=context)    
 
     def move_line_get(self, cr, uid, expense_id, context=None):
         res = []
@@ -92,6 +97,14 @@ class hr_expense_expense(osv.osv):
                 }
                 res.append(wht_tax)                        
         return res
+    
+    def action_receipt_create(self, cr, uid, ids, context=None):
+        res = super(hr_expense_expense, self).action_receipt_create(cr, uid, ids, context=context)
+        # Write expense's number to account_move
+        move_obj = self.pool.get('account.move')
+        for expense in self.browse(cr, uid, ids):
+            move_obj.write(cr, uid, [expense.account_move_id.id], {'name': expense.number})
+        return res    
 
 hr_expense_expense()
 
