@@ -150,7 +150,7 @@
     </para>
     <para style="terp_header_Centre">HR Expenses</para>
     <para style="terp_tblheader_General_Centre">
-      <font face="Helvetica" size="9.0">[[ o.name or '' ]]</font>
+      <font face="Helvetica" size="9.0">[[ o.number or '' ]]</font>
     </para>
     <para style="terp_default_8">
       <font color="white"> </font>
