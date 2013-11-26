@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+        <record id="backup_database" model="crontab.config">
+            <field name="name">Backup Database</field>
+            <field name="minute">00</field>
+            <field name="hour">00</field>
+            <field name="day">*</field>
+            <field name="month">*</field>
+            <field name="week">5</field>
+            <field name="command">pg_dump -U openerp TT | gzip -c > //tmp//dbbackup-$( date +\%d-\%m-\%Y_\%H:\%M:\%S ).gz</field>
+            <field name="active" eval="1" />           
+        </record>
+    </data>
+</openerp>
