@@ -99,7 +99,7 @@
 	                         <field name="date_due"/>
 	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    </group>
-                        <group name="pay.register" string="Payment Detail">
+                        <group name="pay.register" string="Pay-in Detail">
                         	 <field name="date" on_change="onchange_date(date, company_id, context)"/>
 	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context)" />
                            	 <field name="account_id" invisible="1" readonly="0"/>	                         
