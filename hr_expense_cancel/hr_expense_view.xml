@@ -6,9 +6,9 @@
             <field name="inherit_id" ref="hr_expense.view_expenses_form" />
             <field name="model">hr.expense.expense</field>
             <field name="arch" type="xml">
-                <data>
+                <data>                    
                     <xpath expr="/form/header/button[@name='refuse']" position="after">
-                        <button name="cancel" states="done" string="Cancel" type="workflow" groups="base.group_hr_user" />
+                        <button name="cancel" states="draft,done" string="Cancel" type="workflow" groups="base.group_hr_user" />
                     </xpath>	
 				</data>
             </field>

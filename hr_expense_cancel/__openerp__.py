@@ -27,6 +27,7 @@
     'description': """
     
 * Allowing the cancellation of document after account entry has been created.
+* Allowing the cancellation on Draft.
 
     """,
     'category': 'Accounting & Finance',
