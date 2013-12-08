@@ -8,45 +8,32 @@
                 <form string="Crontab Configuration" version="7.0"> 
                     <header>
                         <button name="action_button_confirm" class="oe_highlight" states="draft" string="Confirm" type="object" groups="base.group_user"/>
-                         <button name="action_button_execute" class="oe_highlight"  confirm="Are you sure to executing?" states="confirm" string="Execute" type="object" groups="base.group_user"/>
-                        <button name="action_button_cancel" states="confirm" string="Cancel" type="object" groups="base.group_user"/>
+                        <button name="action_button_execute" class="oe_highlight"  confirm="Are you sure to executing?" states="done" string="Execute" type="object" groups="base.group_user"/>
+                        <button name="action_button_cancel" states="done" string="Cancel" type="object" groups="base.group_user"/>
                         <field name="state" widget="statusbar"/>
                 	</header>
                     <group>
-                    	<field name="name"/>
+                    	<field name="name" attrs="{'readonly': [('state','!=','draft')]}"/>
                     	<field name="note"/>
-                    </group>                    
-                    	
-                    	<group>
-                    	    
-                    				<group>
-                    					<div class="address_format">
-                    						<label  string="Minute" class="oe_inline"/> 
-                    						<label string="hour" class="oe_inline"/>  
-                    						<label string="day" class="oe_inline"/>
-                     						<label string="month" class="oe_inline"/>    
-                     						<label string="week" class="oe_inline"/> 
-                     					</div>
-                    				</group>			 
-                    				<group>                    					
-                    					<div class="address_format">
-                    					<field name="minute" nolabel="1" class="oe_inline"/>                    					                   				
-                    					<field name="hour" nolabel="1" class="oe_inline"/>                            					
-                    					<field name="day" nolabel="1" class="oe_inline"/>                            					
-                    					<field name="month" nolabel="1" class="oe_inline"/>                            					
-                    					<field name="week" nolabel="1" class="oe_inline"/>                            					
-                    					</div>
-                    				</group>
-                    			           		                   		                 		
-                    	</group>
-                    	
-                    			<!--label for="minute" string="Minute"/>   
-                     			<label for="hour"   string="hour"/>
-                     			<label for="day"   string="day"/>
-                     			<label for="month"   string="month"/>
-                     			<label for="week"   string="week"/-->     					 
+                    </group>                                        	
+                    	<group col="1" string="Scheduling">                    	    
+                    		<group col="5">
+                    			<label for="minute" string="Minute" style="width: 2%%"/> 
+                    			<label for="hour" string="hour" style="width: 2%%"/>  
+                    			<label for="day" string="day" style="width: 2%%"/>
+                     			<label for="month" string="month" style="width: 2%%"/>    
+                     			<label for="week" string="week" style="width: 2%%"/> 
+                    		</group>			 
+                    		<group col="5">                    					
+                    			<field name="minute" nolabel="1" style="width: 10%%"/>                    					                   				
+                    			<field name="hour" nolabel="1" style="width: 10%%"/>                            					
+                    			<field name="day" nolabel="1" style="width: 10%%"/>                            					
+                    			<field name="month" nolabel="1" style="width: 10%%"/>                            					
+                    			<field name="week" nolabel="1" style="width: 10%%"/>                            					
+                    		</group>                    			           		                   		                 		
+                    	</group>                    	 					 
                      <group>
-                    	<field name="working_path"/>
+                    	<field name="working_path" readonly="1"/>
                     	<field name="command"/>
                      </group>
                      <group>
@@ -76,7 +63,7 @@
             	<search string="Crontab Config">
             		<field name="name" filter_domain="[('name','ilike',self)]"/>
                     <separator/>
-                    <filter icon="terp-document-new" string="Draft PreQuotations" name="active" domain="[('active','=',True)]"/>
+                    <filter icon="terp-document-new" string="Active" name="active" domain="[('active','=',True)]"/>
             	</search>
             </field>
         </record>
