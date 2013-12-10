@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="1.0000000000000033"/>
-	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.zoom" value="1.7715610000000075"/>
+	<property name="ireport.x" value="222"/>
+	<property name="ireport.y" value="168"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -62,6 +62,9 @@ join account_fiscalyear af on af.id = ap.fiscalyear_id
 join res_partner partner on partner.id = ai.partner_id
 -- All Tax from Account Invoice
 where am.company_id = $P{company_id} and am.period_id = $P{period_id} and aml.tax_code_id = $P{tax_code_id}
+-- Only non-suspend account_id
+	and (aml.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
+	or aml.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
 ) a
 group by company_name, tax, period, fiscalyear, partner_name, vat, branch, date_invoice, doc_id, doc_number, supplier_doc_number) invoice_tax
 -------------------------
@@ -88,6 +91,28 @@ group by date_invoice, doc_id, doc_number, supplier_doc_number) invoice_base
 --------------------------------
 
 on invoice_tax.doc_id = invoice_base.doc_id
+
+
+----------------------------------
+-- union Payment Tax -----
+----------------------------------
+union
+(
+select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
+partner.name as partner_name, partner.vat, partner.branch,
+av.date as date_invoice, av.id as doc_id, number as doc_number, reference as supplier_doc_number, -avt.amount as tax_amount, -avt.base as base_amount
+from account_voucher_tax avt
+join account_voucher av on av.id = avt.voucher_id and av.state in ('posted')
+join res_company rc on rc.id = av.company_id
+join res_partner rp on rp.id = rc.partner_id
+join account_period ap on ap.id = av.period_id
+join account_fiscalyear af on af.id = ap.fiscalyear_id
+join res_partner partner on partner.id = av.partner_id
+where av.company_id = $P{company_id} and av.period_id = $P{period_id} and avt.tax_id = $P{tax_id}
+-- Only non-suspend account_id
+	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
+	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
+and avt.amount > 0)
 
 ----------------------------------------
 -- union Cancelled Invoice (Sales) -----
@@ -135,7 +160,7 @@ and ail.vatinfo_tax_amount > 0)
 union
 (select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 hel.supplier_name as partner_name, hel.vat as vat, hel.branch as branch,
-he.date as date_invoice, he.id as doc_id, null as doc_number, hel.ref as supplier_doc_number, -hel.tax_amount as tax_amount, -hel.unit_amount*hel.unit_quantity as base_amount
+hel.date_value as date_invoice, he.id as doc_id, null as doc_number, hel.ref as supplier_doc_number, -hel.tax_amount as tax_amount, -hel.unit_amount*hel.unit_quantity as base_amount
 from hr_expense_line hel
 join hr_expense_expense he on he.id = hel.expense_id and he.state in ('done','paid')
 join account_move am on am.id = he.account_move_id
@@ -391,7 +416,8 @@ order by date_invoice, doc_id]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<text><![CDATA[จำนวนเงิน ภาษีมูลค่าเพิ่ม]]></text>
+				<text><![CDATA[จำนวนเงิน
+ภาษีมูลค่าเพิ่ม]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="312" y="0" width="92" height="30"/>
