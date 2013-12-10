@@ -147,7 +147,7 @@ class crontab_config(osv.osv):
         strid = "%s"% ','.join(str(x) for x in ids)
         
         #id = obj_data.get_object_reference(cr, uid, 'crontab_config','backup_database')[1]
-        command = "'%s/db_restore.py' -u openerp -d %s -p '%s' -i %s -c 1 >>'%s/crontab_oe.log'" % (_curr_path, cr.dbname, self._root, strid, self._root)
+        command = "'%s/db_restore.py' -u openerp -d %s -p '%s' -i %s -c 1 >>'%s/crontab_oe.log'" % (_curr_path, cr.dbname + "_TEST", self._root, strid, self._root)
         values = {'command':command}
         
         self.write(cr, uid, ids, values, context=None)
