@@ -9,7 +9,7 @@
 		    <field name="arch" type="xml">
                 <data>
                     <button name="%(account.action_account_invoice_refund)d" position="before">
-                    	<button name="post_vatinfo" type="object" string="Post VAT Info" attrs="{'invisible': ['|', ('vatinfo_move_id','&lt;&gt;',False), ('state','not in',('open','paid'))]}" class="oe_highlight" groups="account.group_account_invoice"/>
+                    	<button name="post_vatinfo" type="object" string="Post VAT Info" attrs="{'invisible': ['|', '|', ('vatinfo_move_id','&lt;&gt;',False), ('is_vatinfo_tax','=',False), ('state','not in',('open','paid'))]}" class="oe_highlight" groups="account.group_account_invoice"/>
                         <button name="unpost_vatinfo" type="object" string="Unpost VAT Info" attrs="{'invisible': ['|', ('vatinfo_move_id','=',False), ('state','not in',('open','paid'))]}"  groups="account.group_account_invoice"/>
                     </button>
                     <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='invoice_line_tax_id']" position="after">
@@ -21,7 +21,12 @@
                     <xpath expr="/form/sheet/notebook/page[@string='Invoice']" position="after">
                         <page string="VAT Info">
                             <group>
-                        		<field name="vatinfo_move_id"/>
+                                <group>
+	                                <field name="is_vatinfo_tax"/>
+                        		</group>                                
+                        		<group>
+	                        		<field name="vatinfo_move_id"/>
+                        		</group>
                         	</group>
                         	<field name="invoice_vatinfo">
                                 <tree string="Invoice VAT Info" editable="bottom">

@@ -24,12 +24,35 @@ import openerp.addons.decimal_precision as dp
 from openerp.osv import fields, osv
 
 class account_invoice(osv.osv):
+    
+    def _is_vatinfo_tax(self, cr, uid, ids, fieldnames, args, context=None):
+        result = dict.fromkeys(ids, 0)
+        for record in self.browse(cr, uid, ids, context=context):
+            # If any line has vatinfo_tax_amount
+            for line in record.invoice_vatinfo:
+                if line.vatinfo_tax_amount:
+                    result[record.id] = True
+                    break;
+                else:
+                    result[record.id] = False
+        return result    
+    
+    def _get_invoice(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
+            result[line.invoice_id.id] = True
+        return result.keys()      
 
     _inherit = 'account.invoice'
     
     _columns = {
         'vatinfo_move_id': fields.many2one('account.move', 'Journal Entry (VAT Info)', readonly=True, select=1, ondelete='restrict', help="Link to the automatically generated Journal Items for Vat Info."),
         'invoice_vatinfo': fields.one2many('account.invoice.line', 'invoice_id', 'Invoice Lines', readonly=False),
+        'is_vatinfo_tax': fields.function(_is_vatinfo_tax, type='boolean', string='Is VAT Info Tax', 
+                    store={
+                           'account.invoice': (lambda self, cr, uid, ids, c={}: ids, None, 10),
+                           'account.invoice.line': (_get_invoice, ['vatinfo_tax_amount'], 10)
+                           }),
     }
     
     def line_get_convert(self, cr, uid, x, part, date, context=None):
