@@ -123,7 +123,7 @@ class hr_expense_line(osv.osv):
             res.update({'tax_amount': tax_percent * unit_amount * unit_quantity})
         if wht_tax_id and wht.type == 'percent':
             wht_percent = wht.amount or 0.0
-            res.update({'wht_amount': wht_percent * unit_amount * unit_quantity})
+            res.update({'wht_amount': -wht_percent * unit_amount * unit_quantity})
         return {'value': res}  
     
     def _net_amount(self, cr, uid, ids, field_name, arg, context=None):
