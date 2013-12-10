@@ -21,7 +21,8 @@ def main(argv):
     iDBUser = ''
     oDBName = ''
     BacKDir = ''
-    
+    company_id = False
+    id =False
     #init variable           
     date_backup = time.strftime('%Y-%m-%d %H:%M:%S')
     
@@ -31,14 +32,14 @@ def main(argv):
     
     #Check parameter
     try:
-        opts, args = getopt.getopt(argv,"hu:d:p:",["uDBUser=","dDBName=","pBacKDir"])
+        opts, args = getopt.getopt(argv,"hu:d:p:i:c:",["uDBUser=","dDBName=","pBacKDir","iID","cCompany",])
     except getopt.GetoptError:
-        print "Invalid command db_backup.sh -u <DBUser> -d <DBName> -p <BacKDir>"
+        print "Invalid command db_restore.sh -u <DBUser> -d <DBName> -p <BacKDir> -i <iID> -c <cCompany>"
         #subprocess.call([command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'db_backup.py -u <DBUser> -d <DBName> -p <BacKDir>'
+            print 'db_restore.py -u <DBUser> -d <DBName> -p <BacKDir> -i<iID> -c <cCompany>'
             sys.exit()
         elif opt in ("-u", "--iDBUser"):
             iDBUser = arg
@@ -46,8 +47,15 @@ def main(argv):
                 oDBName = arg
         elif opt in ("-p", "--pBacKDir"):
             BacKDir = arg
+        
+        elif opt in ("-i", "--iID"):
+            id = arg
+        
+        elif opt in ("-c", "--cCompany"):
+            company_id = arg
+            
         else:
-            print "Invalid command db_backup.sh -u <DBUser> -d <DBName> -p <BacKDir>" 
+            print "Invalid command db_restore.sh -u <DBUser> -d <DBName> -p <BacKDir> -i<iID> -c <cCompany>" 
             #subprocess.call([command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             sys.exit(2) 
     
@@ -66,7 +74,7 @@ def main(argv):
             
             
             #Restart PostgesSQL
-            command = "sudo service postgresql restart"
+            command = "psql -U postgres -d postgres --pset=format=unaligned -c \"SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '%s';\"" % (oDBName)
             print command
             subprocess.call([command],shell=True)
             process.wait()
@@ -91,26 +99,31 @@ def main(argv):
             #Logging
             command = "Change the logo of company"
             print command
-            change_company_logo(iDBUser,oDBName,BacKDir)
+            change_company_logo(iDBUser, oDBName, BacKDir, id, company_id)
         else:
             print "Database dump file not found"
             
     #Logging
     command = "#End:OE-->Restore DB at' %s" % (date_backup)    
     print command
+    
      
-    
-
-def change_company_logo(iDBUser,oDBName,BacKDir):
-    
+def change_company_logo(iDBUser, oDBName, BacKDir, id, company_id):
     con = None
     try:    
         con = psycopg2.connect(database=oDBName, user=iDBUser)      
         cur = con.cursor()
         
-        data = readImage('%s/tt-addons/tt_config/logo_test.jpg' % (BacKDir))
-        if not data:
+        cur.execute("SELECT (attfile) FROM crontab_config WHERE id in (%s);" % (id))
+        data = cur.fetchone()
+        if not (data and data[0]):
+            print 'The logo file not found,Please import logo file before backup database!!!!!'
             return
+        
+        open('%s/tmp_logo' %(BacKDir), 'wb').write(base64.decodestring(data[0]))
+        data = readImage('%s/tmp_logo' %(BacKDir))
+        #data = readImage('%s/tt-addons/tt_config/logo_test.jpg' % (BacKDir))
+        
         
         encoded_data = base64.b64encode(data) 
         
@@ -126,8 +139,8 @@ def change_company_logo(iDBUser,oDBName,BacKDir):
         size = (180, None)
         logo_web = image_resize_image(encoded_data, size)
         
-        cur.execute("UPDATE res_partner SET image=%s,image_medium=%s,image_small=%s WHERE id=%s", (image,image_medium,image_small,'1'))    
-        cur.execute("UPDATE res_company SET logo_web=%s WHERE id=%s", (logo_web,'1'))    
+        cur.execute("UPDATE res_partner SET image=%s,image_medium=%s,image_small=%s WHERE id=%s", (image,image_medium,image_small,company_id))    
+        cur.execute("UPDATE res_company SET logo_web=%s WHERE id=%s", (logo_web,company_id))    
         
         con.commit()
     except psycopg2.DatabaseError, e:
@@ -139,7 +152,6 @@ def change_company_logo(iDBUser,oDBName,BacKDir):
     finally:
         if con:
             con.close()   
-            
             
 def readImage(imgfile):
 
