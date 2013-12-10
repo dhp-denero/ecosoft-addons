@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,29 +20,30 @@
 ##############################################################################
 
 {
-    'name' : 'HR Expense Cancel',
+    'name' : 'Product Purchase History',
     'version' : '1.0',
     'author' : 'Ecosoft',
-    'summary': 'Cancel HR Expense that has been posted',
+    'summary': 'Purchase History in Product window',
     'description': """
     
-* Allowing the cancellation of document after account entry has been created.
-* Allowing the cancellation on Draft.
+    Added purchase history (by supplier invoice) in purchase window.
 
     """,
     'category': 'Accounting & Finance',
     'sequence': 4,
-    'website' : 'http://www.ecosoft.co.th',
+    'website' : 'http://www.ecosoft.com/',
     'images' : [],
-    'depends' : ['hr_expense'],
+    'depends' : ['account'],
     'demo' : [],
-    'data' : ['hr_expense_view.xml',
-              'hr_expense_workflow.xml',
-              ],
-    'test' : [],
+    'data' : [
+        'product_view.xml',
+    ],
+    'test' : [
+    ],
     'auto_install': False,
     'application': True,
     'installable': True,
 }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+

@@ -2,7 +2,8 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2011 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2011 Camptocamp (<http://www.camptocamp.com>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,31 +19,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from osv import fields, osv
 
-{
-    'name' : 'HR Expense Cancel',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Cancel HR Expense that has been posted',
-    'description': """
+class account_invoice_line(osv.osv):
     
-* Allowing the cancellation of document after account entry has been created.
-* Allowing the cancellation on Draft.
+    _inherit = 'account.invoice.line'
+    _columns = {
+        'date_invoice': fields.related('invoice_id','date_invoice', type='date', readonly=True, relation='account.invoice', string='Date Invoice'),
+    }
+    
+account_invoice_line()
 
-    """,
-    'category': 'Accounting & Finance',
-    'sequence': 4,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['hr_expense'],
-    'demo' : [],
-    'data' : ['hr_expense_view.xml',
-              'hr_expense_workflow.xml',
-              ],
-    'test' : [],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

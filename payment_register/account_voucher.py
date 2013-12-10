@@ -84,6 +84,18 @@ class account_voucher(osv.osv):
         if context is None: context = {}
         return [(r['id'], r['number'] or '') for r in self.read(cr, uid, ids, ['number'], context, load='_classic_write')]
 
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if not args:
+            args = []
+        if context is None:
+            context = {}
+        ids = []
+        if name:
+            ids = self.search(cr, user, [('number',operator,name)] + args, limit=limit, context=context)
+        if not ids:
+            ids = self.search(cr, user, [('name',operator,name)] + args, limit=limit, context=context)
+        return self.name_get(cr, user, ids, context)
+
     def create_payment_register(self, cr, uid, ids, context=None):
         
         if context is None:

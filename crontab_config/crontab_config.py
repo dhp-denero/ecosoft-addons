@@ -151,4 +151,13 @@ class crontab_config(osv.osv):
         values = {'command':command}
         
         self.write(cr, uid, ids, values, context=None)
+        
+    def unlink(self, cr, uid, ids, context=None):
+        stat = self.read(cr, uid, ids, ['system_flag'], context=context)
+        for t in stat:
+            if t['system_flag']:
+                raise osv.except_osv(_('Warning!'), _("This is system command, it can't delete."))          
+            else:
+                super(crontab_config, self).unlink(cr, uid, [t['id']], context=context)
+        return True
 crontab_config()
