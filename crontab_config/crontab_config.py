@@ -4,6 +4,7 @@ from openerp.osv import osv, fields
 from tools.translate import _
 import subprocess
 import os
+from openerp.tools import image_resize_image
 
 class crontab_config(osv.osv):
     _loging = os.path.realpath(os.getcwd()+'/..') + "/crontab_oe.log"
@@ -28,6 +29,9 @@ class crontab_config(osv.osv):
         'working_path':fields.char('Execute Directory'),
         'active':fields.boolean('Active'),
         'last_exec':fields.datetime('Last Manually Execute',readonly=True),
+        'attfile': fields.binary('Attach File'),
+        'system_flag':fields.boolean('System',readoly=True) 
+        
     }
     
     _defaults = {
@@ -38,6 +42,7 @@ class crontab_config(osv.osv):
         'week': '*',
         'active':True,
         'state':"draft",
+        'system_flag':False,
         'working_path':os.path.realpath(os.getcwd()+'/..'),
         }
     
@@ -58,7 +63,7 @@ class crontab_config(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):           
         res = super(crontab_config, self).write(cr, uid, ids, vals, context=context)            
         self.generate_crontab(cr, uid, ids, context)
-         
+      
         return res
     
     def create(self, cr, uid, vals, context=None):
@@ -83,8 +88,10 @@ class crontab_config(osv.osv):
         
         #Extract Crontab to temporary file
         p = subprocess.call(["crontab -l > "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        
         #Get Command from database                        
         commands = self.get_command(cr, user, ids, context)
+        
         for id in ids:
             #Search with "#Start:OE-->" + name crontrab  and delete it.
             subprocess.call(["sed '/#Start:OE-->"+ (commands[id].get('name',False) or "") +"/d' "+  tmpfn1 +" > "+ tmpfn2], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -115,7 +122,7 @@ class crontab_config(osv.osv):
         commands = self.get_command(cr, uid, ids, context)
          
         for id in ids:
-            p = subprocess.call([commands[id].get('command',"")+">>"+self._loging], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            p = subprocess.call([commands[id].get('command',"")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             self.write(cr, uid, ids, {'last_exec':time.strftime('%Y-%m-%d %H:%M:%S')}, context)
 #         
 #         p = subprocess.call(["echo '#Start:OE# Scheduling' $( date +\%d-\%m-\%Y_\%H:\%M ) >> /tmp/dbbackup.log"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -125,6 +132,32 @@ class crontab_config(osv.osv):
     
     
     
-    def db_backup(self,cr, uid, ids=None, context=None):
-        return self._root
+    def setup_dbbackup(self, cr, uid, ids=None, context=None):
+        _curr_path = os.path.dirname(__file__)
+        #id = obj_data.get_object_reference(cr, uid, 'crontab_config','backup_database')[1]
+        command = "'%s/db_backup.py' -u openerp -d %s -p '%s'>>'%s/crontab_oe.log'" % (_curr_path, cr.dbname, self._root, self._root)
+        values = {'command':command}
+        
+        self.write(cr, uid, ids, values, context=None)
+    
+    def setup_dbrestore(self, cr, uid, ids=None, context=None):
+        
+        _curr_path = os.path.dirname(__file__)
+        
+        strid = "%s"% ','.join(str(x) for x in ids)
+        
+        #id = obj_data.get_object_reference(cr, uid, 'crontab_config','backup_database')[1]
+        command = "'%s/db_restore.py' -u openerp -d %s -p '%s' -i %s -c 1 >>'%s/crontab_oe.log'" % (_curr_path, cr.dbname + "_TEST", self._root, strid, self._root)
+        values = {'command':command}
+        
+        self.write(cr, uid, ids, values, context=None)
+        
+    def unlink(self, cr, uid, ids, context=None):
+        stat = self.read(cr, uid, ids, ['system_flag'], context=context)
+        for t in stat:
+            if t['system_flag']:
+                raise osv.except_osv(_('Warning!'), _("This is system command, it can't delete."))          
+            else:
+                super(crontab_config, self).unlink(cr, uid, [t['id']], context=context)
+        return True
 crontab_config()

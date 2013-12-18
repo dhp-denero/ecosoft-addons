@@ -44,12 +44,12 @@ def main(argv):
             sys.exit(2) 
     
     #Backup Database
-    command = "pg_dump -U %s -f '%s/tt_dbbackup-%s.dmp' %s" %  (iDBUser,BacKDir,date_backup,oDBName)
+    command = "pg_dump -U %s -f '%s/%s_dbbackup-%s.dmp' %s" %  (iDBUser, BacKDir, oDBName, date_backup ,oDBName)
     print command
     subprocess.call([command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     
     #Write file name to file for next restore database
-    command = "echo '%s/tt_dbbackup-%s.dmp' > %s/oe_db_last_bkup.txt" % (BacKDir,date_backup,BacKDir)
+    command = "echo '%s/%s_dbbackup-%s.dmp' > %s/oe_db_last_bkup.txt" % (BacKDir, oDBName, date_backup, BacKDir)
     print command
     subprocess.call([command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     

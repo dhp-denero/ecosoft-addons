@@ -19,10 +19,10 @@
                     	<group col="1" string="Scheduling">                    	    
                     		<group col="5">
                     			<label for="minute" string="Minute" style="width: 2%%"/> 
-                    			<label for="hour" string="hour" style="width: 2%%"/>  
-                    			<label for="day" string="day" style="width: 2%%"/>
-                     			<label for="month" string="month" style="width: 2%%"/>    
-                     			<label for="week" string="week" style="width: 2%%"/> 
+                    			<label for="hour" string="Hour" style="width: 2%%"/>  
+                    			<label for="day" string="Day" style="width: 2%%"/>
+                     			<label for="month" string="Month" style="width: 2%%"/>    
+                     			<label for="week" string="Week" style="width: 2%%"/> 
                     		</group>			 
                     		<group col="5">                    					
                     			<field name="minute" nolabel="1" style="width: 10%%"/>                    					                   				
@@ -33,11 +33,13 @@
                     		</group>                    			           		                   		                 		
                     	</group>                    	 					 
                      <group>
-                    	<field name="working_path" readonly="1"/>
+                    	<field name="working_path"/>
                     	<field name="command"/>
+                    	<field name="attfile" class="oe_avatar oe_left"/>
                      </group>
                      <group>
                     	<field name="active"/>
+                    	<field name="system_flag" readonly="1"/>
                     	<field name="last_exec"/>
                      </group>
                 </form>
