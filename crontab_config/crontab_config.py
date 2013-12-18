@@ -116,7 +116,9 @@ class crontab_config(osv.osv):
     
     def action_button_confirm(self,cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state':'done'}, context)
+    
         return True
+    
     
     def action_button_execute(self,cr, uid, ids, context=None):
         commands = self.get_command(cr, uid, ids, context)
@@ -124,13 +126,8 @@ class crontab_config(osv.osv):
         for id in ids:
             p = subprocess.call([commands[id].get('command',"")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             self.write(cr, uid, ids, {'last_exec':time.strftime('%Y-%m-%d %H:%M:%S')}, context)
-#         
-#         p = subprocess.call(["echo '#Start:OE# Scheduling' $( date +\%d-\%m-\%Y_\%H:\%M ) >> /tmp/dbbackup.log"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-#         p = subprocess.call(["sed '/#Start:OE#/d' /tmp/dbbackup.log > /tmp/dbbackup1.log"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-# #         output, err = p.communicate()
+ 
         return True
-    
-    
     
     def setup_dbbackup(self, cr, uid, ids=None, context=None):
         _curr_path = os.path.dirname(__file__)
@@ -160,4 +157,5 @@ class crontab_config(osv.osv):
             else:
                 super(crontab_config, self).unlink(cr, uid, [t['id']], context=context)
         return True
+    
 crontab_config()
