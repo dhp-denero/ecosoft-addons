@@ -67,11 +67,11 @@ class account_invoice(osv.osv):
             :return: dict of value to create() the debit note
         """
         obj_journal = self.pool.get('account.journal')
+        
+        type_list = ['out_invoice','in_invoice']
+        if invoice.type not in type_list:
+            raise osv.except_osv(_('Error!'), _('Can not create Debit Note from this document!'))
 
-        type_dict = {
-            'out_invoice': 'out_invoice', # Customer Invoice
-            'in_invoice': 'in_invoice',   # Supplier Invoice
-        }
         invoice_data = {}
         for field in ['name', 'reference', 'comment', 'date_due', 'partner_id', 'company_id',
                 'account_id', 'currency_id', 'payment_term', 'user_id', 'fiscal_position']:
@@ -94,7 +94,7 @@ class account_invoice(osv.osv):
         if not date:
             date = time.strftime('%Y-%m-%d')
         invoice_data.update({
-            'type': type_dict[invoice['type']],
+            'type': invoice['type'],
             'date_invoice': date,
             'state': 'draft',
             'number': False,
