@@ -14,10 +14,6 @@
 						<attribute name="attrs">{'invisible': ['|','|',('state', 'not in', ('progress')),('advance_type', '=', False),('num_invoice', '&gt;', 0)]}</attribute>
 						<attribute name="context">{'advance_type':advance_type, 'retention': retention_percentage, 'num_invoice': num_invoice}</attribute>
 					</xpath>
-					<!-- Additional case to show "Create Invoice" button, state=Done but invoiced_rate still < 100 -->
-					<xpath expr="/form/header/button[@name='invoice_recreate']" position="replace">
-                        <button name="%(sale.action_view_sale_advance_payment_inv)d" states="invoice_except" type="action" string="Recreate Invoice" groups="base.group_user"/>
-					</xpath>
 					<field name="amount_untaxed" position="after">
 	                    <field name="add_disc" colspan="2"/>
 	                    <field name="add_disc_amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
