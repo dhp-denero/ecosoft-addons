@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name' : 'Multiple Create Supplier on Purchase Requisition',
+    'name' : 'Multiple Supplier on Create Purchase Requisition',
     'version' : '0.1',
     'category': 'Purchase Management',
     'images' : [],
