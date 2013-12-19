@@ -14,7 +14,7 @@
 						<attribute name="attrs">{'invisible': ['|','|',('state', 'not in', ('progress')),('advance_type', '=', False),('num_invoice', '&gt;', 0)]}</attribute>
 						<attribute name="context">{'advance_type':advance_type, 'retention': retention_percentage, 'num_invoice': num_invoice}</attribute>
 					</xpath>
-	                <field name="amount_untaxed" position="after">
+					<field name="amount_untaxed" position="after">
 	                    <field name="add_disc" colspan="2"/>
 	                    <field name="add_disc_amt" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    <field name="amount_net" sum="Net Amount" colspan="2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
