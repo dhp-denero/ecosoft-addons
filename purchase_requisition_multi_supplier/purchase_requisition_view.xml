@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+	    <record model="ir.ui.view" id="view_purchase_requisition_form_multi">
+	        <field name="name">view.purchase.requisition.form.multi</field>
+	        <field name="model">purchase.requisition</field>
+	        <field name="inherit_id" ref="purchase_requisition.view_purchase_requisition_form"/>
+	        <field name="arch" type="xml">
+	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_uom_id']" position="attributes">
+	        		<attribute name="string">Unit of Measure</attribute>
+	        	</xpath>
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_uom_id']" position="after">
+	            	<field name="partner_ids" widget="many2many_tags" domain="[('is_company','=',True)]" style="width: 10%%"/>
+	            </xpath>	
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_id']" position="before">
+	            	<field name="seleted_flag" nolabel="1"/>
+	            </xpath>	        
+			</field>
+	    </record>
+	</data>
+</openerp>
