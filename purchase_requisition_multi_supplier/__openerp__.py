@@ -27,9 +27,12 @@
     'depends' : ['purchase_requisition'],
     'author' : 'Ecosoft',
     'description': """
-Multiple Create Supplier for purchase requisition.
+Multi-Supplier Purchase Requisitions.
 ==========================================
-
+* Add new column on PR, product line tab 'Supplier'
+* Create more Quotation for different Supplier(s)
+* Selected product line for create Quotation
+ 
     """,
     'website': 'http://www.ecosoft.co.th',
     'data': [
