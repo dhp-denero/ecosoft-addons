@@ -23,6 +23,7 @@
 import openerp.netsvc
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
+import decimal_precision as dp
 
 class purchase_requisition_line(osv.osv):
 
@@ -30,8 +31,19 @@ class purchase_requisition_line(osv.osv):
     
     _columns = {
         'partner_ids': fields.many2many('res.partner', 'pr_rel_partner', 'pr_line_id', 'partner_id', 'Suppliers', ),
-        'seleted_flag':fields.boolean("Select")
+        'seleted_flag':fields.boolean("Select"),
     }
+    
+    _default ={
+               'seleted_flag':True,
+               }
+    def write(self, cr, uid, ids, vals, context=None):           
+        res = super(purchase_requisition_line, self).write(cr, uid, ids, vals, context=context)
+        return res
+    
+    def create(self, cr, uid, vals, context=None):
+        res_id = super(purchase_requisition_line, self).create(cr, uid, vals, context=context)
+        return res_id 
 #     def onchange_product_id(self, cr, uid, ids, product_id, product_uom_id, context=None):
 #         res = super(purchase_requisition_line, self).onchange_product_id(cr, uid, ids, product_id, product_uom_id, context=None)
 #         
