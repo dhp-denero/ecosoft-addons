@@ -21,9 +21,9 @@
 
 {
     'name' : "Thai Withholding Tax",
-    'version' : '0.1',
+    'version' : '1.0',
     'author' : 'Ecosoft',
-    'summary': 'Patch for some Thai Accounting standard',
+    'summary': 'Thai Withholding Tax Extension for Accounting Mod',
     'description': """
     
     * Supplier/Customer Withholding Tax
@@ -38,8 +38,9 @@ Note:
     'sequence': 8,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['product','sale','purchase','account','account_voucher','customer_supplier_voucher',
-                 'purchase_discount'],
+    'depends' : ['product','sale','purchase','purchase_discount',
+                 'account','account_voucher','customer_supplier_voucher',
+                 ],
     'demo' : [],
     'data' : ['account_invoice_view.xml',
               'account_view.xml','partner_view.xml',
