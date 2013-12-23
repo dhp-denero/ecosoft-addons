@@ -13,8 +13,14 @@
 	            	<field name="partner_ids" widget="many2many_tags" domain="[('is_company','=',True)]" style="width: 10%%"/>
 	            </xpath>	
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_id']" position="before">
-	            	<field name="seleted_flag" nolabel="1"/>
+	            	<field name="id" invisible="1"/>
+	            	<field name="selected_flag" nolabel="1"/>
 	            </xpath>	        
+	            
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']" position="before">
+	        		<field name="all_selected" on_change="all_selected_onchange(all_selected,line_ids)"/>
+	        		<label for="all_selected" string="All Selected(s)"/>
+	        	</xpath>
 			</field>
 	    </record>
 	</data>

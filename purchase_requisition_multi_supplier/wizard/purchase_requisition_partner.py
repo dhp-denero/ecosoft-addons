@@ -219,7 +219,7 @@ class purchase_requisition_partner(osv.osv_memory):
                     if partner_id.id in filter(lambda x: x, [rfq.state <> 'cancel' and rfq.partner_id.id or None for rfq in rec.purchase_ids]):
                         raise osv.except_osv(_('Warning!'), _('You have already one %s purchase order for this partner, you must cancel this purchase order to create a new quotation.') % rfq.state)
              
-                    if line.seleted_flag:
+                    if line.selected_flag:
                         default_uom_po_id = line.product_id.uom_po_id.id
                         qty = product_uom._compute_qty(cr, uid, line.product_uom_id.id, line.product_qty, default_uom_po_id)
                         if res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id]:
