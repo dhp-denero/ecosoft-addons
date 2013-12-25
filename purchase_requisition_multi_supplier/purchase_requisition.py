@@ -23,6 +23,7 @@
 import openerp.netsvc
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
+import decimal_precision as dp
 
 class purchase_requisition_line(osv.osv):
 
@@ -30,8 +31,25 @@ class purchase_requisition_line(osv.osv):
     
     _columns = {
         'partner_ids': fields.many2many('res.partner', 'pr_rel_partner', 'pr_line_id', 'partner_id', 'Suppliers', ),
-        'seleted_flag':fields.boolean("Select")
+        'selected_flag':fields.boolean("Select"),
     }
+    
+    _default ={
+               'selected_flag':True,
+               }
+    def write(self, cr, uid, ids, vals, context=None):           
+        res = super(purchase_requisition_line, self).write(cr, uid, ids, vals, context=context)
+        return res
+    
+    def create(self, cr, uid, vals, context=None):
+        res_id = super(purchase_requisition_line, self).create(cr, uid, vals, context=context)
+        return res_id 
+    
+    def selected_flag_onchange(self, cr, uid, ids, selected_flag,  context=None):
+        res ={'value':{'all_selected':True}}
+        if not selected_flag:
+            res['value'].update({'all_selected':False})   
+        return res
 #     def onchange_product_id(self, cr, uid, ids, product_id, product_uom_id, context=None):
 #         res = super(purchase_requisition_line, self).onchange_product_id(cr, uid, ids, product_id, product_uom_id, context=None)
 #         
@@ -52,5 +70,26 @@ class purchase_requisition_line(osv.osv):
       
 purchase_requisition_line()
 
-
+class purchase_requisition(osv.osv):
+    _inherit = 'purchase.requisition'
+    _columns = {
+        'all_selected': fields.boolean("All Select(s)"),
+    }
+    
+    def all_selected_onchange(self, cr, uid, ids, all_selected, line_ids, context=None):
+        res = {'value':{'line_ids': False}}
+ 
+        for index in range(len(line_ids)):
+            if line_ids[index][0] in (0, 1, 4):
+                if line_ids[index][2]: 
+                    line_ids[index][2].update({'selected_flag':all_selected})
+                else:
+                    if line_ids[index][0] == 4:
+                        line_ids[index][0] = 1 
+                    line_ids[index][2] = {'selected_flag':all_selected}
+        
+        res['value']['line_ids'] =  line_ids
+        
+        return res
+purchase_requisition()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

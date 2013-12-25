@@ -7,8 +7,8 @@ import os
 from openerp.tools import image_resize_image
 
 class crontab_config(osv.osv):
-    _loging = os.path.realpath(os.getcwd()+'/..') + "/crontab_oe.log"
-    _root = os.path.realpath(os.getcwd()+'/..')
+    _loging = os.path.realpath(os.getenv("HOME")) + "/crontab_oe.log"
+    _root = os.path.realpath(os.getenv("HOME"))
         
     _name = "crontab.config"
     _columns = {
@@ -43,7 +43,7 @@ class crontab_config(osv.osv):
         'active':True,
         'state':"draft",
         'system_flag':False,
-        'working_path':os.path.realpath(os.getcwd()+'/..'),
+        'working_path':os.path.realpath(os.getenv("HOME")),
         }
     
     def get_command(self,cr, user, ids, context=None):
@@ -119,6 +119,10 @@ class crontab_config(osv.osv):
     
         return True
     
+    def action_button_cancel(self,cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state':'cancel'}, context)
+    
+        return True
     
     def action_button_execute(self,cr, uid, ids, context=None):
         commands = self.get_command(cr, uid, ids, context)
