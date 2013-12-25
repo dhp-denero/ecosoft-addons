@@ -45,6 +45,11 @@ class purchase_requisition_line(osv.osv):
         res_id = super(purchase_requisition_line, self).create(cr, uid, vals, context=context)
         return res_id 
     
+    def selected_flag_onchange(self, cr, uid, ids, selected_flag,  context=None):
+        res ={'value':{'all_selected':True}}
+        if not selected_flag:
+            res['value'].update({'all_selected':False})   
+        return res
 #     def onchange_product_id(self, cr, uid, ids, product_id, product_uom_id, context=None):
 #         res = super(purchase_requisition_line, self).onchange_product_id(cr, uid, ids, product_id, product_uom_id, context=None)
 #         
