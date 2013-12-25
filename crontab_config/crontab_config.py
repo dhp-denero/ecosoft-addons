@@ -119,6 +119,10 @@ class crontab_config(osv.osv):
     
         return True
     
+    def action_button_cancel(self,cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state':'cancel'}, context)
+    
+        return True
     
     def action_button_execute(self,cr, uid, ids, context=None):
         commands = self.get_command(cr, uid, ids, context)
