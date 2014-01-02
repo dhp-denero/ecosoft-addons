@@ -4,11 +4,12 @@ from openerp.osv import osv, fields
 from tools.translate import _
 import subprocess
 import os
+import tempfile
 from openerp.tools import image_resize_image
 
 class crontab_config(osv.osv):
-    _loging = os.path.realpath(os.getenv("HOME")) + "/crontab_oe.log"
-    _root = os.path.realpath(os.getenv("HOME"))
+    _loging = os.path.realpath(tempfile.tempdir) + "/crontab_oe.log"
+    _root = os.path.realpath(tempfile.tempdir)
         
     _name = "crontab.config"
     _columns = {
@@ -43,7 +44,7 @@ class crontab_config(osv.osv):
         'active':True,
         'state':"draft",
         'system_flag':False,
-        'working_path':os.path.realpath(os.getenv("HOME")),
+        'working_path':os.path.realpath(tempfile.tempdir),
         }
     
     def get_command(self,cr, user, ids, context=None):
@@ -57,6 +58,7 @@ class crontab_config(osv.osv):
                                             'schedule':(cron_rec.get('minute',False) or "") + " " + (cron_rec.get('hour',False) or "")  + " " +
                                                         (cron_rec.get('day',False) or "")  + " " + (cron_rec.get('month',False) or "")  + " " +
                                                         (cron_rec.get('week',False) or "") ,
+                                            'working_path':cron_rec.get('working_path',False)
                                     })  
         return commands
     
@@ -80,37 +82,37 @@ class crontab_config(osv.osv):
         return res_id 
     
     def generate_crontab(self,cr, user, ids, context=None):        
-        #Create temporary. 
-        #Note,make sure you have permission to access directory and directory exists.
-        tmpfn1 = os.tempnam(self._root,'oe1')
-        tmpfn2 = os.tempnam(self._root,'oe2')
-        tmpfn3 = ""
-        
-        #Extract Crontab to temporary file
-        p = subprocess.call(["crontab -l > "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         
         #Get Command from database                        
         commands = self.get_command(cr, user, ids, context)
         
         for id in ids:
+            
+            working_path = commands[id].get('working_path',self._root)
+            
+            #Create temporary. 
+            tmpfn1 = os.tempnam(working_path,'oe1')
+            tmpfn2 = os.tempnam(working_path,'oe2')
+            
+            #Extract Crontab to temporary file
+            #Note,make sure you have permission to access directory and directory exists.
+            p = subprocess.call(["crontab -l > "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        
             #Search with "#Start:OE-->" + name crontrab  and delete it.
             subprocess.call(["sed '/#Start:OE-->"+ (commands[id].get('name',False) or "") +"/d' "+  tmpfn1 +" > "+ tmpfn2], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             
             if  commands[id].get('active',False):#Active and state is done
                 #Append new command into temporary file
                 fo = open(tmpfn2, "a")
-                fo.write( commands[id].get('schedule',"") + " " + commands[id].get('command',"")+">>"+self._loging +"\n");
+                fo.write( commands[id].get('schedule', "") + " " + commands[id].get('command', "")+ ">>" + working_path +"crontab_oe.log\n");
                 fo.close()
                 
-            tmpfn3 = tmpfn1    
-            tmpfn1 = tmpfn2
-            tmpfn2 = tmpfn3
+            #Generate the Crontab from file.
+            p = subprocess.call(["crontab "+ tmpfn2], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         
-        #Generate the Crontab from file.
-        p = subprocess.call(["crontab "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        #Delete temporary file
-        p = subprocess.call(["rm "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        p = subprocess.call(["rm "+ tmpfn2], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            #Delete temporary file
+            p = subprocess.call(["rm "+ tmpfn1], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            p = subprocess.call(["rm "+ tmpfn2], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
            
         return True
     
@@ -128,7 +130,7 @@ class crontab_config(osv.osv):
         commands = self.get_command(cr, uid, ids, context)
          
         for id in ids:
-            p = subprocess.call([commands[id].get('command',"")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            p = subprocess.call([commands[id].get('command',"")+ ">>" + commands[id].get('working_path',self._root) +"crontab_oe.log\n"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             self.write(cr, uid, ids, {'last_exec':time.strftime('%Y-%m-%d %H:%M:%S')}, context)
  
         return True
@@ -136,7 +138,7 @@ class crontab_config(osv.osv):
     def setup_dbbackup(self, cr, uid, ids=None, context=None):
         _curr_path = os.path.dirname(__file__)
         #id = obj_data.get_object_reference(cr, uid, 'crontab_config','backup_database')[1]
-        command = "'%s/db_backup.py' -u openerp -d %s -p '%s'>>'%s/crontab_oe.log'" % (_curr_path, cr.dbname, self._root, self._root)
+        command = "'%s/db_backup.py' -u openerp -d %s -p '%s'" % (_curr_path, cr.dbname, self._root)
         values = {'command':command}
         
         self.write(cr, uid, ids, values, context=None)
@@ -148,7 +150,7 @@ class crontab_config(osv.osv):
         strid = "%s"% ','.join(str(x) for x in ids)
         
         #id = obj_data.get_object_reference(cr, uid, 'crontab_config','backup_database')[1]
-        command = "'%s/db_restore.py' -u openerp -d %s -p '%s' -i %s -c 1 >>'%s/crontab_oe.log'" % (_curr_path, cr.dbname + "_TEST", self._root, strid, self._root)
+        command = "'%s/db_restore.py' -u openerp -d %s -p '%s' -i %s -c 1 " % (_curr_path, cr.dbname + "_TEST", self._root, strid)
         values = {'command':command}
         
         self.write(cr, uid, ids, values, context=None)
