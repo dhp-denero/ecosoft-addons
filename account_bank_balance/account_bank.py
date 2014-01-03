@@ -25,7 +25,7 @@ from openerp.osv import fields, osv
 class bank(osv.osv):
     _inherit = "res.partner.bank"
     _columns = {
-        'balance': fields.related('journal_id', 'default_debit_account_id', 'balance', type="float", readonly=True, string="Balance"),
+        'balance': fields.related('journal_id', 'default_debit_account_id', 'balance', type="float", readonly=True, string="Balance in Company's Currency"),
     }
 bank()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
