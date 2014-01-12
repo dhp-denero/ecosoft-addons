@@ -29,6 +29,7 @@ class account_invoice(osv.osv):
 
     _inherit = 'account.invoice'
     
+    # Overwrite
     def _amount_all(self, cr, uid, ids, name, args, context=None):
         res = {}
         for invoice in self.browse(cr, uid, ids, context=context):
@@ -44,6 +45,47 @@ class account_invoice(osv.osv):
                     res[invoice.id]['amount_tax'] += line.amount
             res[invoice.id]['amount_total'] = res[invoice.id]['amount_tax'] + res[invoice.id]['amount_untaxed']
         return res
+
+    # Overwrite
+    def _get_invoice_line(self, cr, uid, ids, context=None):
+        """copy pasted from account_invoice"""
+        result = {}
+        for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
+            result[line.invoice_id.id] = True
+        return result.keys()
+    
+    # Overwrite
+    def _get_invoice_tax(self, cr, uid, ids, context=None):
+        """copy pasted from account_invoice"""
+        result = {}
+        for tax in self.pool.get('account.invoice.tax').browse(cr, uid, ids, context=context):
+            result[tax.invoice_id.id] = True
+        return result.keys()
+    
+    # Overwrite
+    _columns = {
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Subtotal', track_visibility='always',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.tax': (_get_invoice_tax, None, 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='all'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Tax',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.tax': (_get_invoice_tax, None, 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='all'),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.tax': (_get_invoice_tax, None, 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='all'),                
+    }
     
 account_invoice()
 
