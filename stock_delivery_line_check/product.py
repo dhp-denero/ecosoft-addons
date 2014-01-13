@@ -19,29 +19,21 @@
 #
 ##############################################################################
 
-{
-    'name' : 'Delivery Line Check',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Check availability for each product line before deliver',
-    'description': """
+import netsvc
+from osv import osv, fields
 
-Check availability of delivery product by line (when click Deliver button, it will check line by line and give message accordingly).
-User can enable this feature by product category.
+class product_category(osv.osv):
+    
+    _inherit = 'product.category'
+    
+    _columns = {
+        'is_check_qty_deliver': fields.boolean('Lock delivery when qty not enough', readonly=False),
+    }
 
-    """,
-    'category': 'Warehouse Management',
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['stock'],
-    'demo' : [],
-    'data' : ['product_view.xml'
-    ],  
-    'test' : [
-    ],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
+    _defaults = {
+        'is_check_qty_deliver': True,
+    }
+    
+product_category()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
