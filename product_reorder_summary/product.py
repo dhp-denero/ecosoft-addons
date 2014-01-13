@@ -174,7 +174,7 @@ class product_product(osv.osv):
     
     _inherit = "product.product"
     _columns = {
-        'qty_reorder': fields.function(_get_reorder_summary, type='float', string='Reorder Point',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure'),store=False),
+        'qty_reorder': fields.function(_get_reorder_summary, type='float', string='Safety',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure'),store=False),
         'qty_diff_reroder': fields.function(_get_reorder_summary, type='float', fnct_search=_search_reorder_summary, string='Difference',multi="qty_reorder",digits_compute=dp.get_precision('Product Unit of Measure')),
     }
     

@@ -15,7 +15,7 @@ def main(argv):
     BacKDir = ''
     
     #init variable           
-    date_backup = time.strftime('%Y-%m-%d %H:%M:%S')
+    date_backup = time.strftime('%Y%m%d_%H%M%S')
     
     #Logging
     command = "#Start:OE-->Backup DB at %s" % (date_backup)    

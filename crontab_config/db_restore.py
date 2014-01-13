@@ -24,7 +24,7 @@ def main(argv):
     company_id = False
     id =False
     #init variable           
-    date_backup = time.strftime('%Y-%m-%d %H:%M:%S')
+    date_backup = time.strftime('%Y%m%d_%H%M%S')
     
     #Logging
     command = "#Start:OE-->Restore DB at' %s" % (date_backup)    
