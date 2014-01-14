@@ -26,13 +26,16 @@
     'summary': 'Check availability for each product line before deliver',
     'description': """
 
+Check availability of delivery product by line (when click Deliver button, it will check line by line and give message accordingly).
+User can enable this feature by product category.
+
     """,
     'category': 'Warehouse Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
     'depends' : ['stock'],
     'demo' : [],
-    'data' : [
+    'data' : ['product_view.xml'
     ],  
     'test' : [
     ],

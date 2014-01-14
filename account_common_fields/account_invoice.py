@@ -19,21 +19,15 @@
 #
 ##############################################################################
 
+import netsvc
+from osv import osv, fields
 
-import openerp.netsvc
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import decimal_precision as dp
-
-class purchase_order(osv.osv):
-
-    _inherit = "purchase.order"
-
-    def wkf_confirm_order(self, cr, uid, ids, context=None):
-        super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context)
-        orders = self.browse(cr, uid, ids, context=context)
-        for order in orders:
-            if order.requisition_id:
-                self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
-        return True
+class account_invoice(osv.osv):
     
+    _inherit = 'account.invoice'
+    _columns = {
+        'supplier_invoice_number': fields.char('Supplier Invoice Number', size=64, help="The reference of this invoice as provided by the supplier.", readonly=False),
+    }
+
+account_invoice()
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -19,21 +19,40 @@
 #
 ##############################################################################
 
-
-import openerp.netsvc
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import decimal_precision as dp
-
-class purchase_order(osv.osv):
-
-    _inherit = "purchase.order"
-
-    def wkf_confirm_order(self, cr, uid, ids, context=None):
-        super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context)
-        orders = self.browse(cr, uid, ids, context=context)
-        for order in orders:
-            if order.requisition_id:
-                self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
-        return True
+{
+    'name' : 'Account Common Fields',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Additional useful field in accounting module.',
+    'description': """
     
+Supplier Invoice
+================
+
+* Supplier Invoice, make Supplier Invoice Number field editable
+
+Supplier Payment
+================
+
+* Adding "Supplier Invoice Number" into Supplier Payment's Line
+* Adding "Cheque Date", "Cheque Number"
+
+    """,
+    'category': 'Accounting & Finance',
+    'sequence': 4,
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['account','account_voucher'],
+    'demo' : [],
+    'data' : [
+        'voucher_payment_receipt_view.xml',
+        'account_invoice_view.xml',
+    ],
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

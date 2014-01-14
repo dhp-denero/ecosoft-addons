@@ -19,21 +19,21 @@
 #
 ##############################################################################
 
+import netsvc
+from osv import osv, fields
 
-import openerp.netsvc
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import decimal_precision as dp
-
-class purchase_order(osv.osv):
-
-    _inherit = "purchase.order"
-
-    def wkf_confirm_order(self, cr, uid, ids, context=None):
-        super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context)
-        orders = self.browse(cr, uid, ids, context=context)
-        for order in orders:
-            if order.requisition_id:
-                self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
-        return True
+class product_category(osv.osv):
     
+    _inherit = 'product.category'
+    
+    _columns = {
+        'is_check_qty_deliver': fields.boolean('Lock delivery when qty not enough', readonly=False),
+    }
+
+    _defaults = {
+        'is_check_qty_deliver': True,
+    }
+    
+product_category()
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

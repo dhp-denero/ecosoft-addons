@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,21 +19,29 @@
 #
 ##############################################################################
 
+{
+    'name' : 'Stock Movement Summary',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Enhance Location Structure report for In/Out/Safety/Reorder',
+    'description': """
 
-import openerp.netsvc
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import decimal_precision as dp
+Adding columns, 1) Incoming 2) Outgoing 3) Safety 4) Reordering (Forecast - Safety)
 
-class purchase_order(osv.osv):
+    """,
+    'category': 'Warehouse Management',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['product','stock'],
+    'demo' : [],
+    'data' : ['product_view.xml',
+              'wizard/stock_location_product_view.xml'
+    ],
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
 
-    _inherit = "purchase.order"
-
-    def wkf_confirm_order(self, cr, uid, ids, context=None):
-        super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context)
-        orders = self.browse(cr, uid, ids, context=context)
-        for order in orders:
-            if order.requisition_id:
-                self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
-        return True
-    
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 	<property name="ireport.zoom" value="1.7715610000000075"/>
-	<property name="ireport.x" value="222"/>
-	<property name="ireport.y" value="168"/>
+	<property name="ireport.x" value="254"/>
+	<property name="ireport.y" value="34"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -142,7 +142,7 @@ and ai.state = 'cancel' and ai.internal_number is not null))
 union
 (select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 ail.vatinfo_supplier_name as partner_name, ail.vatinfo_tin as vat, ail.vatinfo_branch as branch,
-ai.date_invoice, ai.id as doc_id, null as doc_number, ail.vatinfo_number as supplier_doc_number, -ail.vatinfo_tax_amount as tax_amount, -ail.vatinfo_base_amount as base_amount
+ail.vatinfo_date as date_invoice, ai.id as doc_id, null as doc_number, ail.vatinfo_number as supplier_doc_number, -ail.vatinfo_tax_amount as tax_amount, -ail.vatinfo_base_amount as base_amount
 from account_invoice_line ail
 join account_invoice ai on ai.id = ail.invoice_id and ai.state in ('open','paid') -- For purhcase, we don't need cancel state
 join account_move am on am.id = ai.move_id
@@ -363,21 +363,22 @@ order by date_invoice, doc_id]]>
 				<text><![CDATA[ชื่อผู้ขายสินค้า / ผู้ให้บริการ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="table" x="324" y="0" width="70" height="30"/>
+				<reportElement style="table" x="324" y="0" width="66" height="30"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<text><![CDATA[]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="table" x="394" y="0" width="41" height="30"/>
+				<reportElement style="table" x="390" y="0" width="53" height="30"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<text><![CDATA[สาขา]]></text>
+				<text><![CDATA[สถาน
+ประกอบการ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="table" x="435" y="0" width="60" height="30"/>
+				<reportElement style="table" x="443" y="0" width="52" height="30"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
@@ -420,20 +421,20 @@ order by date_invoice, doc_id]]>
 ภาษีมูลค่าเพิ่ม]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="312" y="0" width="92" height="30"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
-				</textElement>
-				<text><![CDATA[เลขประจำตัว
-ผู้เสียภาษีอากร]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="416" y="0" width="100" height="30"/>
+				<reportElement x="438" y="0" width="62" height="30"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<text><![CDATA[มูลค่าสินค้า
 หรือบริการ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="311" y="0" width="92" height="30"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="8" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[เลขประจำตัว
+ผู้เสียภาษีอากร]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
@@ -456,28 +457,28 @@ order by date_invoice, doc_id]]>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{doc_number}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="324" y="0" width="70" height="15"/>
+				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="324" y="0" width="66" height="15"/>
 				<textElement verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{vat}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="155" y="0" width="188" height="15"/>
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="155" y="0" width="169" height="15"/>
 				<textElement verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{partner_name}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="394" y="0" width="41" height="15"/>
+				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="390" y="0" width="53" height="15"/>
 				<textElement verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{branch}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="435" y="0" width="60" height="15"/>
+				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="443" y="0" width="52" height="15"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Arial.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
@@ -517,7 +518,7 @@ order by date_invoice, doc_id]]>
 	<summary>
 		<band height="18">
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement style="table" stretchType="RelativeToBandHeight" mode="Transparent" x="435" y="0" width="60" height="18"/>
+				<reportElement style="table" stretchType="RelativeToBandHeight" mode="Transparent" x="443" y="0" width="52" height="18"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Arial.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
@@ -531,14 +532,14 @@ order by date_invoice, doc_id]]>
 				<textFieldExpression class="java.lang.Number"><![CDATA[$V{sum_tax}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement style="table" stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="435" height="18"/>
+				<reportElement style="table" stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="443" height="18"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 				<textFieldExpression class="java.lang.Number"><![CDATA[]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="335" y="0" width="92" height="18"/>
+				<reportElement x="346" y="0" width="92" height="18"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single" markup="none">
 					<font fontName="Monospaced" size="8" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
 				</textElement>

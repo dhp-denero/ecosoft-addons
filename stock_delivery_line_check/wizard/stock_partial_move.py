@@ -58,68 +58,69 @@ class stock_partial_move(osv.osv_memory):
         location_obj = self.pool.get('stock.location')
         uom_obj = self.pool.get('product.uom')
         product = self.pool.get('product.product').browse(cr, uid, product_id, context=context)
-        uom_rounding = product.uom_id.rounding
-        if context.get('uom'):
-            uom_rounding = uom_obj.browse(cr, uid, context.get('uom'), context=context).rounding
-        for id in location_obj.search(cr, uid, [('location_id', 'child_of', ids), ('usage','=','internal')]):
-            if lock:
-                try:
-                    # Must lock with a separate select query because FOR UPDATE can't be used with
-                    # aggregation/group by's (when individual rows aren't identifiable).
-                    # We use a SAVEPOINT to be able to rollback this part of the transaction without
-                    # failing the whole transaction in case the LOCK cannot be acquired.
-                    cr.execute("SAVEPOINT stock_location_product_reserve")
-                    cr.execute("""SELECT id FROM stock_move
-                                  WHERE product_id=%s AND
-                                          (
-                                            (location_dest_id=%s AND
-                                             location_id<>%s AND
-                                             state='done')
-                                            OR
-                                            (location_id=%s AND
-                                             location_dest_id<>%s AND
-                                             state in ('done', 'assigned'))
-                                          )
-                                  FOR UPDATE of stock_move NOWAIT""", (product_id, id, id, id, id), log_exceptions=False)
-                except Exception:
-                    # Here it's likely that the FOR UPDATE NOWAIT failed to get the LOCK,
-                    # so we ROLLBACK to the SAVEPOINT to restore the transaction to its earlier
-                    # state, we return False as if the products were not available, and log it:
-                    cr.execute("ROLLBACK TO stock_location_product_reserve")
-                    _logger.warning("Failed attempt to reserve %s x product %s, likely due to another transaction already in progress. Next attempt is likely to work. Detailed error available at DEBUG level.", product_qty, product_id)
-                    _logger.debug("Trace of the failed product reservation attempt: ", exc_info=True)
-                    return False
-
-            # XXX TODO: rewrite this with one single query, possibly even the quantity conversion
-            cr.execute("""SELECT product_uom, sum(product_qty) AS product_qty
-                          FROM stock_move
-                          WHERE location_dest_id=%s AND
-                                location_id<>%s AND
-                                product_id=%s AND
-                                state='done'
-                          GROUP BY product_uom
-                       """,
-                       (id, id, product_id))
-            results = cr.dictfetchall()
-            cr.execute("""SELECT product_uom,-sum(product_qty) AS product_qty
-                          FROM stock_move
-                          WHERE location_id=%s AND
-                                location_dest_id<>%s AND
-                                product_id=%s AND
-                                state in ('done')
-                          GROUP BY product_uom
-                       """,
-                       (id, id, product_id))
-            results += cr.dictfetchall()
-            total = 0.0
-            results2 = 0.0
-            for r in results:
-                amount = uom_obj._compute_qty(cr, uid, r['product_uom'], r['product_qty'], context.get('uom', False))
-                results2 += amount
-                total += amount
-            total_after_move = total - product_qty
-            if total_after_move < 0.0:
-                raise osv.except_osv(_('Error!'), _('The inventory of %s is not enough!, only %s left in stock.') % (product.name, total,))
+        if product.categ_id and product.categ_id.is_check_qty_deliver:
+            uom_rounding = product.uom_id.rounding
+            if context.get('uom'):
+                uom_rounding = uom_obj.browse(cr, uid, context.get('uom'), context=context).rounding
+            for id in location_obj.search(cr, uid, [('location_id', 'child_of', ids), ('usage','=','internal')]):
+                if lock:
+                    try:
+                        # Must lock with a separate select query because FOR UPDATE can't be used with
+                        # aggregation/group by's (when individual rows aren't identifiable).
+                        # We use a SAVEPOINT to be able to rollback this part of the transaction without
+                        # failing the whole transaction in case the LOCK cannot be acquired.
+                        cr.execute("SAVEPOINT stock_location_product_reserve")
+                        cr.execute("""SELECT id FROM stock_move
+                                      WHERE product_id=%s AND
+                                              (
+                                                (location_dest_id=%s AND
+                                                 location_id<>%s AND
+                                                 state='done')
+                                                OR
+                                                (location_id=%s AND
+                                                 location_dest_id<>%s AND
+                                                 state in ('done', 'assigned'))
+                                              )
+                                      FOR UPDATE of stock_move NOWAIT""", (product_id, id, id, id, id), log_exceptions=False)
+                    except Exception:
+                        # Here it's likely that the FOR UPDATE NOWAIT failed to get the LOCK,
+                        # so we ROLLBACK to the SAVEPOINT to restore the transaction to its earlier
+                        # state, we return False as if the products were not available, and log it:
+                        cr.execute("ROLLBACK TO stock_location_product_reserve")
+                        _logger.warning("Failed attempt to reserve %s x product %s, likely due to another transaction already in progress. Next attempt is likely to work. Detailed error available at DEBUG level.", product_qty, product_id)
+                        _logger.debug("Trace of the failed product reservation attempt: ", exc_info=True)
+                        return False
+    
+                # XXX TODO: rewrite this with one single query, possibly even the quantity conversion
+                cr.execute("""SELECT product_uom, sum(product_qty) AS product_qty
+                              FROM stock_move
+                              WHERE location_dest_id=%s AND
+                                    location_id<>%s AND
+                                    product_id=%s AND
+                                    state='done'
+                              GROUP BY product_uom
+                           """,
+                           (id, id, product_id))
+                results = cr.dictfetchall()
+                cr.execute("""SELECT product_uom,-sum(product_qty) AS product_qty
+                              FROM stock_move
+                              WHERE location_id=%s AND
+                                    location_dest_id<>%s AND
+                                    product_id=%s AND
+                                    state in ('done')
+                              GROUP BY product_uom
+                           """,
+                           (id, id, product_id))
+                results += cr.dictfetchall()
+                total = 0.0
+                results2 = 0.0
+                for r in results:
+                    amount = uom_obj._compute_qty(cr, uid, r['product_uom'], r['product_qty'], context.get('uom', False))
+                    results2 += amount
+                    total += amount
+                total_after_move = total - product_qty
+                if total_after_move < 0.0:
+                    raise osv.except_osv(_('Error!'), _('The inventory of %s is not enough!, only %s left in stock.') % (product.name, total,))
 
 # 
 #             amount = results2
