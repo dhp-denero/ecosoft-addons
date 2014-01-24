@@ -32,6 +32,7 @@ class purchase_requisition_line(osv.osv):
     _columns = {
         'partner_ids': fields.many2many('res.partner', 'pr_rel_partner', 'pr_line_id', 'partner_id', 'Suppliers', ),
         'selected_flag':fields.boolean("Select"),
+#         'po_line_ids': fields.many2many('purchase.order.line', 'pr_rel_po', 'pr_id', 'po_id', 'Purchase Line Orders', ondelete='cascade'),
     }
     
     _default ={

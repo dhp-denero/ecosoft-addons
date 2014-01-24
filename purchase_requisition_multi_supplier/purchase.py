@@ -37,3 +37,9 @@ class purchase_order(osv.osv):
                 self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
         return True
     
+class purchase_order_line(osv.osv):
+    _inherit = "purchase.order"
+    
+    _columns = {
+#         'pr_line_ids': fields.many2many('purchase.requisition.line', 'pr_rel_po', 'po_id', 'pr_id', 'Purchase requisition Lines',ondelete='cascade' ),
+    }
