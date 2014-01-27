@@ -97,7 +97,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
-            'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
+            'advance_percentage': fields.float('Advance (%)', digits=(16,6), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
             }
 
