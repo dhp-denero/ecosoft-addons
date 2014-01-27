@@ -10,7 +10,7 @@
                 <data>
                     <button name="done" position="after">
                     	<button name="post_vatinfo" type="object" string="Post VAT Info" attrs="{'invisible': ['|', '|', ('vatinfo_move_id','&lt;&gt;',False), ('is_vatinfo_tax','=',False), ('state','not in',('done'))]}" class="oe_highlight" groups="account.group_account_invoice"/>
-                        <button name="unpost_vatinfo" type="object" string="Unpost VAT Info" attrs="{'invisible': ['|', ('vatinfo_move_id','=',False), ('state','not in',('done'))]}"  groups="account.group_account_invoice"/>
+                        <button name="unpost_vatinfo" type="object" string="Unpost VAT Info" attrs="{'invisible': ['|', ('vatinfo_move_id','=',False), ('state','not in',('done','cancelled'))]}"  groups="account.group_account_invoice"/>
                     </button>
                     <xpath expr="/form/sheet/notebook/page/field/tree/field[@name='unit_quantity']" position="after">
 	                    <button name="%(action_expense_vatinfo)d"
