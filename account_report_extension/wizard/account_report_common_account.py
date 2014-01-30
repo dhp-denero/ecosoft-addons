@@ -25,7 +25,19 @@ class account_common_account_report(osv.osv_memory):
     _inherit = "account.common.account.report"
     _columns = {
         'account_ids': fields.many2many('account.account', string='Accounting'),
+        'from_account': fields.integer('From Account'),
+        'to_account': fields.integer('To Account'),
     }
+    
+    def onchange_account(self, cr, uid, ids, from_account, to_account):
+        result = {}
+        res = {}
+        account_codes = range(from_account, to_account + 1)
+        account_codes =  map(str, account_codes)
+        account_ids = self.pool.get('account.account').search(cr, uid, [('code', 'in', account_codes)])
+        res['account_ids'] = account_ids
+        result['value'] = res
+        return result
      
     def pre_print_report(self, cr, uid, ids, data, context=None):
         if context is None:
