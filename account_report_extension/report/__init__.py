@@ -20,4 +20,6 @@
 ##############################################################################
 import account_partner_ledger
 import account_general_ledger
+import account_balance
+import account_financial_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

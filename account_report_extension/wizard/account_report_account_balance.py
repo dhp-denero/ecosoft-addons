@@ -19,7 +19,19 @@
 #
 ##############################################################################
 
-import report
-import wizard
-import account_financial_report
+from openerp.osv import  osv
+
+class account_balance_report(osv.osv_memory):
+    _inherit = ["account.common.account.report","account.balance.report"]
+    _name = 'account.balance.report'
+    _description = 'Trial Balance Report'
+
+    def _print_report(self, cr, uid, ids, data, context=None):
+        data = super(account_balance_report, self)._print_report( cr, uid, ids, data, context)
+        data['datas']['form'].update(self.read(cr, uid, ids, ['account_ids'], context=context)[0])
+        data.update({'report_name':'account.account_balance_ext'})
+        return data
+
+account_balance_report()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

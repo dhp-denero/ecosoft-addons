@@ -37,8 +37,11 @@ Features
     'depends' : ['account'],
     'demo' : [],
     'data' : [
+              'account_financial_report_data.xml',
               'wizard/account_report_partner_ledger_view.xml',
               'wizard/account_report_general_ledger_view.xml',
+              'wizard/account_report_account_balance_view.xml',
+              'wizard/account_financial_report_view.xml',
               'account_report.xml',
     ],
     'test' : [

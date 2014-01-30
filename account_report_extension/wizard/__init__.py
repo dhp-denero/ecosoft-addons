@@ -22,5 +22,6 @@ import account_report_common_partner
 import account_report_common_account
 import account_report_general_ledger
 import account_report_partner_ledger
-
+import account_report_account_balance
+import account_financial_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
