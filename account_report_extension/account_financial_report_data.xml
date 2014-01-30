@@ -18,6 +18,7 @@
             <field name="type">account_type</field>
             <field name="sequence">5</field>
         </record>
+        
         <record id="account.account_financial_report_expense0" model="account.financial.report">
             <field name="name">Expense</field>
             <field name="sign" eval="-1" />
@@ -26,6 +27,8 @@
             <field name="type">account_type</field>
             <field name="sequence">6</field>
         </record>
+        
+        
 
         <record id="account.account_financial_report_balancesheet0" model="account.financial.report">
             <field name="name">Statement of Financial Position</field>
@@ -60,6 +63,22 @@
             <field name="account_report_id" ref="account.account_financial_report_profitandloss0"/>
             <field name="sequence">4</field>
         </record>
+        
+        <record id="account_financial_report_trial_balance" model="account.financial.report">
+            <field name="name">Trial balance</field>
+            <field name="sign" eval="-1" />
+            <field name="type">sum</field>
+        </record>
+        
+        <record id="account_financial_report_Total_Trial_balance" model="account.financial.report">
+        	<field name="name">รวม</field>
+            <field name="parent_id" ref="account_financial_report_trial_balance"/>
+            <field name="display_detail">detail_flat</field>
+            <field name="type">account_type</field>
+            <field name="sequence">3</field>
+            <field name="account_type_ids">[(6, 0, [ref(account.data_account_type_income)])]</field>
+        </record>
+        
     </data>
 </openerp>
 

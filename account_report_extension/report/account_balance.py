@@ -46,14 +46,8 @@ class account_balance_ext(account_balance):
         while i<rec_count:
             record = self.result_acc[i]
             if (not record.get('type',False )) or record['type']=='view':
-#                 if record['code']=='0':
-#                     record['name']='รวม'
-#                     record['type']='other'
-#                     record['code']=' '
-#                     i+=1
-#                 else:
-                self.sum_credit -= record.get('credit',0.0 )
-                self.sum_debit -= record.get('debit',0.0 )
+                self.sum_credit -= record.get('credit', 0.0 )
+                self.sum_debit -= record.get('debit', 0.0 )
                 del self.result_acc[i]
                 rec_count= len(self.result_acc)
             else:                   
@@ -62,7 +56,6 @@ class account_balance_ext(account_balance):
                                      'level': 0, 'balance': self.sum_debit -self.sum_credit ,'debit': self.sum_debit,
                                      'type': u'view', 'id': False}) 
 
-        
         return self.result_acc
 
 report_sxw.report_sxw('report.account.account_balance_ext', 'account.account', 'addons/account/report/account_balance.rml', parser=account_balance_ext, header="internal")
