@@ -19,7 +19,17 @@
 #
 ##############################################################################
 
-import report
-import wizard
-import account_financial_report
+
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+
+# ---------------------------------------------------------
+# Account Financial Report
+# ---------------------------------------------------------
+
+class account_financial_report(osv.osv):
+    _inherit = "account.financial.report"
+   
+account_financial_report()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
