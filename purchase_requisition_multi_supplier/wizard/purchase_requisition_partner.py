@@ -56,7 +56,7 @@ class purchase_requisition_partner(osv.osv_memory):
                  'all_supplier_flag':False,
     }
     
-    #Overriding from product_product Class
+    #Overriding from purchase_requisition_partner Class
     def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
         if context is None:
             context = {}
