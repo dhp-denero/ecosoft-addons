@@ -19,50 +19,158 @@
 #
 ##############################################################################
 
-from account.report.account_balance import account_balance
+import time
+
 from openerp.report import report_sxw
+from account.report.common_report_header import common_report_header
 
-class account_balance_ext(account_balance):
-    
+class account_balance_ext(report_sxw.rml_parse, common_report_header):
+    _name = 'report.account.account_balance_ext'
+
+    def __init__(self, cr, uid, name, context=None):
+        super(account_balance_ext, self).__init__(cr, uid, name, context=context)
+        self.sum_debit = 0.00
+        self.sum_credit = 0.00
+        self.date_lst = []
+        self.date_lst_string = ''
+        self.result_acc = []
+        self.localcontext.update({
+            'time': time,
+            'lines': self.lines,
+            'sum_debit': self._sum_debit,
+            'sum_credit': self._sum_credit,
+            'get_fiscalyear':self._get_fiscalyear,
+            'get_filter': self._get_filter,
+            'get_start_period': self.get_start_period,
+            'get_end_period': self.get_end_period ,
+            'get_account': self._get_account,
+            'get_journal': self._get_journal,
+            'get_start_date':self._get_start_date,
+            'get_end_date':self._get_end_date,
+            'get_target_move': self._get_target_move,
+        })
+        self.context = context
+
     def set_context(self, objects, data, ids, report_type=None):
-        account_ids = data['form'].get('account_ids',False)
-        if account_ids:
-            res = super(account_balance_ext, self).set_context(objects, data, account_ids, report_type)
-        else:
-            res = super(account_balance_ext, self).set_context(objects, data, ids, report_type)
-        return res
-    
-    def lines(self, form, ids=None, done=None):
-        
-        account_ids = form.get('account_ids',False)
-        if account_ids: 
-            self.result_acc = super(account_balance_ext, self).lines(form, account_ids, done)
-        else:
-            self.result_acc = super(account_balance_ext, self).lines(form, ids, done)
-        
-        rec_count= len(self.result_acc)
-        i=0
-        
-        while i<rec_count:
-            record = self.result_acc[i]
-            if (not record.get('type',False )) or record['type']=='view':
-#                 if record['code']=='0':
-#                     record['name']='รวม'
-#                     record['type']='other'
-#                     record['code']=' '
-#                     i+=1
-#                 else:
-                self.sum_credit -= record.get('credit',0.0 )
-                self.sum_debit -= record.get('debit',0.0 )
-                del self.result_acc[i]
-                rec_count= len(self.result_acc)
-            else:                   
-                i+=1
-        self.result_acc.append({'credit': self.sum_credit, 'code': u' ', 'bal_type': '', 'name':'รวม','parent_id': False,
-                                     'level': 0, 'balance': self.sum_debit -self.sum_credit ,'debit': self.sum_debit,
-                                     'type': u'view', 'id': False}) 
+        new_ids = ids
+        if (data['model'] == 'ir.ui.menu'):
+            new_ids = 'chart_account_id' in data['form'] and [data['form']['chart_account_id']] or []
+            objects = self.pool.get('account.account').browse(self.cr, self.uid, new_ids)
+        return super(account_balance_ext, self).set_context(objects, data, new_ids, report_type=report_type)
 
-        
+    #def _add_header(self, node, header=1):
+    #    if header == 0:
+    #        self.rml_header = ""
+    #    return True
+
+    def _get_account(self, data):
+        if data['model']=='account.account':
+            return self.pool.get('account.account').browse(self.cr, self.uid, data['form']['id']).company_id.name
+        return super(account_balance_ext ,self)._get_account(data)
+
+    def lines(self, form, ids=None, done=None):
+        def _process_child(accounts, disp_acc, parent):
+                account_rec = [acct for acct in accounts if acct['id']==parent][0]
+                if account_rec['type'] != 'view':
+                    currency_obj = self.pool.get('res.currency')
+                    acc_id = self.pool.get('account.account').browse(self.cr, self.uid, account_rec['id'])
+                    currency = acc_id.currency_id and acc_id.currency_id or acc_id.company_id.currency_id
+                    res = {
+                        'id': account_rec['id'],
+                        'type': account_rec['type'],
+                        'code': account_rec['code'],
+                        'name': account_rec['name'],
+                        'level': account_rec['level'],
+                        'debit': account_rec['debit'],
+                        'credit': account_rec['credit'],
+                        'balance': account_rec['balance'],
+                        'parent_id': account_rec['parent_id'],
+                        'bal_type': '',
+                    }
+                    self.sum_debit += account_rec['debit']
+                    self.sum_credit += account_rec['credit']
+                    if disp_acc == 'movement':
+                        if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                            self.result_acc.append(res)
+                    elif disp_acc == 'not_zero':
+                        if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                            self.result_acc.append(res)
+                    else:
+                        self.result_acc.append(res)
+                if account_rec['child_id']:
+                    for child in account_rec['child_id']:
+                        _process_child(accounts,disp_acc,child)
+                        
+        def _process_flat(accounts, disp_acc):
+                #account_rec = [acct for acct in accounts if acct['id']==parent][0]
+                for account_rec in accounts:
+                    if account_rec['type'] != 'view':
+                        currency_obj = self.pool.get('res.currency')
+                        acc_id = self.pool.get('account.account').browse(self.cr, self.uid, account_rec['id'])
+                        currency = acc_id.currency_id and acc_id.currency_id or acc_id.company_id.currency_id
+                        res = {
+                            'id': account_rec['id'],
+                            'type': account_rec['type'],
+                            'code': account_rec['code'],
+                            'name': account_rec['name'],
+                            'level': account_rec['level'],
+                            'debit': account_rec['debit'],
+                            'credit': account_rec['credit'],
+                            'balance': account_rec['balance'],
+                            'parent_id': account_rec['parent_id'],
+                            'bal_type': '',
+                        }
+                        self.sum_debit += account_rec['debit']
+                        self.sum_credit += account_rec['credit']
+                        if disp_acc == 'movement':
+                            if not currency_obj.is_zero(self.cr, self.uid, currency, res['credit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['debit']) or not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                                self.result_acc.append(res)
+                        elif disp_acc == 'not_zero':
+                            if not currency_obj.is_zero(self.cr, self.uid, currency, res['balance']):
+                                self.result_acc.append(res)
+                        else:
+                            self.result_acc.append(res)
+                                            
+        obj_account = self.pool.get('account.account')
+        if not ids:
+            ids = self.ids
+        if not ids:
+            return []
+        if not done:
+            done={}
+
+        ctx = self.context.copy()
+
+        ctx['fiscalyear'] = form['fiscalyear_id']
+        if form['filter'] == 'filter_period':
+            ctx['period_from'] = form['period_from']
+            ctx['period_to'] = form['period_to']
+        elif form['filter'] == 'filter_date':
+            ctx['date_from'] = form['date_from']
+            ctx['date_to'] =  form['date_to']
+        ctx['state'] = form['target_move']
+        parents = ids
+        account_ids = form.get('account_ids', False)
+        if account_ids:
+            child_ids = account_ids
+        else:
+            child_ids = obj_account._get_children_and_consol(self.cr, self.uid, ids, ctx)
+        if child_ids:
+            ids = child_ids
+        accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id'], ctx)
+
+        for parent in parents:
+                if parent in done:
+                    continue
+                done[parent] = 1
+                if account_ids:
+                    _process_flat(accounts,form['display_account'])
+                else:
+                    _process_child(accounts,form['display_account'],parent)
+                    
+        self.result_acc.append({'credit': self.sum_credit, 'code': u' ', 'bal_type': '', 'name':'Total','parent_id': False,
+                             'level': 0, 'balance': self.sum_debit -self.sum_credit ,'debit': self.sum_debit,
+                             'type': u'view', 'id': False}) 
         return self.result_acc
 
 report_sxw.report_sxw('report.account.account_balance_ext', 'account.account', 'addons/account/report/account_balance.rml', parser=account_balance_ext, header="internal")
