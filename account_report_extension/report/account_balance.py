@@ -24,6 +24,7 @@ import time
 from openerp.report import report_sxw
 from account.report.common_report_header import common_report_header
 
+
 class account_balance_ext(report_sxw.rml_parse, common_report_header):
     _name = 'report.account.account_balance_ext'
 
@@ -39,14 +40,14 @@ class account_balance_ext(report_sxw.rml_parse, common_report_header):
             'lines': self.lines,
             'sum_debit': self._sum_debit,
             'sum_credit': self._sum_credit,
-            'get_fiscalyear':self._get_fiscalyear,
+            'get_fiscalyear': self._get_fiscalyear,
             'get_filter': self._get_filter,
             'get_start_period': self.get_start_period,
-            'get_end_period': self.get_end_period ,
+            'get_end_period': self.get_end_period,
             'get_account': self._get_account,
             'get_journal': self._get_journal,
-            'get_start_date':self._get_start_date,
-            'get_end_date':self._get_end_date,
+            'get_start_date': self._get_start_date,
+            'get_end_date': self._get_end_date,
             'get_target_move': self._get_target_move,
         })
         self.context = context
@@ -64,13 +65,13 @@ class account_balance_ext(report_sxw.rml_parse, common_report_header):
     #    return True
 
     def _get_account(self, data):
-        if data['model']=='account.account':
+        if data['model'] == 'account.account':
             return self.pool.get('account.account').browse(self.cr, self.uid, data['form']['id']).company_id.name
-        return super(account_balance_ext ,self)._get_account(data)
+        return super(account_balance_ext, self)._get_account(data)
 
     def lines(self, form, ids=None, done=None):
         def _process_child(accounts, disp_acc, parent):
-                account_rec = [acct for acct in accounts if acct['id']==parent][0]
+                account_rec = [acct for acct in accounts if acct['id'] == parent][0]
                 if account_rec['type'] != 'view':
                     currency_obj = self.pool.get('res.currency')
                     acc_id = self.pool.get('account.account').browse(self.cr, self.uid, account_rec['id'])
@@ -99,8 +100,8 @@ class account_balance_ext(report_sxw.rml_parse, common_report_header):
                         self.result_acc.append(res)
                 if account_rec['child_id']:
                     for child in account_rec['child_id']:
-                        _process_child(accounts,disp_acc,child)
-                        
+                        _process_child(accounts, disp_acc, child)
+
         def _process_flat(accounts, disp_acc):
                 #account_rec = [acct for acct in accounts if acct['id']==parent][0]
                 for account_rec in accounts:
@@ -130,24 +131,21 @@ class account_balance_ext(report_sxw.rml_parse, common_report_header):
                                 self.result_acc.append(res)
                         else:
                             self.result_acc.append(res)
-                                            
         obj_account = self.pool.get('account.account')
         if not ids:
             ids = self.ids
         if not ids:
             return []
         if not done:
-            done={}
-
+            done = {}
         ctx = self.context.copy()
-
         ctx['fiscalyear'] = form['fiscalyear_id']
         if form['filter'] == 'filter_period':
             ctx['period_from'] = form['period_from']
             ctx['period_to'] = form['period_to']
         elif form['filter'] == 'filter_date':
             ctx['date_from'] = form['date_from']
-            ctx['date_to'] =  form['date_to']
+            ctx['date_to'] = form['date_to']
         ctx['state'] = form['target_move']
         parents = ids
         account_ids = form.get('account_ids', False)
@@ -157,22 +155,23 @@ class account_balance_ext(report_sxw.rml_parse, common_report_header):
             child_ids = obj_account._get_children_and_consol(self.cr, self.uid, ids, ctx)
         if child_ids:
             ids = child_ids
-        accounts = obj_account.read(self.cr, self.uid, ids, ['type','code','name','debit','credit','balance','parent_id','level','child_id'], ctx)
+        accounts = obj_account.read(self.cr, self.uid, ids, ['type', 'code', 'name', 'debit', 'credit', 'balance', 'parent_id', 'level', 'child_id'], ctx)
 
         for parent in parents:
                 if parent in done:
                     continue
                 done[parent] = 1
                 if account_ids:
-                    _process_flat(accounts,form['display_account'])
+                    _process_flat(accounts, form['display_account'])
                 else:
-                    _process_child(accounts,form['display_account'],parent)
-                    
-        self.result_acc.append({'credit': self.sum_credit, 'code': u' ', 'bal_type': '', 'name':'Total','parent_id': False,
-                             'level': 0, 'balance': self.sum_debit -self.sum_credit ,'debit': self.sum_debit,
-                             'type': u'view', 'id': False}) 
+                    _process_child(accounts, form['display_account'], parent)
+
+        self.result_acc.append({'credit': self.sum_credit, 'code': u' ', 'bal_type': '', 'name': 'Total', 'parent_id': False,
+                             'level': 0, 'balance': self.sum_debit - self.sum_credit, 'debit': self.sum_debit,
+                             'type': u'view', 'id': False})
         return self.result_acc
 
-report_sxw.report_sxw('report.account.account_balance_ext', 'account.account', 'addons/account/report/account_balance.rml', parser=account_balance_ext, header="internal")
+
+report_sxw.report_sxw('report.account.account_balance_ext', 'account.account', 'addons/account_report_extension/report/account_balance.rml', parser=account_balance_ext, header="internal")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

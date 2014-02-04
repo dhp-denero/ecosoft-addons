@@ -21,28 +21,28 @@
 from account.report.account_financial_report import report_account_common
 from openerp.report import report_sxw
 
+
 class report_account_common_ext(report_account_common):
+
     _name = "report.account.financial.report_ext"
-    
+
     def get_lines(self, data):
         lines = super(report_account_common_ext, self).get_lines(data)
-        
-        rec_count= len(lines)
-        i=0
-        
-        while i<rec_count:
+        rec_count = len(lines)
+        i = 0
+        while i < rec_count:
             record = lines[i]
-            if data['form'].get('account_type',False):
-                if (record['account_type']!= data['form'].get('account_type',False) and record['type']=='account'):
+            if data['form'].get('account_type', False):
+                if (record['account_type'] != data['form'].get('account_type', False) and record['type'] == 'account'):
                     del lines[i]
-                    rec_count= len(lines)
-                else:                   
-                    i+=1
-            else:                   
-                i+=1
-                
+                    rec_count = len(lines)
+                else:
+                    i += 1
+            else:
+                i += 1
+
         return lines
-        
+
 report_sxw.report_sxw('report.account.financial.report_ext', 'account.financial.report',
     'addons/account/report/account_financial_report.rml', parser=report_account_common_ext, header='internal')
 

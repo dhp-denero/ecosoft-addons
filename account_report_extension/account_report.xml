@@ -8,14 +8,14 @@
         	name="account.third_party_ledger_other_ext" rml="account/report/account_partner_ledger_other.rml" string="Partner Ledger"/>
         	
          <report auto="False" id="account_general_ledger" menu="False" model="account.account" 
-         	name="account.general.ledger_ext" rml="account_report_extension/report/account_general_ledger2.rml" string="General Ledger"/>
+         	name="account.general.ledger_ext" rml="account_report_extension/report/account_general_ledger.rml" string="General Ledger"/>
          	
         <report auto="False" id="account_general_ledger_landscape" menu="False" model="account.account" 
-        	name="account.general.ledger_landscape_ext" rml="account_report_extension/report/account_general_ledger_landscape2.rml" 
+        	name="account.general.ledger_landscape_ext" rml="account_report_extension/report/account_general_ledger_landscape.rml" 
         	string="General Ledger"/>  
         	
          <report auto="False" id="account_account_balance" menu="False" model="account.account" name="account.account.balance_ext" 
-         	rml="account/report/account_balance.rml" string="Trial Balance"/>    
+         	rml="account_report_extension/report/account_balance.rml" string="Trial Balance"/>    
          	
         <report auto="False" id="account_financial_report_ext" menu="False" model="account.financial.report" 
         	name="account.financial.report_ext" rml="account/report/account_financial_report.rml" string="Balance Sheet"/>

@@ -33,17 +33,18 @@ class account_common_account_report(osv.osv_memory):
         result = {}
         res = {}
         account_codes = range(from_account, to_account + 1)
-        account_codes =  map(str, account_codes)
+        account_codes = map(str, account_codes)
         account_ids = self.pool.get('account.account').search(cr, uid, [('code', 'in', account_codes)])
         res['account_ids'] = account_ids
         result['value'] = res
         return result
-     
+
     def pre_print_report(self, cr, uid, ids, data, context=None):
         if context is None:
             context = {}
-        data = super(account_common_account_report,self).pre_print_report(cr, uid, ids, data, context)
-        data['form'].update(self.read(cr, uid, ids, ['account_ids',], context=context)[0])
+        data = super(account_common_account_report, self).pre_print_report(cr, uid, ids, data, context)
+        data['form'].update(self.read(cr, uid, ids, ['account_ids'], context=context)[0])
+        data['form'].update(self.read(cr, uid, ids, ['from_account', 'to_account'], context=context)[0])
         return data
 
 account_common_account_report()
