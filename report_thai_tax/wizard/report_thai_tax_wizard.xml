@@ -25,7 +25,7 @@
         </record>
 
         <record id="action_report_thai_tax" model="ir.actions.act_window">
-            <field name="name">Tax Report</field>
+            <field name="name">VAT Report</field>
             <field name="res_model">report.thai.tax.wizard</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
@@ -36,7 +36,7 @@
 
         <menuitem action="action_report_thai_tax"
             id="menu_report_thai_tax"
-            parent="account.menu_finance_generic_reporting" sequence="25" />
+            parent="menu_finance_thai_reporting" sequence="25" />
 
     </data>
 </openerp>

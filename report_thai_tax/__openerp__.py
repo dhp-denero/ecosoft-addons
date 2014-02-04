@@ -24,15 +24,20 @@
     'version': '1.0',
     'category': 'Thai Localisation',
     'description': """
-    
+    * VAT Report
     """,
     'author': 'Ecosoft',
     'website': 'http://www.ecosoft.co.th',
-    'depends': ['account','jasper_reports','web_m2o_enhanced','advance_and_additional_discount'],
+    'depends': ['account', 'jasper_reports', 'web_m2o_enhanced',
+                'advance_and_additional_discount',
+                'account_invoice_vatinfo',
+                'hr_expense_vatinfo',
+                ],
     'init_xml': [],
     'update_xml': [
-        "reports.xml",
-        "wizard/report_thai_tax_wizard.xml",
+        'reports.xml',
+        'account_menuitem.xml',
+        'wizard/report_thai_tax_wizard.xml',
     ],
     'demo_xml': [],
     'installable': True,

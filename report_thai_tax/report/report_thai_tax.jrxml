@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 	<property name="ireport.zoom" value="1.7715610000000075"/>
-	<property name="ireport.x" value="254"/>
-	<property name="ireport.y" value="34"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="123"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -159,8 +159,8 @@ and ail.vatinfo_tax_amount > 0)
 ----------------------------------
 union
 (select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
-hel.supplier_name as partner_name, hel.vat as vat, hel.branch as branch,
-hel.date_value as date_invoice, he.id as doc_id, null as doc_number, hel.ref as supplier_doc_number, -hel.tax_amount as tax_amount, -hel.unit_amount*hel.unit_quantity as base_amount
+hel.vatinfo_supplier_name as partner_name, hel.vatinfo_tin as vat, hel.vatinfo_branch as branch,
+hel.vatinfo_date as date_invoice, he.id as doc_id, null as doc_number, hel.vatinfo_number as supplier_doc_number, -hel.vatinfo_tax_amount as tax_amount, -hel.vatinfo_base_amount as base_amount
 from hr_expense_line hel
 join hr_expense_expense he on he.id = hel.expense_id and he.state in ('done','paid')
 join account_move am on am.id = he.account_move_id
@@ -168,8 +168,8 @@ join res_company rc on rc.id = am.company_id
 join res_partner rp on rp.id = rc.partner_id
 join account_period ap on ap.id = am.period_id
 join account_fiscalyear af on af.id = ap.fiscalyear_id
-where am.company_id = $P{company_id} and am.period_id = $P{period_id} and hel.tax_id = $P{tax_id}
-and hel.tax_amount > 0)
+where am.company_id = $P{company_id} and am.period_id = $P{period_id} and hel.vatinfo_tax_id = $P{tax_id}
+and hel.vatinfo_tax_amount > 0)
 ------------------------------------------
 
 ) b
