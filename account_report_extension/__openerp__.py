@@ -42,6 +42,7 @@ Features
               'wizard/account_report_general_ledger_view.xml',
               'wizard/account_report_account_balance_view.xml',
               'wizard/account_financial_report_view.xml',
+              'wizard/account_report_common_view.xml',
               'account_report.xml',
     ],
     'test' : [

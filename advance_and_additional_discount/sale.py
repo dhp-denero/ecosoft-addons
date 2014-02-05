@@ -92,10 +92,10 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=False),
             'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
-            'advance_percentage': fields.float('Advance (%)', digits=(16,2), required=False, readonly=True),
+            'advance_percentage': fields.float('Advance (%)', digits=(16,6), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
             # Retention Feature
-            'retention_percentage': fields.float('Retention (%)', digits=(16,2), required=False, readonly=True),
+            'retention_percentage': fields.float('Retention (%)', digits=(16,6), required=False, readonly=True),
             'amount_retained': fields.function(_get_amount_retained, string='Retained Amount', type='float', readonly=True, digits_compute=dp.get_precision('Account'))
             #'amount_retained': fields.float('Retained Amount',readonly=True, digits_compute=dp.get_precision('Account'))
         

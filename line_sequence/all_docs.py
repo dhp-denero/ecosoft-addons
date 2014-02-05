@@ -27,6 +27,10 @@ from datetime import date, timedelta
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
     _order = 'order_id desc, sequence, id'
+    
+    _defaults = {
+        'sequence': 1000,
+    }
 sale_order_line()
 
 class account_invoice_line(osv.osv):

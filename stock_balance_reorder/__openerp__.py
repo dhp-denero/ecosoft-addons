@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name' : 'Stock Movement Summary',
+    'name' : 'Stock Balance Reorder',
     'version' : '1.0',
     'author' : 'Ecosoft',
     'summary': 'Enhance Location Structure report for In/Out/Safety/Reorder',

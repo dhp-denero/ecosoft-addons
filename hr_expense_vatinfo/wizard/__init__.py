@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,30 +19,6 @@
 #
 ##############################################################################
 
-{
-    'name' : "Product Reorder Point",
-    'author' : 'Ecosoft',
-    'summary': 'Summary Reorder point of product by location',
-    'description': """
-
-When called from Location Structure menu, the result Product Tree View will show Reorder Point and Difference for its selected location.
-  
-    """,
-    'category': 'Sales',
-    'sequence': 8,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['product','stock'],
-    'demo' : [],
-    'data' : [
-          'product_view.xml',
-          'wizard/stock_location_product_view.xml',
-    ],
-    'test' : [
-    ],
-    'auto_install': False,
-    'application': True,
-    'installable': True,
-}
+import expense_vatinfo
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

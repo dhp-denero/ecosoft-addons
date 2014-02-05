@@ -18,7 +18,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from stock import *
-import product
+
+import hr_expense
+import account_move_line
 import wizard
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

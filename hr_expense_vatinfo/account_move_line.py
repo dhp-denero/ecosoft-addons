@@ -19,7 +19,16 @@
 #
 ##############################################################################
 
-import stock_location_product
+from openerp.osv import fields, osv
+
+class account_move_line(osv.osv):
+
+    _inherit = 'account.move.line'
+    
+    _columns = {
+        'vatinfo_supplier_name': fields.char('Supplier', required=False, size=128, help='Name of Organization to pay Tax'),
+    }
+    
+account_move_line()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

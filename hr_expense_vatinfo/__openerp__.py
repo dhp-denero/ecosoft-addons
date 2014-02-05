@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2013 Ecosoft Co., Ltd. (http://ecosoft.co.th).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,11 +18,33 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import account_report_common_partner
-import account_report_common_account
-import account_report_general_ledger
-import account_report_partner_ledger
-import account_report_account_balance
-import account_financial_report
-import account_report_common
+
+{
+    'name' : 'HR Expense VAT Info',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Additional VAT info',
+    'description': """
+    
+This module extend HR Expense, allowing user to add more VAT detail to each Invoice Line.
+
+This is useful when we pay VAT through other supplier, e.g., Expense to an employee, but VAT paid to customs department.
+    
+    """,
+    'category': 'Human Resources',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['hr_expense','web_m2o_enhanced'],
+    'demo' : [],
+    'data' : ['wizard/expense_vatinfo_view.xml',
+              'hr_expense_view.xml',
+              'account_view.xml'
+    ],
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

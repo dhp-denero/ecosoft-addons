@@ -62,8 +62,8 @@ where $X{IN, av.id, PIDS}]]>
 	<field name="wht_name" class="java.lang.String"/>
 	<field name="wht_name2" class="java.lang.String"/>
 	<field name="wht_description" class="java.lang.String"/>
-	<field name="wht_base" class="java.lang.Float"/>
-	<field name="wht_amount" class="java.lang.Float"/>
+	<field name="wht_base" class="java.lang.Number"/>
+	<field name="wht_amount" class="java.lang.Number"/>
 	<field name="partner_type" class="java.lang.String"/>
 	<background>
 		<band height="802">
@@ -94,14 +94,14 @@ where $X{IN, av.id, PIDS}]]>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Float"><![CDATA[$F{wht_base}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_base}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
 				<reportElement mode="Transparent" x="440" y="588" width="90" height="20"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Float"><![CDATA[$F{wht_amount}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_amount}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="37" y="77" width="241" height="20"/>
@@ -336,14 +336,14 @@ $F{partner_type} == "partnership"]]></printWhenExpression>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Float"><![CDATA[$F{wht_base}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_base}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
 				<reportElement mode="Transparent" x="439" y="623" width="90" height="20"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Float"><![CDATA[$F{wht_amount}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_amount}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="172" y="643" width="364" height="20"/>

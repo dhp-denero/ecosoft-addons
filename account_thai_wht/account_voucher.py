@@ -355,7 +355,7 @@ class account_voucher_line(osv.osv):
                 is_wht = True in [x.is_wht for x in line.invoice_line_tax_id] or False
                 if is_wht:
                     for tax in tax_obj.compute_all(cr, uid, line.invoice_line_tax_id,
-                            revised_price * (amount_original and (amount/amount_original) or 0.0),
+                            float(revised_price) * (float(amount_original) and (float(amount)/float(amount_original)) or 0.0),
                             line.quantity, line.product_id, partner, force_excluded=False)['taxes']:
                         if tax_obj.browse(cr, uid, tax['id']).is_wht:
                             amount_wht += tax['amount']

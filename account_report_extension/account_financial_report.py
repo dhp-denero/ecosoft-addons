@@ -29,7 +29,16 @@ from openerp.tools.translate import _
 
 class account_financial_report(osv.osv):
     _inherit = "account.financial.report"
-   
+    #Overwrite
+    def _get_children_by_order(self, cr, uid, ids, context=None):
+        '''returns a dictionary with the key= the ID of a record and value = all its children,
+           computed recursively, and sorted by sequence. Ready for the printing'''
+        res = []
+        for id in ids:
+            res.append(id)
+            ids2 = self.search(cr, uid, [('parent_id', '=', id)], order='sequence ASC', context=context)
+            res += self._get_children_by_order(cr, uid, ids2, context=context)
+        return res
 account_financial_report()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
