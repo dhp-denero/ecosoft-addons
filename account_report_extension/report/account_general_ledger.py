@@ -30,19 +30,21 @@
 from account.report.account_general_ledger  import general_ledger
 from openerp.report import report_sxw
 
+
 class general_ledger_ext(general_ledger):
+
     def set_context(self, objects, data, ids, report_type=None):
-        account_ids = data['form'].get('account_ids',False)
+        account_ids = data['form'].get('account_ids', False)
         if account_ids:
             res = super(general_ledger_ext, self).set_context(objects, data, account_ids, report_type)
             #self.query+=" AND l.account_id = (select id from account_account a  where a.id = l.account_id and  type1 not in ('view') )"
-            self.query+=' AND l.account_id in (%s) ' % ','.join(str(x) for x in account_ids)
-            self.init_query+= ' AND l.account_id in (%s) ' % ','.join(str(x) for x in account_ids)
+            self.query += ' AND l.account_id in (%s) ' % ','.join(str(x) for x in account_ids)
+            self.init_query += ' AND l.account_id in (%s) ' % ','.join(str(x) for x in account_ids)
         else:
             res = super(general_ledger_ext, self).set_context(objects, data, ids, report_type)
         return res
-    
-report_sxw.report_sxw('report.account.general.ledger_ext', 'account.account', 'addons/account/report/account_general_ledger1.rml', parser=general_ledger_ext, header='internal')
-report_sxw.report_sxw('report.account.general.ledger_landscape_ext', 'account.account', 'addons/account/report/account_general_ledger_landscape1.rml', parser=general_ledger_ext, header='internal landscape')
+
+report_sxw.report_sxw('report.account.general.ledger_ext', 'account.account', 'account_general_ledger.rml', parser=general_ledger_ext, header='internal')
+report_sxw.report_sxw('report.account.general.ledger_landscape_ext', 'account.account', 'account_general_ledger_landscape.rml', parser=general_ledger_ext, header='internal landscape')
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
