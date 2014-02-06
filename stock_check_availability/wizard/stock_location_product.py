@@ -42,11 +42,12 @@ class stock_location_product(osv.osv_memory):
     
         res = super(stock_location_product, self).action_open_window(cr, uid, ids,  context=context)
         product_field_lv = context.get('product_field',False)
-        product_field_lv.reverse()
+        
         model_name  = context.get('active_model',False)
         active_id = context.get('active_id',False)
         
         if  product_field_lv and model_name and active_id:
+            product_field_lv.reverse()
             obj = self.pool.get(model_name)
             lines = obj.browse(cr, uid, [active_id],context)
             product_ids = get_product_id(lines, product_field_lv)            
