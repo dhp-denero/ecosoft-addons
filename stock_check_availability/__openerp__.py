@@ -26,7 +26,9 @@
     'summary': 'Check Product availability',
     'description': """
 
-Check availability of product in selected location (when click Check Availability button, it will check product relate with in parent object ).
+Check availability of product in selected location (when click Check Availability button, it will check product relate with in parent object).
+
+Available in windows: Sales Order, Delivery Order
 
     """,
     'category': 'Warehouse Management',

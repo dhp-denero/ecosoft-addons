@@ -25,23 +25,23 @@ from openerp.osv import fields, osv
 class stock_location_product(osv.osv_memory):
     _inherit = "stock.location.product"
     _columns = {
-        'location_id': fields.many2one('stock.location', string='Location',),
+        'location_id': fields.many2one('stock.location', string='Location'),
     }
     _defaults = {
         'type': 'inventory'
     }
 
     def action_open_window(self, cr, uid, ids, context=None):
-        def get_product_id(lines, product_field):
+        def get_product_id(product_ids, lines, product_field):
             field_name = product_field.pop()
             if product_field:
+                if not isinstance(lines, list):
+                    lines = [lines]
                 for line in lines:
-                    return get_product_id((eval('line.' + field_name)), product_field)
+                    return get_product_id(product_ids, (eval('line.' + field_name)), product_field)
             else:
-                res = []
                 for line in lines:
-                    res.append((eval('line.' + field_name + '.id')))
-            return res
+                    product_ids.append((eval('line.' + field_name + '.id')))
 
         res = super(stock_location_product, self).action_open_window(cr, uid, ids, context=context)
         product_field_lv = context.get('product_field', False)
@@ -54,7 +54,7 @@ class stock_location_product(osv.osv_memory):
                 product_fields.reverse()
                 obj = self.pool.get(model_name)
                 lines = obj.browse(cr, uid, [active_id], context)
-                product_ids += get_product_id(lines, product_fields)
+                get_product_id(product_ids, lines, product_fields)
 
         display_conditions = self.read(cr, uid, ids, ['location_id'], context=context)
         if display_conditions:
@@ -64,10 +64,10 @@ class stock_location_product(osv.osv_memory):
                 ctx.update({'location': display_conditions[0]['location_id'][0]})
             res.update({'context': ctx})
 
-        if product_ids:
-            domain = res.get('domain', {})
-            res['domain'] += [tuple(['id', 'in', product_ids])]
-            res.update({'domain': domain})
+        domain = res.get('domain', {})
+        res['domain'] += [tuple(['id', 'in', product_ids])]
+        res.update({'domain': domain})
+
         return res
 
 stock_location_product()

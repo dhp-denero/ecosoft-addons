@@ -10,7 +10,7 @@
             	  	<group>
             	  		<field name="location_id" required="1" />
             	  		<!--domain="[('location_id','=',%(stock.stock_location_locations_virtual)d)]"-->
-            	  		<field name="type" invisible="0"/>
+            	  		<field name="type" invisible="1"/>
             	  	</group>
             	  	<footer>
                         <button name="action_open_window" string="View Products Availability " type="object" class="oe_highlight"/>
