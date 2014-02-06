@@ -20,26 +20,25 @@
 ##############################################################################
 
 {
-    'name' : 'Check Stock Availability',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
+    'name': 'Check Stock Availability',
+    'version': '1.0',
+    'author': 'Ecosoft',
     'summary': 'Check Product availability',
     'description': """
 
-Check availability of product in selected location  (when click Check Availability  button, it will check product relate with in parent object ).
+Check availability of product in selected location (when click Check Availability button, it will check product relate with in parent object ).
 
     """,
     'category': 'Warehouse Management',
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['stock','mrp'],
-    'demo' : [],
-    'data' : [
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': ['stock', 'mrp'],
+    'demo': [],
+    'data': [
               'wizard/stock_location_product_view.xml',
-              'sale_view.xml',
-              'mrp_view.xml',
-    ],  
-    'test' : [
+              'action_view.xml',
+    ],
+    'test': [
     ],
     'auto_install': False,
     'application': True,

@@ -10,7 +10,7 @@
             	  	<group>
             	  		<field name="location_id" required="1" />
             	  		<!--domain="[('location_id','=',%(stock.stock_location_locations_virtual)d)]"-->
-            	  		<field name="type" invisible="1"/>
+            	  		<field name="type" invisible="0"/>
             	  	</group>
             	  	<footer>
                         <button name="action_open_window" string="View Products Availability " type="object" class="oe_highlight"/>
@@ -31,6 +31,5 @@
                <field name="view_id" ref="view_stock_check_availability"/>
                <field name="target">new</field>
         </record>
-        
     </data>
 </openerp>

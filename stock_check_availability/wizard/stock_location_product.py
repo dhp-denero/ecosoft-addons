@@ -21,52 +21,55 @@
 import netsvc
 from openerp.osv import fields, osv
 
+
 class stock_location_product(osv.osv_memory):
     _inherit = "stock.location.product"
     _columns = {
         'location_id': fields.many2one('stock.location', string='Location',),
     }
+    _defaults = {
+        'type': 'inventory'
+    }
 
     def action_open_window(self, cr, uid, ids, context=None):
-        
         def get_product_id(lines, product_field):
-            field_name = product_field.pop()           
+            field_name = product_field.pop()
             if product_field:
-                for line  in lines:
-                    return get_product_id((eval('line.'+field_name)), product_field)
+                for line in lines:
+                    return get_product_id((eval('line.' + field_name)), product_field)
             else:
                 res = []
                 for line in lines:
-                    res.append((eval('line.'+ field_name +'.id')))               
+                    res.append((eval('line.' + field_name + '.id')))
             return res
-    
-        res = super(stock_location_product, self).action_open_window(cr, uid, ids,  context=context)
-        product_field_lv = context.get('product_field',False)
-        
-        model_name  = context.get('active_model',False)
-        active_id = context.get('active_id',False)
-        
-        if  product_field_lv and model_name and active_id:
-            product_field_lv.reverse()
-            obj = self.pool.get(model_name)
-            lines = obj.browse(cr, uid, [active_id],context)
-            product_ids = get_product_id(lines, product_field_lv)            
-            display_conditions = self.read(cr, uid, ids, ['location_id'], context=context)
-            if display_conditions:
-                ctx = res.get('context', {})
-                #add filter by location
-                if  display_conditions[0]['location_id']:
-                    ctx.update({'location': display_conditions[0]['location_id'][0]})
 
-                res.update({'context': ctx})
-                
-                #add filter by product id
-                domain =  res.get('domain',{})
-                res['domain'] += [tuple(['id','=',product_ids])]
-                res.update({'domain': domain})
-                
+        res = super(stock_location_product, self).action_open_window(cr, uid, ids, context=context)
+        product_field_lv = context.get('product_field', False)
+        model_name = context.get('active_model', False)
+        active_ids = context.get('active_ids', False)
+        product_ids = []
+        for active_id in active_ids:
+            if  product_field_lv and model_name and active_id:
+                product_fields = list(product_field_lv)
+                product_fields.reverse()
+                obj = self.pool.get(model_name)
+                lines = obj.browse(cr, uid, [active_id], context)
+                product_ids += get_product_id(lines, product_fields)
+
+        display_conditions = self.read(cr, uid, ids, ['location_id'], context=context)
+        if display_conditions:
+            ctx = res.get('context', {})
+            #add filter by location
+            if  display_conditions[0]['location_id']:
+                ctx.update({'location': display_conditions[0]['location_id'][0]})
+            res.update({'context': ctx})
+
+        if product_ids:
+            domain = res.get('domain', {})
+            res['domain'] += [tuple(['id', 'in', product_ids])]
+            res.update({'domain': domain})
         return res
-    
+
 stock_location_product()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
