@@ -11,6 +11,27 @@
 	        	</xpath>
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_uom_id']" position="after">
 	            	<field name="partner_ids" widget="many2many_tags" domain="[('is_company','=',True)]" style="width: 10%%"/>
+	           	 	<field name="state"/>
+	            </xpath>
+	            
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group/field[@name='product_uom_id']" position="after">
+	            	<field name="selected_flag"/>	            	
+	            </xpath>
+	            
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group" position="after">
+	            	<group>
+	            	<notebook>
+                    	<page string="Purchase Orders">
+	            			<field name="po_line_ids" readonly="True">
+                         		<tree>
+                          			<field name="order_id"/>
+                          			<field name="partner_id"/>
+                          			<field name="state"/>
+                         		</tree>
+                    		</field>
+                    	</page>
+                	</notebook>
+                	</group>
 	            </xpath>
 	            
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group/field[@name='product_uom_id']" position="after">
@@ -19,21 +40,30 @@
 	            
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_id']" position="before">
 	            	<field name="id" invisible="1"/>
-	            	<field name="selected_flag" on_change="selected_flag_onchange(selected_flag)"  nolabel="1"/>
-	            </xpath>	        
+	            	<field name="selected_flag" on_change="selected_flag_onchange(selected_flag)"  nolabel="1" groups="purchase.group_purchase_user"/>
+	            </xpath>	 
+	            
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group/field[@name='selected_flag']" position="attributes">
+	            	<attribute  name="groups">purchase.group_purchase_user</attribute>
+	            </xpath>       
 	            
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']" position="before">
-	        		<field name="all_selected" on_change="all_selected_onchange(all_selected,line_ids)"/>
-	        		<label for="all_selected" string="All Selected(s)"/>
+	        		<field name="all_selected" on_change="all_selected_onchange(all_selected,line_ids)" groups="purchase.group_purchase_user"/>
+	        		<label for="all_selected" string="All Selected(s)"  groups="purchase.group_purchase_user"/>
 	        	</xpath>
 	        	
-	        	<!--xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='purchase_ids']" position="replace">        		 
+	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']" position="attributes">   
+	        		<attribute name="editable" eval="False"/>     		 
+	        	</xpath>
+	        	
+	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='purchase_ids']" position="replace">        		 
 	        	</xpath>
 	        	
 	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/separator[@string='Quotations']" position="attributes">   
 	        		<attribute name="invisible">1</attribute>     		 
 	        	</xpath>
-	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']" position="replace">
+	        	
+	        	<!--xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']" position="replace">
 	        		  <tree string="Products" editable="bottom">
                           <field name="product_id" on_change="onchange_product_id(product_id,product_uom_id)"/>
                           <field name="product_qty" string="test"/>

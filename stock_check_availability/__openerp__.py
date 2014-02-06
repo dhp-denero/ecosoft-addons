@@ -18,11 +18,32 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import account_report_common_partner
-import account_report_common_account
-import account_report_general_ledger
-import account_report_partner_ledger
-import account_report_account_balance
-import account_financial_report
-import account_report_common
+
+{
+    'name' : 'Check Stock Availability',
+    'version' : '1.0',
+    'author' : 'Ecosoft',
+    'summary': 'Check Product availability',
+    'description': """
+
+Check availability of product in selected location  (when click Check Availability  button, it will check product relate with in parent object ).
+
+    """,
+    'category': 'Warehouse Management',
+    'website' : 'http://www.ecosoft.co.th',
+    'images' : [],
+    'depends' : ['stock','mrp'],
+    'demo' : [],
+    'data' : [
+              'wizard/stock_location_product_view.xml',
+              'sale_view.xml',
+              'mrp_view.xml',
+    ],  
+    'test' : [
+    ],
+    'auto_install': False,
+    'application': True,
+    'installable': True,
+}
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

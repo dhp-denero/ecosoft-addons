@@ -11,14 +11,6 @@
             <data>
             	<xpath expr="//page[@string='Filters']" position="after">
 			    	<page string="Accounting" name="account_ids">
-			    	    <group>
-				    	    <group>
-				    	        <field name="from_account" on_change="onchange_account(from_account, to_account)"/>
-				    	    </group>
-				    	    <group>
-				    	        <field name="to_account" on_change="onchange_account(from_account, to_account)"/>
-				    	    </group>
-			    	    </group>
                     	<field name="account_ids" context="{'search_default_attr':0}"/>
                 	</page>
 				</xpath>

@@ -25,21 +25,64 @@ from openerp.osv import osv, fields
 from openerp.tools.translate import _
 import decimal_precision as dp
 
-class purchase_order(osv.osv):
 
+class purchase_order(osv.osv):
     _inherit = "purchase.order"
+
+    def _get_requistion(self, cr, uid, ids, context=None):
+        orders = self.browse(cr, uid, ids, context=context)
+        pr_ids = []
+        for order in orders:
+            for order_line in order.order_line:
+                for pr_line in order_line.pr_line_ids:
+                    pr_ids.append(pr_line.requisition_id.id)
+        return pr_ids
 
     def wkf_confirm_order(self, cr, uid, ids, context=None):
-        super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context)
-        orders = self.browse(cr, uid, ids, context=context)
-        for order in orders:
-            if order.requisition_id:
-                self.pool.get('purchase.requisition').tender_done(cr, uid, [order.requisition_id.id], context)
+        res = super(purchase_order, self).wkf_confirm_order(cr, uid, ids, context=context)
+
+        pr_ids = self._get_requistion(cr, uid, ids, context)
+        self.pool.get('purchase.requisition').update_done(cr, uid, pr_ids, context=context)
+        return res
+
+    def action_cancel_draft(self, cr, uid, ids, context=None):
+        po_line = self.pool.get('purchase.order.line')
+        super(purchase_order, self).action_cancel_draft(cr, uid, ids, context)
+        line_ids = po_line.search(cr, uid, [('order_id', 'in', ids)])
+        po_line.write(cr, uid, line_ids, {'state': 'draft'})
         return True
-    
+
+    def purchase_cancel(self, cr, uid, ids, context=None):
+        po_line = self.pool.get('purchase.order.line')
+
+        self.write(cr, uid, ids, {'state': 'cancel'})
+        line_ids = po_line.search(cr, uid, [('order_id', 'in', ids)])
+        po_line.write(cr, uid, line_ids, {'state': 'cancel'})
+
+        pr_ids = self._get_requistion(cr, uid, ids, context)
+        self.pool.get('purchase.requisition').update_done(cr, uid, pr_ids, context=context)
+
+        return True
+
+    def do_merge(self, cr, uid, ids, context=None):
+        res = super(purchase_order, self).do_merge(cr, uid, ids, context)
+        po_line = self.pool.get('purchase.order.line')
+
+        for key, value in res.iteritems():
+            line_ids = po_line.search(cr, uid, [('order_id', '=', key)])
+            for line_id in po_line.browse(cr, uid, line_ids, context=context):
+                old_line_ids = po_line.search(cr, uid, [('order_id', 'in', value), ('product_id', '=', line_id.product_id.id)])
+                pr_line_ids = []
+                for old_line in po_line.browse(cr, uid, old_line_ids, context=context):
+                    pr_line_ids.extend([pr_id.id for pr_id in old_line.pr_line_ids])
+                po_line.write(cr, uid, [line_id.id], {'pr_line_ids': [(6, 0, pr_line_ids)]})
+
+        return res
+
+
 class purchase_order_line(osv.osv):
-    _inherit = "purchase.order"
-    
+    _inherit = "purchase.order.line"
+
     _columns = {
-#         'pr_line_ids': fields.many2many('purchase.requisition.line', 'pr_rel_po', 'po_id', 'pr_id', 'Purchase requisition Lines',ondelete='cascade' ),
+         'pr_line_ids': fields.many2many('purchase.requisition.line', 'pr_rel_po', 'po_id', 'pr_id', 'Purchase requisition Lines',ondelete='cascade' ),
     }

@@ -18,11 +18,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import account_report_common_partner
-import account_report_common_account
-import account_report_general_ledger
-import account_report_partner_ledger
-import account_report_account_balance
-import account_financial_report
-import account_report_common
+
+import time
+from lxml import etree
+
+from openerp.osv import fields, osv
+from openerp.osv.orm import setup_modifiers
+from openerp.tools.translate import _
+
+class account_common_report(osv.osv_memory):
+    _inherit = "account.common.report"
+    
+    _columns = {
+        'account_ids': fields.many2many('account.account', string='Accounting'),
+        'from_account': fields.integer('From Account'),
+        'to_account': fields.integer('To Account'),
+    }
+
+account_common_report()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
