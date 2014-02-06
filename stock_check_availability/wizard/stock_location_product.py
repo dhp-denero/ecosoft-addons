@@ -27,21 +27,17 @@ class stock_location_product(osv.osv_memory):
         'location_id': fields.many2one('stock.location', string='Location',),
     }
 
-    
-    
     def action_open_window(self, cr, uid, ids, context=None):
         
         def get_product_id(lines, product_field):
-            field_name = product_field.pop()
-           
+            field_name = product_field.pop()           
             if product_field:
                 for line  in lines:
                     return get_product_id((eval('line.'+field_name)), product_field)
             else:
                 res = []
                 for line in lines:
-                    res.append((eval('line.'+ field_name +'.id')))
-                
+                    res.append((eval('line.'+ field_name +'.id')))               
             return res
     
         res = super(stock_location_product, self).action_open_window(cr, uid, ids,  context=context)
@@ -57,11 +53,13 @@ class stock_location_product(osv.osv_memory):
             display_conditions = self.read(cr, uid, ids, ['location_id'], context=context)
             if display_conditions:
                 ctx = res.get('context', {})
+                #add filter by location
                 if  display_conditions[0]['location_id']:
                     ctx.update({'location': display_conditions[0]['location_id'][0]})
 
                 res.update({'context': ctx})
                 
+                #add filter by product id
                 domain =  res.get('domain',{})
                 res['domain'] += [tuple(['id','=',product_ids])]
                 res.update({'domain': domain})
