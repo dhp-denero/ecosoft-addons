@@ -23,8 +23,9 @@ from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 from openerp.osv import fields, osv
 
+
 class account_invoice(osv.osv):
-    
+
     def _is_vatinfo_tax(self, cr, uid, ids, fieldnames, args, context=None):
         result = dict.fromkeys(ids, 0)
         for record in self.browse(cr, uid, ids, context=context):
@@ -32,34 +33,34 @@ class account_invoice(osv.osv):
             for line in record.invoice_vatinfo:
                 if line.vatinfo_tax_amount:
                     result[record.id] = True
-                    break;
+                    break
                 else:
                     result[record.id] = False
-        return result    
-    
+        return result
+
     def _get_invoice(self, cr, uid, ids, context=None):
         result = {}
         for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
             result[line.invoice_id.id] = True
-        return result.keys()      
+        return result.keys()
 
     _inherit = 'account.invoice'
-    
+
     _columns = {
         'vatinfo_move_id': fields.many2one('account.move', 'Journal Entry (VAT Info)', readonly=True, select=1, ondelete='restrict', help="Link to the automatically generated Journal Items for Vat Info."),
-        'invoice_vatinfo': fields.one2many('account.invoice.line', 'invoice_id', 'Invoice Lines', readonly=False),
-        'is_vatinfo_tax': fields.function(_is_vatinfo_tax, type='boolean', string='Is VAT Info Tax', 
+        'invoice_vatinfo': fields.one2many('account.invoice.line', 'invoice_id', 'Invoice Lines', readonly=True, states={'draft': [('readonly', False)]}),
+        'is_vatinfo_tax': fields.function(_is_vatinfo_tax, type='boolean', string='Is VAT Info Tax',
                     store={
                            'account.invoice': (lambda self, cr, uid, ids, c={}: ids, None, 10),
                            'account.invoice.line': (_get_invoice, ['vatinfo_tax_amount'], 10)
                            }),
     }
-    
+
     def line_get_convert(self, cr, uid, x, part, date, context=None):
         res = super(account_invoice, self).line_get_convert(cr, uid, x, part, date, context=context)
         res.update({'vatinfo_supplier_name': x.get('vatinfo_supplier_name', False)})
         return res
-    
+
     def post_vatinfo(self, cr, uid, ids, context=None):
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -81,7 +82,7 @@ class account_invoice(osv.osv):
 
             date = inv.date_invoice or time.strftime('%Y-%m-%d')
             part = self.pool.get("res.partner")._find_accounting_partner(inv.partner_id)
-            line = map(lambda x:(0,0,self.line_get_convert(cr, uid, x, part.id, date, context=ctx)),iml)
+            line = map(lambda x: (0, 0, self.line_get_convert(cr, uid, x, part.id, date, context=ctx)), iml)
             line = self.group_lines(cr, uid, iml, line, inv)
 
             journal_id = inv.journal_id.id
@@ -115,13 +116,13 @@ class account_invoice(osv.osv):
             move_id = move_obj.create(cr, uid, move, context=ctx)
             new_move_name = move_obj.browse(cr, uid, move_id, context=ctx).name
             # make the invoice point to that move
-            self.write(cr, uid, [inv.id], {'vatinfo_move_id': move_id,'period_id':period_id, 'move_name':new_move_name}, context=ctx)
+            self.write(cr, uid, [inv.id], {'vatinfo_move_id': move_id, 'period_id': period_id, 'move_name': new_move_name}, context=ctx)
             # Pass invoice in context in method post: used if you want to get the same
             # account move reference when creating the same invoice after a cancelled one:
             move_obj.post(cr, uid, [move_id], context=ctx)
         self._log_event(cr, uid, ids)
         return True
-    
+
     def unpost_vatinfo(self, cr, uid, ids, context=None):
         move_obj = self.pool.get('account.move')
         if context is None:
@@ -132,20 +133,20 @@ class account_invoice(osv.osv):
             self.write(cr, uid, [inv.id], {'vatinfo_move_id': False})
             move_obj.unlink(cr, uid, [move_id])
         self._log_event(cr, uid, ids)
-        return True    
-    
+        return True
+
     def copy(self, cr, uid, id, default=None, context=None):
         if default is None:
             default = {}
         default.update({'vatinfo_move_id': False})
-        return super(account_invoice, self).copy(cr, uid, id, default, context=context)    
+        return super(account_invoice, self).copy(cr, uid, id, default, context=context)
 
 account_invoice()
 
+
 class account_invoice_line(osv.osv):
-    
+
     _inherit = 'account.invoice.line'
-    
     _columns = {
         'vatinfo_date': fields.date('Date', required=False, help='This date will be used as Tax Invoice Date in VAT Report'),
         'vatinfo_number': fields.char('Number', required=False, size=64, help='Number Tax Invoice'),
@@ -156,7 +157,7 @@ class account_invoice_line(osv.osv):
         'vatinfo_tax_id': fields.many2one('account.tax', 'Tax', required=False, ),
         'vatinfo_tax_amount': fields.float('VAT', required=False, digits_compute=dp.get_precision('Account')),
     }
-    
+
     def onchange_vat(self, cr, uid, ids, vatinfo_tax_id, vatinfo_tax_amount, context=None):
         res = {}
         if vatinfo_tax_id and vatinfo_tax_amount:
@@ -164,15 +165,15 @@ class account_invoice_line(osv.osv):
             tax_percent = vatinfo_tax.amount or 0.0
             if tax_percent > 0.0:
                 res['vatinfo_base_amount'] = vatinfo_tax_amount / tax_percent
-        return {'value': res}    
-    
+        return {'value': res}
+
     def action_add_vatinfo(self, cr, uid, ids, data, context=None):
         for vatinfo in self.browse(cr, uid, ids, context=context):
             if vatinfo.invoice_id.vatinfo_move_id:
                 raise osv.except_osv(_('Error!'),
                     _('VAT Info can be changed only when it is not posted. \n' +
                       'To change, Unpost VAT Info first.'))
-            
+
             self.write(cr, uid, vatinfo.id, {'vatinfo_date': data.vatinfo_date,
                                                  'vatinfo_number': data.vatinfo_number,
                                                  'vatinfo_supplier_name': data.vatinfo_supplier_name,
@@ -180,14 +181,14 @@ class account_invoice_line(osv.osv):
                                                  'vatinfo_branch': data.vatinfo_branch,
                                                  'vatinfo_base_amount': data.vatinfo_base_amount,
                                                  'vatinfo_tax_id': data.vatinfo_tax_id.id,
-                                                 'vatinfo_tax_amount': data.vatinfo_tax_amount,})
+                                                 'vatinfo_tax_amount': data.vatinfo_tax_amount})
         return True
-    
+
     def vatinfo_move_line_get(self, cr, uid, invoice_id, context=None):
-        
+
         if context is None:
-            context = {}        
-        
+            context = {}
+
         res = []
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
 
@@ -195,10 +196,10 @@ class account_invoice_line(osv.osv):
             # No additional vat info, continue
             if not line.vatinfo_tax_amount or line.vatinfo_tax_amount == 0:
                 continue
-            
+
             sign = 1
             account_id = 0
-            if inv.type in ('out_invoice','in_invoice'):
+            if inv.type in ('out_invoice', 'in_invoice'):
                 sign = 1
                 account_id = line.vatinfo_tax_id.account_collected_id.id
             else:
@@ -218,12 +219,12 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id': False,
                 'taxes': False,
             })
-            
+
             # Account Post, Tax
             res.append({
                 'type': 'tax',
                 'name': line.vatinfo_tax_id.name,
-                'price_unit' : sign * line.vatinfo_tax_amount,
+                'price_unit': sign * line.vatinfo_tax_amount,
                 'quantity': 1,
                 'price': sign * line.vatinfo_tax_amount,
                 'account_id': account_id,
@@ -233,63 +234,8 @@ class account_invoice_line(osv.osv):
                 'taxes': False,
                 'vatinfo_supplier_name': line.vatinfo_supplier_name,
             })
-            
+
         return res
 
-# Kitti U.: Pending for deletion
-#     def move_line_get(self, cr, uid, invoice_id, context=None):
-#         
-#         if context is None:
-#             context = {}        
-#         
-#         res = super(account_invoice_line,self).move_line_get(cr, uid, invoice_id, context=context)
-#         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
-# 
-#         for line in inv.invoice_line:
-#             # No additional vat info, continue
-#             if not line.vatinfo_tax_amount or line.vatinfo_tax_amount == 0:
-#                 continue
-#             
-#             sign = 1
-#             account_id = 0
-#             if inv.type in ('out_invoice','in_invoice'):
-#                 sign = 1
-#                 account_id = line.vatinfo_tax_id.account_collected_id.id
-#             else:
-#                 sign = -1
-#                 account_id = line.vatinfo_tax_id.account_paid_id.id
-# 
-#             # Account Post, deduct from the Invoice Line.
-#             res.append({
-#                 'type': 'src',
-#                 'name': line.name.split('\n')[0][:64],
-#                 'price_unit': -sign * line.vatinfo_tax_amount,
-#                 'quantity': 1.0,
-#                 'price': -sign * line.vatinfo_tax_amount,
-#                 'account_id': line.account_id.id,
-#                 'product_id': line.product_id.id,
-#                 'uos_id': False,
-#                 'account_analytic_id': False,
-#                 'taxes': False,
-#             })
-#             
-#             # Account Post, Tax
-#             res.append({
-#                 'type': 'tax',
-#                 'name': line.vatinfo_tax_id.name,
-#                 'price_unit' : sign * line.vatinfo_tax_amount,
-#                 'quantity': 1,
-#                 'price': sign * line.vatinfo_tax_amount,
-#                 'account_id': account_id,
-#                 'product_id': False,
-#                 'uos_id': False,
-#                 'account_analytic_id': False,
-#                 'taxes': False,
-#                 'vatinfo_supplier_name': line.vatinfo_supplier_name,
-#             })
-#             
-#         return res
-
-
-account_invoice_line()  
+account_invoice_line()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
