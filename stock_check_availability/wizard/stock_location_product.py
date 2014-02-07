@@ -64,9 +64,10 @@ class stock_location_product(osv.osv_memory):
                 ctx.update({'location': display_conditions[0]['location_id'][0]})
             res.update({'context': ctx})
 
-        domain = res.get('domain', {})
-        res['domain'] += [tuple(['id', 'in', product_ids])]
-        res.update({'domain': domain})
+        if product_ids:
+            domain = res.get('domain', {})
+            res['domain'] += [tuple(['id', 'in', product_ids])]
+            res.update({'domain': domain})
 
         return res
 
