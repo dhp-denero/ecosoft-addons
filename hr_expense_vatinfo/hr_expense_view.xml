@@ -43,7 +43,10 @@
                         	</field>
                         </page>                    
                     </xpath>
-				</data>
+                    <xpath expr="/form/sheet/notebook/page[@string='Accounting']//field[@name='journal_id']" position="before">
+                   		<field name="date_confirm" string="Accounting Date"/>            
+                    </xpath>				
+            	</data>
 			</field>
 		</record>
 	</data>
