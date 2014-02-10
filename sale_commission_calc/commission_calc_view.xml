@@ -82,8 +82,12 @@
                     </group>
                     <notebook>
                     	<page string="Commission Rates">
-                        	<group>
-								<field name="fix_percent"  attrs="{'invisible':[('type','!=','percent_fixed')]}"/>
+                        	<group >
+                    	    	<label string="Commission Rate is defined for each product. Please go to Sales tab in Product window to define it"
+                    	    	     attrs="{'invisible':[('type','!=','percent_product')]}"/>
+                    	    	<label string="Commission Rate is defined for each product category. Please go to Product Category window to define it"
+                    	    	     attrs="{'invisible':[('type','!=','percent_product_category')]}"/>
+                    	    	<field name="fix_percent" attrs="{'invisible':[('type','!=','percent_fixed')]}"/>
 							</group>	                        
 							<field name="rule_rates" widget="one2many_list" colspan="4" nolabel="1"  attrs="{'invisible':[('type','not in',('percent_amount','percent_accumulate'))]}">
 								<tree string="Rule Rates" editable="bottom">

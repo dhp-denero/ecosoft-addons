@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': "Commission Calculation",
+    'name': "Sales Commission Calculations",
     'author': 'Ecosoft',
     'summary': '',
     'description': """
@@ -39,25 +39,28 @@ Key Features
 
 Available Rule Types
 --------------------
-    * Fixed Percentage
-    * Percent by Amount
-    * Percent by Amount Accumulated
+    * Fixed Commission Rate
+    * Product Category Commission Rate
+    * Product Commission Rate
+    * Commission Rate By Amount
+    * Commission Rate By Monthly Accumulated Amount
 """,
     'category': 'Sales',
     'sequence': 8,
     'website': 'http://www.ecosoft.co.th',
     'images': [],
-    'depends': ['sale', 'account'],
+    'depends': ['product', 'sale', 'account'],
     'demo': [
         'commission_calc_demo.xml'],
     'data': [
-        'commission_calc_view.xml',
-        'sale_order_view.xml',
-        'commission_product_data.xml',
-        'commission_calc_sequence.xml'
+          'commission_calc_view.xml',
+          'sale_order_view.xml',
+#          'commission_product_data.xml',
+          'commission_calc_sequence.xml',
+          'product_view.xml'
     ],
     'test': [
-        '/test/commission_calc_demo.yml'
+        #'/test/commission_calc_demo.yml'
     ],
     'auto_install': False,
     'application': True,

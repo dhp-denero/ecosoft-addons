@@ -31,9 +31,11 @@ class commission_rule(osv.osv):
     _description = "Commission Rule"
     _columns = {
         'name': fields.char('Name', size=64, required=True),
-        'type': fields.selection((('percent_fixed', 'Fixed Percentage'),
-                                  ('percent_amount', 'Percent By Amount'),
-                                  ('percent_accumulate', 'Percent By Monthly Accumulated Amount')),
+        'type': fields.selection((('percent_fixed', 'Fixed Commission Rate'),
+                                  ('percent_product_category', 'Product Category Commission Rate'),
+                                  ('percent_product', 'Product Commission Rate'),
+                                  ('percent_amount', 'Commission Rate By Amount'),
+                                  ('percent_accumulate', 'Commission Rate By Monthly Accumulated Amount')),
                                  'Type', required=True),
         'fix_percent': fields.float('Fix Percentage'),
         'rule_rates': fields.one2many('commission.rule.rate', 'commission_rule_id', 'Rates'),
@@ -196,6 +198,10 @@ class commission_worksheet(osv.osv):
     def _calculate_commission(self, cr, uid, rule, worksheet, orders, context=None):
         if rule.type == 'percent_fixed':
             self._calculate_percent_fixed(cr, uid, rule, worksheet, orders, context=context)
+        if rule.type == 'percent_product_category':
+            self._calculate_percent_product_category(cr, uid, rule, worksheet, orders, context=context)
+        if rule.type == 'percent_product':
+            self._calculate_percent_product(cr, uid, rule, worksheet, orders, context=context)
         if rule.type == 'percent_amount':
             self._calculate_percent_amount(cr, uid, rule, worksheet, orders, context=context)
         if rule.type == 'percent_accumulate':
@@ -227,6 +233,44 @@ class commission_worksheet(osv.osv):
             commission_amt = 0.0
             if commission_rate:
                 commission_amt = order.amount_untaxed * commission_rate
+            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            worksheet_line_obj.create(cr, uid, res)
+        return True
+
+    def _calculate_percent_product_category(self, cr, uid, rule, worksheet, orders, context=None):
+        if context is None:
+            context = {}
+        commission_rate = 0.0
+        accumulated_amt = 0.0
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        for order in orders:
+            accumulated_amt += order.amount_untaxed
+            # For each product line
+            commission_amt = 0.0
+            for line in order.order_line:
+                percent_commission = line.product_id.categ_id.percent_commission
+                commission_rate = percent_commission and percent_commission / 100 or 0.0
+                if commission_rate:
+                    commission_amt += line.price_subtotal * commission_rate
+            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            worksheet_line_obj.create(cr, uid, res)
+        return True
+
+    def _calculate_percent_product(self, cr, uid, rule, worksheet, orders, context=None):
+        if context is None:
+            context = {}
+        commission_rate = 0.0
+        accumulated_amt = 0.0
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        for order in orders:
+            accumulated_amt += order.amount_untaxed
+            # For each product line
+            commission_amt = 0.0
+            for line in order.order_line:
+                percent_commission = line.product_id.percent_commission
+                commission_rate = percent_commission and percent_commission / 100 or 0.0
+                if commission_rate:
+                    commission_amt += line.price_subtotal * commission_rate
             res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True

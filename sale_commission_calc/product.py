@@ -19,8 +19,25 @@
 #
 ##############################################################################
 
-import sale_order
-import commission_calc
-import product
+from osv import fields, osv
 
+
+class product_product(osv.osv):
+
+    _inherit = "product.product"
+    _columns = {
+        'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False)
+    }
+
+product_product()
+
+
+class product_category(osv.osv):
+
+    _inherit = "product.category"
+    _columns = {
+        'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False)
+    }
+
+product_category()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
