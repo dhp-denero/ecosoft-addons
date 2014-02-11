@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import sale_order
+import sale
 import commission_calc
 import product
 

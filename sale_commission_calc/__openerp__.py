@@ -54,7 +54,7 @@ Available Rule Types
         'commission_calc_demo.xml'],
     'data': [
           'commission_calc_view.xml',
-          'sale_order_view.xml',
+          'sale_view.xml',
 #          'commission_product_data.xml',
           'commission_calc_sequence.xml',
           'product_view.xml'
