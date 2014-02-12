@@ -21,8 +21,8 @@
 
 {
     'name': 'Create Invoice Line by Percentage',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
+    'version': '1.0',
+    'author': 'Ecosoft',
     'summary': 'New method to creating invoice based on Sales Order line by percentage',
     'description': """
 
@@ -32,15 +32,15 @@ it goes into each line of Sales Order to create new Invoice.
 
     """,
     'category': 'Sales Management',
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['sale','advance_and_additional_discount'],
-    'demo' : [],
-    'data' : ['wizard/sale_make_invoice_advance.xml',
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': ['sale', 'purchase_product_uos', 'advance_and_additional_discount'],
+    'demo': [],
+    'data': ['wizard/sale_make_invoice_advance.xml',
               'wizard/purchase_make_invoice_advance.xml',
               'purchase_view.xml',
               'sale_view.xml'],
-    'test' : [],
+    'test': [],
     'auto_install': False,
     'application': True,
     'installable': True,
