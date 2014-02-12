@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name' : 'Create Invoice Line by Percentage (based on Rev8852)',
+    'name': 'Create Invoice Line by Percentage',
     'version' : '1.0',
     'author' : 'Ecosoft',
     'summary': 'New method to creating invoice based on Sales Order line by percentage',
