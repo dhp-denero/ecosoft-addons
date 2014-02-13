@@ -99,7 +99,7 @@ class AdditionalDiscountable(object):
                 if not record.is_advance:
                     advance_percentage = order.advance_percentage
                     if advance_percentage:
-                        o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage/100)
+                        o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage / 100)
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
                 if not record.is_deposit:
                     # Deposit will occur only in the last invoice (invoice that make it 100%)
@@ -108,7 +108,7 @@ class AdditionalDiscountable(object):
                                     and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit
-                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']   
+                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']
 
             # add retention amount, if is_retention = True and retention_percentage > 0
             o_res['amount_beforeretention'] = o_res['amount_beforetax'] + o_res['amount_tax']

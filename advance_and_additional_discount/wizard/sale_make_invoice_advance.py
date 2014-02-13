@@ -22,10 +22,11 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 
+
 class sale_advance_payment_inv(osv.osv_memory):
-    
+
     _inherit = "sale.advance.payment.inv"
-    
+
     def _get_advance_payment_method(self, cr, uid, context=None):
         res = []
         if context.get('active_model', False) == 'sale.order':
@@ -36,69 +37,73 @@ class sale_advance_payment_inv(osv.osv_memory):
                     res.append(('all', 'Invoice the whole sales order'))
                     res.append(('lines', 'Some order lines'))
                 if not len(sale.invoice_ids) and context.get('advance_type', False):
-                    res.append(('percentage','Percentage'))
-                    res.append(('fixed','Fixed price (deposit)'))
-        
+                    res.append(('percentage', 'Percentage'))
+                    res.append(('fixed', 'Fixed price (deposit)'))
+
         return res
-    
+
     _columns = {
-        'advance_payment_method':fields.selection(_get_advance_payment_method,
+        'advance_payment_method': fields.selection(_get_advance_payment_method,
             'What do you want to invoice?', required=True,
             help="""Use All to create the final invoice.
                 Use Percentage to invoice a percentage of the total amount.
                 Use Fixed Price to invoice a specific amound in advance.
                 Use Some Order Lines to invoice a selection of the sales order lines."""),
-        'amount': fields.float('Amount', digits_compute= dp.get_precision('Account'),
-            help="The amount to be invoiced in advance."),    
+        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'),
+            help="The amount to be invoiced in advance."),
         # Retention
-        'retention': fields.float('Retention', digits_compute= dp.get_precision('Account'),
-            help="The amount to be retained from invoices. The amount will be retained from this invoice onwards."),                  
+        'retention': fields.float('Retention', digits_compute=dp.get_precision('Account'),
+            help="The amount to be retained from invoices. The amount will be retained from this invoice onwards."),
         }
-    
+
     _defaults = {
-        'retention': lambda self,cr,uid,c: c.get('retention', False)
+        'retention': lambda self, cr, uid, c: c.get('retention', False)
     }
-               
+
     def create_invoices(self, cr, uid, ids, context=None):
-        
+
         res = super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
-        
+
         wizard = self.browse(cr, uid, ids[0], context)
-        sale_obj= self.pool.get('sale.order')
+        sale_obj = self.pool.get('sale.order')
+
+        # Update retention percentage
         sale_id = context.get('active_id', False)
         if wizard.retention > 0.0:
             sale_obj.write(cr, uid, [sale_id], {'retention_percentage': wizard.retention})
 
-        advance_percent = 0.0
-        advance_amount = 0.0
-        amount_deposit = 0.0
-        if sale_id:
-            sale = sale_obj.browse(cr, uid, sale_id)
-            advance_type = context.get('advance_type', False)
-            if advance_type:
-                if not sale.amount_net:
+        # Update advance and deposit
+        if wizard.advance_payment_method in ['percentage', 'fixed']:
+            advance_percent = 0.0
+            advance_amount = 0.0
+            amount_deposit = 0.0
+            if sale_id:
+                sale = sale_obj.browse(cr, uid, sale_id)
+                advance_type = context.get('advance_type', False)
+                if advance_type:
+                    if not sale.amount_net:
+                        raise osv.except_osv(_('Amount Error!'),
+                                _('This Sales Order has no values!'))
+                if advance_type == 'advance':
+                    # calculate the percentage of advancement
+                    if wizard.advance_payment_method == 'percentage':
+                        advance_percent = wizard.amount
+                        advance_amount = (wizard.amount / 100) * sale.amount_net
+                    elif wizard.advance_payment_method == 'fixed':
+                        advance_amount = wizard.amount
+                        advance_percent = (wizard.amount / sale.amount_net) * 100
+                if advance_type == 'deposit':
+                    # calculate the amount of deposit
+                    if wizard.advance_payment_method == 'percentage':
+                        amount_deposit = (wizard.amount / 100) * sale.amount_net
+                    elif wizard.advance_payment_method == 'fixed':
+                        amount_deposit = wizard.amount
+                if advance_amount > sale.amount_net or amount_deposit > sale.amount_net:
                     raise osv.except_osv(_('Amount Error!'),
-                            _('This Sales Order has no values!'))
-            if advance_type == 'advance':
-                # calculate the percentage of advancement
-                if wizard.advance_payment_method == 'percentage':
-                    advance_percent = wizard.amount
-                    advance_amount = (wizard.amount/100) * sale.amount_net
-                elif wizard.advance_payment_method == 'fixed':     
-                    advance_amount = wizard.amount
-                    advance_percent = (wizard.amount / sale.amount_net) * 100
-            if advance_type == 'deposit':
-                # calculate the amount of deposit
-                if wizard.advance_payment_method == 'percentage':
-                    amount_deposit = (wizard.amount / 100) * sale.amount_net
-                elif wizard.advance_payment_method == 'fixed':
-                    amount_deposit = wizard.amount
-            if advance_amount > sale.amount_net or amount_deposit > sale.amount_net:
-                raise osv.except_osv(_('Amount Error!'),
-                        _('Amount > Sales Order amount!'))            
-            # write back to sale_order
-            sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
-            sale_obj.write(cr, uid, [sale_id], {'amount_deposit': amount_deposit})
+                            _('Amount > Sales Order amount!'))
+                # write back to sale_order
+                sale_obj.write(cr, uid, [sale_id], {'advance_percentage': advance_percent})
+                sale_obj.write(cr, uid, [sale_id], {'amount_deposit': amount_deposit})
 
             # for retention, mark the invoice is_retention = True
             if sale.retention_percentage > 0.0 and res.get('res_id'):
@@ -108,8 +113,8 @@ class sale_advance_payment_inv(osv.osv_memory):
             if res.get('res_id'):
                 self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
 
-        return res               
-               
+        return res
+
     # This is a complete overwrite method of sale/wizard/sale_make_invoice_advance (rev8852)
     # How ever we might not need to double check it, as it only relate to type = percentage and fixed amount.
     # Which is completely changed.

@@ -148,35 +148,37 @@ class purchase_advance_payment_inv(osv.osv_memory):
         for purhcase_id, inv_values in self._prepare_advance_invoice_vals(cr, uid, ids, context=context):
             inv_ids.append(self._create_invoices(cr, uid, inv_values, purhcase_id, context=context))
 
-        advance_percent = 0.0
-        advance_amount = 0.0
-        amount_deposit = 0.0
-        if purchase_id:
-            purchase = purhcase_obj.browse(cr, uid, purchase_id)                
-            advance_type = context.get('advance_type', False)
-            if advance_type == 'advance':
-                # calculate the percentage of advancement
-                if wizard.advance_payment_method == 'percentage':
-                    advance_percent = wizard.amount
-                    advance_amount = (wizard.amount/100) * purchase.amount_net
-                elif wizard.advance_payment_method == 'fixed':
-                    advance_amount = wizard.amount
-                    advance_percent = (wizard.amount / purchase.amount_net) * 100
-            if advance_type == 'deposit':
-                # calculate the amount of deposit
-                if wizard.advance_payment_method == 'percentage':
-                    amount_deposit = (wizard.amount / 100) * purchase.amount_net
-                elif wizard.advance_payment_method == 'fixed':
-                    amount_deposit = wizard.amount
-            if advance_amount > purchase.amount_net or amount_deposit > purchase.amount_net:
-                raise osv.except_osv(_('Amount Error!'),
-                        _('Amount > Purchase Order amount!'))             
-            # write back to sale_order
-            purhcase_obj.write(cr, uid, [purchase_id], {'advance_percentage': advance_percent})
-            purhcase_obj.write(cr, uid, [purchase_id], {'amount_deposit': amount_deposit})
+        # Update advance and deposit
+        if wizard.advance_payment_method in ['percentage', 'fixed']:
+            advance_percent = 0.0
+            advance_amount = 0.0
+            amount_deposit = 0.0
+            if purchase_id:
+                purchase = purhcase_obj.browse(cr, uid, purchase_id)
+                advance_type = context.get('advance_type', False)
+                if advance_type == 'advance':
+                    # calculate the percentage of advancement
+                    if wizard.advance_payment_method == 'percentage':
+                        advance_percent = wizard.amount
+                        advance_amount = (wizard.amount / 100) * purchase.amount_net
+                    elif wizard.advance_payment_method == 'fixed':
+                        advance_amount = wizard.amount
+                        advance_percent = (wizard.amount / purchase.amount_net) * 100
+                if advance_type == 'deposit':
+                    # calculate the amount of deposit
+                    if wizard.advance_payment_method == 'percentage':
+                        amount_deposit = (wizard.amount / 100) * purchase.amount_net
+                    elif wizard.advance_payment_method == 'fixed':
+                        amount_deposit = wizard.amount
+                if advance_amount > purchase.amount_net or amount_deposit > purchase.amount_net:
+                    raise osv.except_osv(_('Amount Error!'),
+                            _('Amount > Purchase Order amount!'))
+                # write back to sale_order
+                purhcase_obj.write(cr, uid, [purchase_id], {'advance_percentage': advance_percent})
+                purhcase_obj.write(cr, uid, [purchase_id], {'amount_deposit': amount_deposit})
 
         if context.get('open_invoices', False):
-            return self.open_invoices( cr, uid, ids, inv_ids, context=context)
+            return self.open_invoices(cr, uid, ids, inv_ids, context=context)
         return {'type': 'ir.actions.act_window_close'}
 
     def open_invoices(self, cr, uid, ids, invoice_ids, context=None):
