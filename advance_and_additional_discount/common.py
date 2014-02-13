@@ -51,7 +51,7 @@ class AdditionalDiscountable(object):
             o_res['amount_total'] = o_res['amount_net'] + o_res['amount_tax']
 
         return res
-    
+
     # Kittiu: Same as the above but only use for invoice to correct the Tax amount
     # Note that we do not correct the Tax amount, as it is already in tax table.
     def _amount_invoice_generic(self, cls, cr, uid, ids, field_name, arg,
@@ -78,6 +78,7 @@ class AdditionalDiscountable(object):
             o_res = res[record.id]
 
             cur = self.record_currency(record)
+
             def cur_round(value):
                 """Round value according to currency."""
                 return cur_obj.round(cr, uid, cur, value)
@@ -89,7 +90,7 @@ class AdditionalDiscountable(object):
             add_disc_amt = cur_round(amount_untaxed * add_disc / 100)
             o_res['add_disc_amt'] = add_disc_amt
             o_res['amount_net'] = o_res['amount_untaxed'] - add_disc_amt
-            
+
             # add advance amount, if is_advance = True and advance_percentage > 0
             o_res['amount_advance'] = 0.0
             o_res['amount_deposit'] = 0.0
@@ -100,12 +101,12 @@ class AdditionalDiscountable(object):
                     advance_percentage = order.advance_percentage
                     if advance_percentage:
                         o_res['amount_advance'] = cur_round(o_res['amount_net'] * advance_percentage / 100)
-                        o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_advance']
+                        o_res['amount_beforetax'] = cur_round(o_res['amount_beforetax']) - cur_round(o_res['amount_advance'])
                 if not record.is_deposit:
                     # Deposit will occur only in the last invoice (invoice that make it 100%)
-                    this_invoice_rate = order.amount_net and (o_res['amount_beforetax'] * 100 / order.amount_net) or 0.0
-                    amount_deposit = order.invoiced_rate + this_invoice_rate >= 100 \
-                                    and order.amount_deposit or False
+                    this_invoice_rate = order.amount_net and cur_round(o_res['amount_beforetax']) * 100 / order.amount_net or 0.0
+                    #total_invoice_rate = order.invoiced_rate + this_invoice_rate
+                    amount_deposit = order.invoiced_rate + this_invoice_rate >= 100.0 and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']
@@ -118,8 +119,8 @@ class AdditionalDiscountable(object):
                 if record.is_retention:
                     retention_percentage = order.retention_percentage
                     if retention_percentage:
-                        o_res['amount_retention'] = (o_res['amount_net'] * retention_percentage/100)
-                    
+                        o_res['amount_retention'] = (o_res['amount_net'] * retention_percentage / 100)
+
             o_res['amount_total'] = o_res['amount_beforeretention'] - o_res['amount_retention']
 
         return res
