@@ -46,7 +46,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                 Use Fixed Price to invoice a specific amount in advance.
                 Use Some Order Lines to invoice a selection of the sales order lines."""),
     }
-    
+
     def create_invoices(self, cr, uid, ids, context=None):
         wizard = self.browse(cr, uid, ids[0], context)
         # Additional case, Line Percentage
@@ -65,7 +65,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                 if not (percent_after >= 100.00) and not (percent_deposit + percent_after <= 100):
                     raise osv.except_osv(_('Amount Error!'),
                             _('This percentage will make negative amount in the next invoice.'))
-            
+
             for order_line in order.order_line:
                 order_line_ids.append(order_line.id)
             # Assign them into active_ids
@@ -82,7 +82,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             if res.get('res_id'):
                 self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
             return res
-        
+
         return super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
     
     
