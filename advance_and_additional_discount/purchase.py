@@ -68,12 +68,12 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
 
               
-            'add_disc': fields.float('Additional Discount(%)', digits=(4,6),
-                                     states={'confirmed': [('readonly',True)],
-                                             'approved': [('readonly',True)],
-                                             'done': [('readonly',True)]}),
+            'add_disc': fields.float('Additional Discount(%)', digits_compute=dp.get_precision('Additional Discount'),
+                                     states={'confirmed': [('readonly', True)],
+                                             'approved': [('readonly', True)],
+                                             'done': [('readonly', True)]}),
             'add_disc_amt': fields.function(_amount_all, method=True, store=True, multi='sums',
-                                            digits_compute= dp.get_precision('Account'),
+                                            digits_compute=dp.get_precision('Account'),
                                             string='Additional Disc Amt',
                                             help="The additional discount on untaxed amount."),
             'amount_net': fields.function(_amount_all, method=True, store=True, multi='sums',

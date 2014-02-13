@@ -77,11 +77,11 @@ class sale_order(AdditionalDiscountable, osv.osv):
     _columns = {
             'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced Ratio', type='float'),
             # Additional Discount Feature
-            'add_disc':fields.float('Additional Discount(%)',digits_compute= dp.get_precision('Additional Discount'), readonly=True, states={'draft': [('readonly', False)]}),
-            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Additional Disc Amt',
-                                            store =True,multi='sums', help="The additional discount on untaxed amount."),
-            'amount_untaxed': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
-                                              store = True,multi='sums', help="The amount without tax."),
+            'add_disc': fields.float('Additional Discount(%)', digits_compute=dp.get_precision('Additional Discount'), readonly=True, states={'draft': [('readonly', False)]}),
+            'add_disc_amt': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Additional Disc Amt',
+                                            store=True, multi='sums', help="The additional discount on untaxed amount."),
+            'amount_untaxed': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+                                              store=True, multi='sums', help="The amount without tax."),
             'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Net Amount',
                                               store = True,multi='sums', help="The amount after additional discount."),
             'amount_tax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Taxes',
