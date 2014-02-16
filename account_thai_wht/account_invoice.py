@@ -124,21 +124,21 @@ class account_invoice_tax(osv.osv):
                 val['sequence'] = tax['sequence']
                 val['base'] = cur_obj.round(cr, uid, cur, tax['price_unit'] * line['quantity'])
                 val['is_wht'] = tax_obj.browse(cr, uid, tax['id']).is_wht
-                
+
                 if val['is_wht']:
-                    # Check Threshold first
-                    base = revised_price * line.quantity
+                    # Check Threshold first (with document's currency
+                    base = cur_obj.compute(cr, uid, inv.currency_id.id, company_currency, (revised_price * line.quantity), context={'date': inv.date_invoice or time.strftime('%Y-%m-%d')}, round=False)
                     if abs(base) and abs(base) < tax_obj.read(cr, uid, tax['id'], ['threshold_wht'])['threshold_wht']:
                         continue
-                
+
                 use_suspend_acct = line.product_id.use_suspend_account
-                
-                if inv.type in ('out_invoice','in_invoice'):
+
+                if inv.type in ('out_invoice', 'in_invoice'):
                     val['base_code_id'] = tax['base_code_id']
                     val['tax_code_id'] = tax['tax_code_id']
                     val['base_amount'] = cur_obj.compute(cr, uid, inv.currency_id.id, company_currency, val['base'] * tax['base_sign'], context={'date': inv.date_invoice or time.strftime('%Y-%m-%d')}, round=False)
                     val['tax_amount'] = cur_obj.compute(cr, uid, inv.currency_id.id, company_currency, val['amount'] * tax['tax_sign'], context={'date': inv.date_invoice or time.strftime('%Y-%m-%d')}, round=False)
-                    
+
                     # start kittiu for Thai Accounting
                     #val['account_id'] = tax['account_collected_id'] or line.account_id.id
                     val['account_id'] = use_suspend_acct and tax['account_suspend_collected_id'] or tax['account_collected_id'] or line.account_id.id

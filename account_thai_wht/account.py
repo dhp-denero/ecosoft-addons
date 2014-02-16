@@ -24,24 +24,25 @@ from osv import osv, fields
 from tools.translate import _
 from openerp.tools.float_utils import float_round
 
+
 class account_tax(osv.osv):
-    _inherit="account.tax"
-    _columns={
+    _inherit = "account.tax"
+    _columns = {
         'is_wht': fields.boolean("Withholding Tax", help="Tax will be withhold and will be used in Payment"),
         'threshold_wht': fields.float("Threshold Amount", help="Withholding Tax will be applied only if base amount more or equal to threshold amount"),
-        'account_suspend_collected_id':fields.many2one('account.account', 'Invoice Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Invoice Tax Account"),
-        'account_suspend_paid_id':fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
+        'account_suspend_collected_id': fields.many2one('account.account', 'Invoice Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Invoice Tax Account"),
+        'account_suspend_paid_id': fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
     }
-        
+
     # This is a complete overwrite method
     def _unit_compute(self, cr, uid, taxes, price_unit, product=None, partner=None, quantity=0):
         taxes = self._applicable(cr, uid, taxes, price_unit ,product, partner)
         res = []
-        cur_price_unit=price_unit
+        cur_price_unit = price_unit
         for tax in taxes:
             # we compute the amount for the current tax object and append it to the result
-            data = {'id':tax.id,
-                    'name':tax.description and tax.description + " - " + tax.name or tax.name,
+            data = {'id': tax.id,
+                    'name': tax.description and tax.description + " - " + tax.name or tax.name,
                     'account_collected_id':tax.account_collected_id.id,
                     'account_paid_id':tax.account_paid_id.id,
                     # start kittiu
