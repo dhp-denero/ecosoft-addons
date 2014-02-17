@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="debit" position="after">
-	                    <field name="purchase_credit_limit"/>
+	                    <field name="debit_limit"/>
                     </field>
                 </data>
            </field>

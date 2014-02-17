@@ -26,15 +26,13 @@
     'description': """Supplier Credit Limit
     When approving a Purchase Order it computes the sum of:
         * The debit we have to pay
-        * The amount of Purchase Orders aproved but not yet invoiced
-        * The invoices that are in draft state
         * The amount of the Purchase Order to be approved
     and compares it with the credit limit of the partner. If the
     credit limit is less it does not allow to approve the Purchase
     Order""",
     'author': 'ECOSOFT',
     'website': 'http://www.ecosoft.co.th/',
-    'depends': ['purchase'],
+    'depends': ['account', 'purchase'],
     'init_xml': [],
     'update_xml': ['purchase_workflow.xml',
                    'partner_view.xml'

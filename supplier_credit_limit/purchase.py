@@ -32,38 +32,17 @@ class purchase_order(osv.osv):
     def check_limit(self, cr, uid, ids, context=None):
         for order_id in ids:
             processed_order = self.browse(cr, uid, order_id, context=context)
-            # Purchase has no invoice type "Before Delivery"
-#             if processed_order.order_policy == 'prepaid':
-#                 continue
             partner = processed_order.partner_id
-            debit = partner.debit
-            # We sum from all the purchase orders that are aproved, the purchase order lines that are not yet invoiced
-            order_obj = self.pool.get('purchase.order')
-            filters = [('partner_id', '=', partner.id), ('state', '<>', 'draft'), ('state', '<>', 'cancel')]
-            approved_invoices_ids = order_obj.search(cr, uid, filters, context=context)
-            approved_invoices_amount = 0.0
-            for order in order_obj.browse(cr, uid, approved_invoices_ids, context=context):
-                for order_line in order.order_line:
-                    if not order_line.invoiced:
-                        approved_invoices_amount += order_line.price_subtotal
-            # We sum from all the invoices that are in draft the total amount
-            invoice_obj = self.pool.get('account.invoice')
-            filters = [('partner_id', '=', partner.id), ('state', '=', 'draft')]
-            draft_invoices_ids = invoice_obj.search(cr, uid, filters, context=context)
-            draft_invoices_amount = 0.0
-            for invoice in invoice_obj.browse(cr, uid, draft_invoices_ids, context=context):
-                draft_invoices_amount += invoice.amount_total
-            available_credit = partner.credit_limit - debit - approved_invoices_amount - draft_invoices_amount
-            if processed_order.amount_total > available_credit:
-                title = 'Credit Over Limits!'
-                msg = 'Can not confirm Purchase Order, the client does not have enough credit.'
-                title = 'Credit Limit Exceed!'
-                msg = u'Can not confirm the order since there is no sufficient credit left with supplier'
-                raise osv.except_osv(_(title), _(msg))
-                return False
+            if partner.debit_limit > 0:
+                debit = partner.debit
+                available_credit = partner.debit_limit - debit
+                if processed_order.amount_total > available_credit:
+                    title = 'Credit Over Limits!'
+                    msg = 'Can not confirm Purchase Order, the credit balance is %s'
+                    raise osv.except_osv(_(title), _(msg) % (available_credit,))
+                    return False
         return True
 
 purchase_order()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-
