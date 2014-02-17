@@ -24,48 +24,25 @@ import time
 from osv import fields, osv
 from tools.translate import _
 
+
 class sale_order(osv.osv):
     _inherit = "sale.order"
-    
+
     def check_limit(self, cr, uid, ids, context=None):
         for order_id in ids:
             processed_order = self.browse(cr, uid, order_id, context=context)
-            
             if processed_order.order_policy == 'prepaid':
                 continue
-            
             partner = processed_order.partner_id
-            credit = partner.credit
-            
-            # We sum from all the sale orders that are aproved, the sale order lines that are not yet invoiced
-            order_obj = self.pool.get('sale.order')
-            filters = [('partner_id', '=', partner.id), ('state', '<>', 'draft'), ('state', '<>', 'cancel')]
-            approved_invoices_ids = order_obj.search(cr, uid, filters, context=context)
-            approved_invoices_amount = 0.0
-            for order in order_obj.browse(cr, uid, approved_invoices_ids, context=context):
-                for order_line in order.order_line:
-                    if not order_line.invoiced:
-                        approved_invoices_amount += order_line.price_subtotal
-            
-            # We sum from all the invoices that are in draft the total amount
-            invoice_obj = self.pool.get('account.invoice')
-            filters = [('partner_id', '=', partner.id), ('state', '=', 'draft')]
-            draft_invoices_ids = invoice_obj.search(cr, uid, filters, context=context)
-            draft_invoices_amount = 0.0
-            for invoice in invoice_obj.browse(cr, uid, draft_invoices_ids, context=context):
-                draft_invoices_amount += invoice.amount_total
-            
-            available_credit = partner.credit_limit - credit - approved_invoices_amount - draft_invoices_amount
-            
-            if processed_order.amount_total > available_credit:
-                title = 'Credit Over Limits!'
-                msg = 'Can not confirm Sales Order, the client does not have enough credit.'
-                title = 'Credit Limit Exceed!'
-                msg = u'Can not confirm the order since the customer does not have sufficient credit.\n \
-You can still process the Sales Order by change the Invoice Policy to "Before Delivery" \
-in Other Information tab.'
-                raise osv.except_osv(_(title), _(msg))
-                return False
+            if partner.credit_limit > 0:
+                credit = partner.credit
+                available_credit = partner.credit_limit - credit
+                if processed_order.amount_total > available_credit:
+                    title = 'Credit Over Limits!'
+                    msg = u'Can not confirm the order since the credit balance is %s\n \
+    You can still process the Sales Order by change the Invoice Policy to "Before Delivery."'
+                    raise osv.except_osv(_(title), _(msg) % (available_credit,))
+                    return False
         return True
 
 sale_order()

@@ -26,15 +26,13 @@
     'description': """Customer Credit Limit
     When approving a Sale Order it computes the sum of:
         * The credit the Partner has to paid
-        * The amount of Sale Orders aproved but not yet invoiced
-        * The invoices that are in draft state
         * The amount of the Sale Order to be aproved
     and compares it with the credit limit of the partner. If the
     credit limit is less it does not allow to approve the Sale
     Order""",
     'author': 'Sistemas ADHOC, ECOSOFT',
     'website': 'http://www.sistemasadhoc.com.ar/,http://www.ecosoft.co.th',
-    'depends': ['sale'],
+    'depends': ['account', 'sale'],
     'init_xml': [],
     'update_xml': ['sale_workflow.xml'],
     'demo_xml': [],
