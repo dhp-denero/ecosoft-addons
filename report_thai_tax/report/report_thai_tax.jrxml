@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="2.5937424601000116"/>
-	<property name="ireport.x" value="468"/>
-	<property name="ireport.y" value="199"/>
+	<property name="ireport.zoom" value="1.3310000000000055"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -116,6 +116,26 @@ where av.company_id = $P{company_id} and av.period_id = $P{period_id} and avt.ta
 	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
 and avt.amount > 0)
 
+------------------------------------
+-- union Cancelled Payment Tax -----
+------------------------------------
+union
+(
+select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
+'CANCELLED' as partner_name, '-' as vat, '-' as branch,
+av.date as date_invoice, av.id as doc_id, number as doc_number, reference as supplier_doc_number, 0.0 as tax_amount, 0.0 as base_amount
+from account_voucher_tax avt
+join account_voucher av on av.id = avt.voucher_id and av.state in ('cancel')
+join res_company rc on rc.id = av.company_id
+join res_partner rp on rp.id = rc.partner_id
+join account_period ap on ap.id = av.period_id
+join account_fiscalyear af on af.id = ap.fiscalyear_id
+join res_partner partner on partner.id = av.partner_id
+where av.company_id = $P{company_id} and av.period_id = $P{period_id} and avt.tax_id = $P{tax_id}
+-- Only non-suspend account_id
+	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
+	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
+and avt.amount > 0)
 ----------------------------------------
 -- union Cancelled Invoice (Sales) -----
 ----------------------------------------
@@ -177,7 +197,7 @@ and hel.vatinfo_tax_amount > 0)
 
 ) b
 
-order by date_invoice, doc_id]]>
+order by date_invoice, doc_number, supplier_doc_number]]>
 	</queryString>
 	<field name="company_name" class="java.lang.String"/>
 	<field name="tax" class="java.lang.String"/>
@@ -514,7 +534,7 @@ order by date_invoice, doc_id]]>
 				<textElement verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{branch}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{branch}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
 				<reportElement style="detail" stretchType="RelativeToTallestObject" mode="Transparent" x="388" y="0" width="47" height="15"/>
