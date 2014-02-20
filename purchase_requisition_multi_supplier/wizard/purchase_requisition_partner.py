@@ -149,7 +149,7 @@ class purchase_requisition_partner(osv.osv_memory):
         return purchase_id
 
     def _create_po_line(self, cr, uid, purchase_id, supplier_id, pr_line, context=None):
-        purchase_requisition = self.pool.get('purchase.requisition') 
+        purchase_requisition = self.pool.get('purchase.requisition')
         purchase_order_line = self.pool.get('purchase.order.line')
         res_partner = self.pool.get('res.partner')
 
@@ -215,7 +215,7 @@ class purchase_requisition_partner(osv.osv_memory):
                     else:
                         suppliers = line.partner_ids
 
-                    if not suppliers[0].id:
+                    if not suppliers:
                         raise osv.except_osv(_('Warning!'), _('Please select the supplier'))
                     #assert suppliers, 'Supplier should be specified'
                     for partner_id in suppliers:
@@ -237,11 +237,14 @@ class purchase_requisition_partner(osv.osv_memory):
                                      'partner_ref': line.product_id.partner_ref
                                      }
                         res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id] = po_line
+        if res == {}:
+            raise osv.except_osv(_('Warning!'), _('Please select Product(s)'))
         return res
 
     def create_order(self, cr, uid, ids, context=None):
         active_ids = context and context.get('active_ids', [])
         data = self.browse(cr, uid, ids, context=context)[0]
+
         po_ids = False
         if data.overwrite:
             res = self._pr_grouping(cr, uid, active_ids, data.partner_id.id, context)
