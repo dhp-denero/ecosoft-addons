@@ -95,7 +95,7 @@ class sale_team(osv.osv):
         'users': fields.many2many('res.users', 'sale_team_users_rel', 'tid', 'uid', 'Users'),
         'implied_ids': fields.many2many('sale.team', 'sale_team_implied_rel', 'tid', 'hid',
             string='Inherits', help='Users of this group automatically inherit those groups'),
-        'skip_invoice': fields.boolean('Without validate Sale Invoice', help='Allow paying commission without validate invoice. This is the case for trainee')
+        'skip_invoice': fields.boolean('Allow commission w/o invoice paid', help='Allow paying commission without invoice being paid. This is the case for trainees.')
     }
     _sql_constraints = [
         ('name_uniq', 'unique (name)', 'The name of the team must be unique !')

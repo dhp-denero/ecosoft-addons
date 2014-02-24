@@ -38,8 +38,6 @@ class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
     _columns = {
         'product_uom_category_id':fields.integer("Product UOM Category ID"),
-        #'product_uom_category':fields.function(_get_product_uom_category_id, type='many2one', relation='product.uom.categ', string='Product UOM Category ID'),
-        'product_uom': fields.many2one('product.uom', 'Unit of Measure ', domain="[('category_id', '=', product_uom_category_id)]", required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
     
     def product_id_change(self, cr, uid, ids, pricelist, product, qty=0,

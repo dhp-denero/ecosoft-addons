@@ -31,7 +31,6 @@ class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
     _columns = {
         'product_uom_category_id':fields.integer("Product UOM Category ID"),
-        'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, domain="[('category_id', '=', product_uom_category_id)]"),
     }
     
     def onchange_product_id(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
