@@ -156,8 +156,7 @@ class purchase_requisition_partner(osv.osv_memory):
         supplier = res_partner.browse(cr, uid, supplier_id, context=context)
         line = self.pool.get('purchase.requisition.line').browse(cr, uid, pr_line['pr_line_ids'][0], context=context)
         seller_price, qty, default_uom_po_id, date_planned = purchase_requisition._seller_details(cr, uid, line, supplier, context=context)
-
-        purchase_order_line.create(cr, uid, {
+        val = {
             'order_id': purchase_id,
             'name': pr_line['partner_ref'],
             'product_qty': pr_line['product_qty'],
@@ -167,7 +166,8 @@ class purchase_requisition_partner(osv.osv_memory):
             'date_planned': date_planned,
             'taxes_id': [(6, 0, pr_line['taxes_id'])],
             'pr_line_ids': [(6, False, pr_line['pr_line_ids'])],
-        }, context=context)
+        }
+        purchase_order_line.create(cr, uid, val, context=context)
         return
 
     def _create_grouping_po(self, cr, uid, pr_grouping, context=None):
@@ -249,15 +249,15 @@ class purchase_requisition_partner(osv.osv_memory):
         if data.overwrite:
             res = self._pr_grouping(cr, uid, active_ids, data.partner_id.id, context)
             if data.group_flag:
-                po_ids = self._create_grouping_po(cr, uid, res, context)
+                self._create_grouping_po(cr, uid, res, context)
             else:
-                po_ids = self._create_po_per_line(cr, uid, res, context)
+                self._create_po_per_line(cr, uid, res, context)
         else:
             res = self._pr_grouping(cr, uid, active_ids, None, context)
             if data.group_flag:
-                po_ids = self._create_grouping_po(cr, uid, res, context)
+                self._create_grouping_po(cr, uid, res, context)
             else:
-                po_ids = self._create_po_per_line(cr, uid, res, context)
+                self._create_po_per_line(cr, uid, res, context)
 
         return {'type': 'ir.actions.act_window_close'}
 

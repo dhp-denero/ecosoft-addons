@@ -147,5 +147,25 @@ class purchase_requisition(osv.osv):
             default = {}
         return super(purchase_requisition,
                       self).copy(cr, uid, ids, default, context)
+
+    def action_createPO(self, cr, uid, ids, context=None):
+
+        selected = False
+        for pr in self.browse(cr, uid, ids, context):
+            for line_id in pr.line_ids:
+                if line_id.selected_flag:
+                    selected = True
+
+        if not selected:
+            raise osv.except_osv(_('Warning!'), _('Please select the PR Line(s) at least one line'))
+
+        mod_obj = self.pool.get('ir.model.data')
+        act_obj = self.pool.get('ir.actions.act_window')
+
+        result = mod_obj.get_object_reference(cr, uid, 'purchase_requisition', 'action_purchase_requisition_partner')
+        id = result and result[1] or False
+        result = act_obj.read(cr, uid, [id], context=context)[0]
+
+        return result
 purchase_requisition()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

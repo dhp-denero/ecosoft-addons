@@ -5,6 +5,7 @@
 	        <field name="name">view.purchase.requisition.form.multi</field>
 	        <field name="model">purchase.requisition</field>
 	        <field name="inherit_id" ref="purchase_requisition.view_purchase_requisition_form"/>
+	        <field name="priority" eval="17"/>
 	        <field name="arch" type="xml">
 	        	<xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_uom_id']" position="attributes">
 	        		<attribute name="string">Unit of Measure</attribute>
@@ -14,8 +15,13 @@
 	           	 	<field name="state"/>
 	            </xpath>
 	            
-	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group/field[@name='product_uom_id']" position="after">
-	            	<field name="selected_flag"/>	            	
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_uom_id']" position="attributes">
+	        		<attribute name="string">Unit of Measure</attribute>
+	        	</xpath>
+	        	
+	            <xpath expr="//form/sheet/notebook/page[@string='Products']/div/button[@string='Request a Quotation']" position="attributes">
+	            	<attribute name="type">object</attribute>
+	            	<attribute name="name">action_createPO</attribute>	          	
 	            </xpath>
 	            
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group" position="after">
@@ -41,11 +47,7 @@
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/tree[@string='Products']/field[@name='product_id']" position="before">
 	            	<field name="id" invisible="1"/>
 	            	<field name="selected_flag" on_change="selected_flag_onchange(selected_flag)"  nolabel="1" groups="purchase.group_purchase_user"/>
-	            </xpath>	 
-	            
-	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']/form[@string='Products']/group/field[@name='selected_flag']" position="attributes">
-	            	<attribute  name="groups">purchase.group_purchase_user</attribute>
-	            </xpath>       
+	            </xpath>	 	                           
 	            
 	            <xpath expr="//form/sheet/notebook/page[@string='Products']/field[@name='line_ids']" position="before">
 	        		<field name="all_selected" on_change="all_selected_onchange(all_selected,line_ids)" groups="purchase.group_purchase_user"/>
