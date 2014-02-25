@@ -22,5 +22,16 @@
                 </field>       
             </field>
         </record>
-    </data>
+        
+       <record id="purchase_order_form_ext" model="ir.ui.view">
+            <field name="name">purchase.order.form.ext</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <field name="amount_total" position="after">
+                	<!-- field name="amount_total_text" / -->
+                </field>       
+            </field>
+        </record>
+	</data>
 </openerp>

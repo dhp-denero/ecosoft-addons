@@ -24,48 +24,44 @@ from osv import osv, fields
 from openerp.tools.amount_to_text_en import amount_to_text
 
 
-class account_invoice(osv.osv):
-
-    def _amount_total_text(self, cursor, user, ids, name, arg, context=None):
-        res = {}
-        for invoice in self.browse(cursor, user, ids, context=context):
+def _amount_total_text(self, cursor, user, ids, name, arg, context=None):
+    res = {}
+    for order in self.browse(cursor, user, ids, context=context):
+        a = ''
+        b = ''
+        if order.currency_id.name == 'THB':
             a = 'Baht'
             b = 'Satang'
-            if invoice.currency_id.name == 'USD':
-                a = 'Dollar'
-                b = 'Cent'
-            if invoice.currency_id.name == 'EUR':
-                a = 'Euro'
-                b = 'Cent'
-            res[invoice.id] = amount_to_text(invoice.amount_total, 'en', a).replace('Cent', b).replace('Cents', b)
-        return res
+        if order.currency_id.name == 'USD':
+            a = 'Dollar'
+            b = 'Cent'
+        if order.currency_id.name == 'EUR':
+            a = 'Euro'
+            b = 'Cent'
+        res[order.id] = amount_to_text(order.amount_total, 'en', a).replace('Cents', b).replace('Cent', b)
+    return res
 
+
+class account_invoice(osv.osv):
     _inherit = 'account.invoice'
     _columns = {
         'amount_total_text': fields.function(_amount_total_text, string='Amount Total (Text)', type='char'),
     }
-
 account_invoice()
 
 
 class sale_order(osv.osv):
-    def _amount_total_text(self, cursor, user, ids, name, arg, context=None):
-        res = {}
-        for order in self.browse(cursor, user, ids, context=context):
-            a = 'Baht'
-            b = 'Satang'
-            if order.currency_id.name == 'USD':
-                a = 'Dollar'
-                b = 'Cent'
-            if order.currency_id.name == 'EUR':
-                a = 'Euro'
-                b = 'Cent'
-            res[order.id] = amount_to_text(order.amount_total, 'en', a).replace('Cent', b).replace('Cents', b)
-        return res
-
     _inherit = "sale.order"
     _columns = {
         'amount_total_text': fields.function(_amount_total_text, string='Amount Total (Text)', type='char'),
     }
 sale_order()
+
+
+class purchase_order(osv.osv):
+    _inherit = "purchase.order"
+    _columns = {
+        'amount_total_text': fields.function(_amount_total_text, string='Amount Total (Text)', type='char'),
+    }
+purchase_order()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
