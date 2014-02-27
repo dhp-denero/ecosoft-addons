@@ -26,6 +26,7 @@
                         <filter string="Period" domain="[]" context="{'group_by':'period_id','visible':True}"/>
                         <filter string="Type" domain="[]" context="{'group_by':'type'}"/>
                         <filter string="Status" domain="[]" context="{'group_by':'state'}"/>
+                        <filter string="Target Bank" domain="[]" context="{'group_by':'journal_id'}"/>
                     </group>
                 </search>
             </field>
