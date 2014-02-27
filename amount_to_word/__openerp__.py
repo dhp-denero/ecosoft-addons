@@ -35,9 +35,9 @@ Fields include,
     'sequence': 4,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account', 'sale'],
+    'depends' : ['account', 'sale', 'purchase'],
     'demo' : [],
-    'data' : ['account_invoice_view.xml'
+    'data' : ['all_view.xml'
     ],
     'test' : [
     ],
