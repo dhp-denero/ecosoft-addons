@@ -3,20 +3,22 @@ from osv import fields, osv
 class stock_picking(osv.osv):
     
     _inherit = 'stock.picking'
-    
+
     def action_invoice_create(self, cr, uid, ids, journal_id=False,
             group=False, type='out_invoice', context=None):
         """ Adding Additional Discount % from SO/PO into INV when created from DO """
-        
+
         assert type in ('out_invoice', 'in_invoice', 'in_refund', 'out_refund')
-        
+
         res = super(stock_picking, self).action_invoice_create(cr, uid, ids, journal_id,
-                                                                group, type, context=context)
+                                                                 group, type, context=context)
         # Loop through each id (DO), getting its SO/PO's Additional Discount, Write it to Invoice
         model = type in ('out_invoice', 'out_refund') and 'sale.order' or 'purchase.order'
         inv_obj = self.pool.get('account.invoice')
         pickings = self.browse(cr, uid, ids)
         for picking in pickings:
+            if not picking.invoice_state == '2binvoiced':
+                continue
             add_disc = 0.0
             invoice_id = res[picking.id]
             if model == 'sale.order':
