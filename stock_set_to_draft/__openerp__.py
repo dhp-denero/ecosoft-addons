@@ -20,22 +20,22 @@
 ##############################################################################
 
 {
-    'name' : 'Reset Delivery Order',
-    'version' : '1.0',
-    'author' : 'Ecosoft',
-    'summary': 'Change Cancel status is Draft status',
+    'name': 'Delivery Order Set to Draft',
+    'version': '1.0',
+    'author': 'Ecosoft',
+    'summary': 'Change Cancel status to Draft status for Delivery Order',
     'description': """
 
     """,
     'category': 'Warehouse Management',
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['stock'],
-    'demo' : [],
-    'data' : [
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': ['stock'],
+    'demo': [],
+    'data': [
               'stock_view.xml'
     ],
-    'test' : [
+    'test': [
     ],
     'auto_install': False,
     'application': True,
