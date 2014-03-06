@@ -27,7 +27,7 @@ class stock_picking_out(osv.osv):
 
     _inherit = "stock.picking.out"
 
-    def  action_cancel_drafty(self, cr, uid, ids, context=None):
+    def  action_cancel_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'draft'}, context)
         move_line_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', 'in', ids)], context=context)
         self.pool.get('stock.move').write(cr, uid, move_line_ids, {'state': 'draft'}, context)
