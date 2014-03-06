@@ -45,7 +45,7 @@ M2O fields Restriction
 * Supplier Refund
 * Partner
 * Product
-
+* Purchase Requisition
     """,
     'category': 'Technical',
     'website' : 'http://www.ecosoft.co.th',
@@ -65,6 +65,7 @@ M2O fields Restriction
               'stock_view.xml',
               'account_voucher_view.xml',
               'res_partner_view.xml',
+              'purchase_requisition.xml',
     ],
     'test' : [
     ],
