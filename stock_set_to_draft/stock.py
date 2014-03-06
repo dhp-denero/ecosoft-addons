@@ -31,7 +31,7 @@ class stock_picking_out(osv.osv):
         pickings = self.browse(cr, uid, ids, context)
 
         for picking in pickings:
-            update_val = {'state': 'draft', 'invoice_state': '2binvoiced' if picking.sale_id and picking.sale_id.invoice_method == 'picking' else 'none', }
+            update_val = {'state': 'draft', 'invoice_state': '2binvoiced' if picking.sale_id and picking.sale_id.order_policy == 'picking' else 'none', }
             self.write(cr, uid, picking.id, update_val, context)
         move_line_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', 'in', ids)], context=context)
         self.pool.get('stock.move').write(cr, uid, move_line_ids, {'state': 'draft'}, context)
