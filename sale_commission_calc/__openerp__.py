@@ -26,6 +26,7 @@
     'description': """
 Commission Management.
 ====================================
+    * Salesperson
     * Sale Teams
     * Commission rules
     * Commission Work Sheet
@@ -54,8 +55,8 @@ Available Rule Types
         'commission_calc_demo.xml'],
     'data': [
           'commission_calc_view.xml',
-          'sale_view.xml',
-#          'commission_product_data.xml',
+          'account_invoice_view.xml',
+          'product_data.xml',
           'commission_calc_sequence.xml',
           'product_view.xml'
     ],

@@ -40,7 +40,9 @@ class commission_rule(osv.osv):
         'fix_percent': fields.float('Fix Percentage'),
         'rule_rates': fields.one2many('commission.rule.rate', 'commission_rule_id', 'Rates'),
         'rule_conditions': fields.one2many('commission.rule.condition', 'commission_rule_id', 'Conditions'),
-        'active': fields.boolean('Active')
+        'active': fields.boolean('Active'),
+        'sale_team_ids': fields.one2many('sale.team', 'commission_rule_id', 'Teams'),
+        'salesperson_ids': fields.one2many('res.users', 'commission_rule_id', 'Salesperson'),
     }
     _defaults = {
         'active': True
@@ -91,11 +93,16 @@ class sale_team(osv.osv):
     _description = "Sales Team"
     _columns = {
         'name': fields.char('Name', size=64, required=True),
-        'commission_rule_id': fields.many2one('commission.rule', 'Commission Rule', required=True),
+        'commission_rule_id': fields.many2one('commission.rule', 'Commission Rule', required=False),
         'users': fields.many2many('res.users', 'sale_team_users_rel', 'tid', 'uid', 'Users'),
         'implied_ids': fields.many2many('sale.team', 'sale_team_implied_rel', 'tid', 'hid',
             string='Inherits', help='Users of this group automatically inherit those groups'),
-        'skip_invoice': fields.boolean('Allow commission w/o invoice paid', help='Allow paying commission without invoice being paid. This is the case for trainees.')
+        'comm_unpaid': fields.boolean('Allow unpaid invoice', help='Allow paying commission without invoice being paid.'),
+        'comm_overdue': fields.boolean('Allow overdue payment', help='Allow paying commission with overdue payment.')
+    }
+    _defaults = {
+        'comm_unpaid': False,
+        'comm_overdue': False,
     }
     _sql_constraints = [
         ('name_uniq', 'unique (name)', 'The name of the team must be unique !')
@@ -146,7 +153,8 @@ class commission_worksheet(osv.osv):
 
     _columns = {
         'name': fields.char('Name', size=64, required=True),
-        'sale_team_id': fields.many2one('sale.team', 'Team', required=True),
+        'sale_team_id': fields.many2one('sale.team', 'Team', required=False),
+        'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False),
         'period_id': fields.many2one('account.period', 'Period', required=True,),
         'worksheet_lines': fields.one2many('commission.worksheet.line', 'commission_worksheet_id', 'Calculation Lines', ondelete='cascade'),
         'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Invoice Paid', fnct_search=_search_wait_pay, store=False),
@@ -158,6 +166,7 @@ class commission_worksheet(osv.osv):
                     \n* The \'Confirmed\' status is set when the work sheet is confirmed by related parties. \
                     \n* The \'Done\' status is set when the work sheet is ready to pay for commission. This state can not be undone. \
                     \n* The \'Cancelled\' status is set when a user cancel the work sheet.'),
+        'invoice_ids': fields.one2many('account.invoice', 'commission_worksheet_id', 'Invoices'),
     }
     _defaults = {
         'state': 'draft',
@@ -165,15 +174,11 @@ class commission_worksheet(osv.osv):
         'name': '/'
     }
     _sql_constraints = [
-        ('sale_team_id', 'period_id', 'Duplicate Sale Team / Period')
+        ('unique_sale_team_period', 'unique(sale_team_id, period_id)', 'Duplicate Sale Team / Period'),
+        ('unique_salesperson_period', 'unique(salesperson_id, period_id)', 'Duplicate Salesperson / Period')
     ]
 
     def create(self, cr, uid, vals, context=None):
-        if vals.get('period_id', False) and vals.get('sale_team_id', False):
-            rec = self.search(cr, uid, [('period_id', '=', vals.get('period_id')), ('sale_team_id', '=', vals.get('sale_team_id'))], context=context)
-            if rec:
-                raise osv.except_osv(_('Warning!'),
-                                 _('You can not create duplicate Commission WorkSheet'))
         if vals.get('name', '/') == '/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'commission.worksheet') or '/'
         return super(commission_worksheet, self).create(cr, uid, vals, context=context)
@@ -195,120 +200,123 @@ class commission_worksheet(osv.osv):
         elif len(rule_condition_ids) == 1:
             return rule_condition_ids[0]
 
-    def _calculate_commission(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_commission(self, cr, uid, rule, worksheet, invoices, context=None):
         if rule.type == 'percent_fixed':
-            self._calculate_percent_fixed(cr, uid, rule, worksheet, orders, context=context)
+            self._calculate_percent_fixed(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_product_category':
-            self._calculate_percent_product_category(cr, uid, rule, worksheet, orders, context=context)
+            self._calculate_percent_product_category(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_product':
-            self._calculate_percent_product(cr, uid, rule, worksheet, orders, context=context)
+            self._calculate_percent_product(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_amount':
-            self._calculate_percent_amount(cr, uid, rule, worksheet, orders, context=context)
+            self._calculate_percent_amount(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_accumulate':
-            self._calculate_percent_accumulate(cr, uid, rule, worksheet, orders, context=context)
+            self._calculate_percent_accumulate(cr, uid, rule, worksheet, invoices, context=context)
         return True
 
-    def _prepare_worksheet_line(self, worksheet, order, accumulated_amt, commission_amt):
+    def _prepare_worksheet_line(self, worksheet, invoice, accumulated_amt, commission_amt):
         res = {
             'commission_worksheet_id': worksheet.id,
-            'order_id': order.id,
-            'order_date': order.date_order,
-            'order_amt': order.amount_untaxed,
-            'margin': order.margin,
-            'percent_margin': order.amount_untaxed and (order.margin / order.amount_untaxed) * 100 or 0.0,
+            'invoice_id': invoice.id,
+            'date_invoice': invoice.date_invoice,
+            'invoice_amt': invoice.amount_total - invoice.amount_tax,
             'accumulated_amt': accumulated_amt,
             'commission_amt': commission_amt,
         }
         return res
 
-    def _calculate_percent_fixed(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_percent_fixed(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         commission_rate = rule.fix_percent / 100
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        for order in orders:
-            accumulated_amt += order.amount_untaxed
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += amount_untaxed
             # For each order, find its match rule line
             commission_amt = 0.0
             if commission_rate:
-                commission_amt = order.amount_untaxed * commission_rate
-            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+                commission_amt = amount_untaxed * commission_rate
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
-    def _calculate_percent_product_category(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_percent_product_category(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         commission_rate = 0.0
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        for order in orders:
-            accumulated_amt += order.amount_untaxed
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += amount_untaxed
             # For each product line
             commission_amt = 0.0
-            for line in order.order_line:
+            for line in invoice.invoice_line:
                 percent_commission = line.product_id.categ_id.percent_commission
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
-    def _calculate_percent_product(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_percent_product(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         commission_rate = 0.0
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        for order in orders:
-            accumulated_amt += order.amount_untaxed
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += amount_untaxed
             # For each product line
             commission_amt = 0.0
-            for line in order.order_line:
+            for line in invoice.invoice_line:
                 percent_commission = line.product_id.percent_commission
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
-    def _calculate_percent_amount(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_percent_amount(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         accumulated_amt = 0.0
-        for order in orders:
-            accumulated_amt += order.amount_untaxed
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += amount_untaxed
             # For each order, find its match rule line
             commission_amt = 0.0
             ranges = rule.rule_rates
             for range in ranges:
                 commission_rate = range.percent_commission / 100
-                if order.amount_untaxed <= range.amount_upto:
-                    commission_amt = order.amount_untaxed * commission_rate
+                if amount_untaxed <= range.amount_upto:
+                    commission_amt = amount_untaxed * commission_rate
                     break
-            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
-    def _calculate_percent_accumulate(self, cr, uid, rule, worksheet, orders, context=None):
+    def _calculate_percent_accumulate(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         rule_condition_obj = self.pool.get('commission.rule.condition')
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         accumulated_amt = 0.0
-        for order in orders:
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
             # For each order, find its match rule line
             amount_to_accumulate = 0.0
             commission_amt = 0.0
-            rule_condition_id = self._get_match_rule_condition(cr, uid, rule, order, context=context)
+            rule_condition_id = self._get_match_rule_condition(cr, uid, rule, invoice, context=context)
             if rule_condition_id:
                 rule_condition = rule_condition_obj.browse(cr, uid, rule_condition_id)
-                amount_to_accumulate = order.amount_untaxed * rule_condition.accumulate_coeff
-                accumulated_amt += order.amount_untaxed
+                amount_to_accumulate = amount_untaxed * rule_condition.accumulate_coeff
+                accumulated_amt += amount_untaxed
                 amount_from = accumulated_amt - amount_to_accumulate
                 ranges = rule.rule_rates
                 for range in ranges:
@@ -321,7 +329,7 @@ class commission_worksheet(osv.osv):
                     elif amount_from <= range.amount_upto and accumulated_amt > range.amount_upto:
                         commission_amt += (range.amount_upto - amount_from) * commission_rate
                         amount_from = range.amount_upto
-            res = self._prepare_worksheet_line(worksheet, order, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -331,7 +339,7 @@ class commission_worksheet(osv.osv):
 
     def _get_product_commission(self, cr, uid):
         ir_model_data = self.pool.get('ir.model.data')
-        product = ir_model_data.get_object(cr, uid, 'commission_calc', 'product_product_commission')
+        product = ir_model_data.get_object(cr, uid, 'sale_commission_calc', 'product_product_commission')
         return product.id
 
     def action_create_invoice(self, cr, uid, ids, context=None):
@@ -341,28 +349,40 @@ class commission_worksheet(osv.osv):
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         inv_obj = self.pool.get('account.invoice')
         invline_obj = self.pool.get('account.invoice.line')
-        sale_order_team = self.pool.get('sale.team')
         invoice_ids = []
         worksheets = self.browse(cr, uid, ids, context=context)
         product_id = self._get_product_commission(cr, uid)
         for worksheet in  worksheets:
-            #Get line not paid commission
-            teams = sale_order_team.browse(cr, uid, [worksheet.sale_team_id.id], context=context)
-            if teams and teams[0] and teams[0].skip_invoice:
+            comm_unpaid = False
+            users = []
+            if worksheet.salesperson_id:
+                comm_unpaid = worksheet.salesperson_id.comm_unpaid
+                users = [worksheet.salesperson_id]
+            elif worksheet.sale_team_id:
+                comm_unpaid = worksheet.sale_team_id.comm_unpaid
+                users = worksheet.sale_team_id.users
+            else:
+                continue
+
+            if comm_unpaid:
                 line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False)])
             else:
-                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False), ('invoice_paid', '=', True)])
+                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False), ('invoice_state', '=', 'paid')])
             if not line_ids:
                 raise osv.except_osv(_('Warning!'), _("No Commission Invoice(s) can be created for Worksheet %s" % (worksheet.name)))
 
             #Create invoice for each sale person in team
-            for user in worksheet.sale_team_id.users:
+            for user in users:
                 #initial value of invoice
                 inv_rec = inv_obj.default_get(cr, uid,
                                               ['type', 'state', 'journal_id', 'currency_id', 'company_id', 'reference_type', 'check_total',
                                                'internal_number', 'user_id', 'sent'], context=context)
                 inv_rec.update(inv_obj.onchange_partner_id(cr, uid, [], 'in_invoice', user.partner_id.id, company_id=inv_rec['company_id'])['value'])
-                inv_rec.update({'origin': worksheet.name, 'type': 'in_invoice', 'partner_id': user.partner_id.id, 'date_invoice': time.strftime('%Y-%m-%d')})
+                inv_rec.update({'origin': worksheet.name,
+                                'commission_worksheet_id': worksheet.id,
+                                'type': 'in_invoice',
+                                'partner_id': user.partner_id.id,
+                                'date_invoice': time.strftime('%Y-%m-%d')})
                 invoice_id = inv_obj.create(cr, uid, inv_rec, context=context)
                 invoice_ids.append(invoice_id)
                 wlines = worksheet_line_obj.browse(cr, uid, line_ids, context=context)
@@ -374,7 +394,7 @@ class commission_worksheet(osv.osv):
                                     context=None, company_id=inv_rec['company_id'])['value'])
                     inv_line_rec.update({
                                          'name': 'Commission in period ' + worksheet.period_id.name,
-                                         'origin': wline.order_id.name,
+                                         'origin': worksheet.name,
                                          'invoice_id': invoice_id,
                                          'product_id': product_id,
                                          'partner_id': user.partner_id.id,
@@ -406,30 +426,37 @@ class commission_worksheet(osv.osv):
 
         period_obj = self.pool.get('account.period')
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        order_obj = self.pool.get('sale.order')
+        invoice_obj = self.pool.get('account.invoice')
 
         # For each work sheet, reset the calculation
         for worksheet in self.browse(cr, uid, ids):
-            sale_team_id = worksheet.sale_team_id.id
+            salesperson_id = worksheet.salesperson_id and worksheet.salesperson_id.id or False
+            sale_team_id = worksheet.sale_team_id and worksheet.sale_team_id.id or False
             period_id = worksheet.period_id.id
-            if not sale_team_id or not period_id:
+            if not (salesperson_id or sale_team_id) or not period_id:
                 continue
 
-            rule = worksheet.sale_team_id.commission_rule_id
+            rule = (worksheet.salesperson_id and worksheet.salesperson_id.commission_rule_id) \
+                    or (worksheet.sale_team_id and worksheet.sale_team_id.commission_rule_id)
+            if not rule:
+                raise osv.except_osv(_('Error!'), _('No commission rule specified for this salesperson/team!'))
             date_start = period_obj.browse(cr, uid, period_id).date_start
             date_stop = period_obj.browse(cr, uid, period_id).date_stop
             # Delete old lines
             line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id)])
             worksheet_line_obj.unlink(cr, uid, line_ids)
-            # Search for matched Completed Sales Order for this work sheet
-            cr.execute("select o.id from sale_order o \
-                                join sale_order_team t on o.id = t.sale_id \
-                                where o.state in ('progress','manual','done') \
-                                and date_order >= %s and date_order <= %s \
-                                and t.sale_team_id = %s order by o.id", (date_start, date_stop, sale_team_id))
-            order_ids = map(lambda x: x[0], cr.fetchall())
-            orders = order_obj.browse(cr, uid, order_ids)
-            self._calculate_commission(cr, uid, rule, worksheet, orders, context=context)
+            # Search for matched Completed Sales Order for this work sheet (either salesperson or sales team)
+            res_id = salesperson_id or sale_team_id
+            condition = salesperson_id and 't.salesperson_id = %s' or 't.sale_team_id = %s'
+            cr.execute("select ai.id from account_invoice ai \
+                                join account_invoice_team t on ai.id = t.invoice_id \
+                                where ai.state in ('open','paid') \
+                                and date_invoice >= %s and date_invoice <= %s \
+                                and " + condition + " order by ai.id", \
+                                (date_start, date_stop, res_id))
+            invoice_ids = map(lambda x: x[0], cr.fetchall())
+            invoices = invoice_obj.browse(cr, uid, invoice_ids)
+            self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
 
         return True
 
@@ -441,66 +468,67 @@ class commission_worksheet_line(osv.osv):
     _name = "commission.worksheet.line"
     _description = "Commission Worksheet Lines"
 
-    def _search_invoice_done(self, cursor, uid, obj, name, args, domain=None, context=None):
-        if not len(args):
-            return []
-        clause = ''
-        sale_clause = ''
-        no_invoiced = False
-        for arg in args:
-            if arg[1] == '=':
-                if arg[2]:
-                    clause += 'AND inv.state = \'paid\''
-                else:
-                    clause += 'AND inv.state != \'cancel\' AND sale.state != \'cancel\'  AND inv.state <> \'paid\'  AND rel.order_id = sale.id '
-                    sale_clause = ',  sale_order AS sale '
-                    no_invoiced = True
+#     def _search_invoice_done(self, cursor, uid, obj, name, args, domain=None, context=None):
+#         if not len(args):
+#             return []
+#         clause = ''
+#         sale_clause = ''
+#         no_invoiced = False
+#         for arg in args:
+#             if arg[1] == '=':
+#                 if arg[2]:
+#                     clause += 'AND inv.state = \'paid\''
+#                 else:
+#                     clause += 'AND inv.state != \'cancel\' AND sale.state != \'cancel\'  AND inv.state <> \'paid\'  AND rel.order_id = sale.id '
+#                     sale_clause = ',  sale_order AS sale '
+#                     no_invoiced = True
+# 
+#         cursor.execute('SELECT rel.order_id ' \
+#                 'FROM sale_order_invoice_rel AS rel, account_invoice AS inv ' + sale_clause + \
+#                 'WHERE rel.invoice_id = inv.id ' + clause)
+#         res = cursor.fetchall()
+#         if no_invoiced:
+#             cursor.execute('SELECT sale.id ' \
+#                     'FROM sale_order AS sale ' \
+#                     'WHERE sale.id NOT IN ' \
+#                         '(SELECT rel.order_id ' \
+#                         'FROM sale_order_invoice_rel AS rel) and sale.state != \'cancel\'')
+#             res.extend(cursor.fetchall())
+#         if not res:
+#             return [('order_id', '=', 0)]
+#         return [('order_id', 'in', [x[0] for x in res])]
 
-        cursor.execute('SELECT rel.order_id ' \
-                'FROM sale_order_invoice_rel AS rel, account_invoice AS inv ' + sale_clause + \
-                'WHERE rel.invoice_id = inv.id ' + clause)
-        res = cursor.fetchall()
-        if no_invoiced:
-            cursor.execute('SELECT sale.id ' \
-                    'FROM sale_order AS sale ' \
-                    'WHERE sale.id NOT IN ' \
-                        '(SELECT rel.order_id ' \
-                        'FROM sale_order_invoice_rel AS rel) and sale.state != \'cancel\'')
-            res.extend(cursor.fetchall())
-        if not res:
-            return [('order_id', '=', 0)]
-        return [('order_id', 'in', [x[0] for x in res])]
-
-    def _is_invoice_done(self, cr, uid, ids, name, arg, context=None):
-        invoice_line_obj = self.pool.get('account.invoice.line')
-        res = {}.fromkeys(ids, {'invoice_paid': False})
-        data_objs = self.browse(cr, uid, ids, context=context)
-
-        for data in data_objs:
-            #Checking invoice was paid
-            inv_line_ids = invoice_line_obj.search(cr, uid, [('origin', '=', data.order_id.name)], context=context)
-            paid_count = False
-            if inv_line_ids and len(inv_line_ids) > 0:
-                lines_data = invoice_line_obj.browse(cr, uid, inv_line_ids, context)
-                paid = True
-                for line_data in lines_data:
-                    if line_data.invoice_id.type == 'out_invoice':
-                        paid_count = True
-                        paid = paid and line_data.invoice_id.state == 'paid'
-            res[data.id] = {'invoice_paid': paid_count and paid}
-        return res
+#     def _is_invoice_done(self, cr, uid, ids, name, arg, context=None):
+#         invoice_line_obj = self.pool.get('account.invoice.line')
+#         res = {}.fromkeys(ids, {'invoice_paid': False})
+#         data_objs = self.browse(cr, uid, ids, context=context)
+# 
+#         for data in data_objs:
+#             #Checking invoice was paid
+#             inv_line_ids = invoice_line_obj.search(cr, uid, [('origin', '=', data.order_id.name)], context=context)
+#             paid_count = False
+#             if inv_line_ids and len(inv_line_ids) > 0:
+#                 lines_data = invoice_line_obj.browse(cr, uid, inv_line_ids, context)
+#                 paid = True
+#                 for line_data in lines_data:
+#                     if line_data.invoice_id.type == 'out_invoice':
+#                         paid_count = True
+#                         paid = paid and line_data.invoice_id.state == 'paid'
+#             res[data.id] = {'invoice_paid': paid_count and paid}
+#         return res
 
     _columns = {
         'commission_worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet'),
-        'order_id': fields.many2one('sale.order', 'Order Number'),
-        'order_date': fields.date('Order Date'),
-        'order_amt': fields.float('Order Amount', readonly=True),
-        'margin': fields.float('Margin', readonly=True),
-        'percent_margin': fields.float('% Margin', readonly=True),
-        'accumulated_amt': fields.float('Accumulated Amount', readonly=True),
-        'commission_amt': fields.float('Commission Amount', readonly=True),
-        'invoice_paid': fields.function(_is_invoice_done, type='boolean', string='Invoice Paid', fnct_search=_search_invoice_done, multi="invoice", store=False),
-        'commission_paid': fields.boolean('Commission Created', readonly=True),
+        'invoice_id': fields.many2one('account.invoice', 'Invoice'),
+        'date_invoice': fields.date('Invoice Date'),
+        'invoice_amt': fields.float('Amount', readonly=True),
+        'accumulated_amt': fields.float('Accumulated', readonly=True),
+        'commission_amt': fields.float('Commission', readonly=True),
+        'invoice_state': fields.related('invoice_id', 'state', type='selection', readonly=True, string="Status",
+                                        selection=[('open', 'Open'),
+                                                    ('paid', 'Paid'),
+                                                    ('cancel', 'Cancelled')]),
+        'commission_paid': fields.boolean('Done', readonly=True),
     }
     _order = 'id'
 
@@ -508,9 +536,9 @@ class commission_worksheet_line(osv.osv):
         line_ids = self.search(cr, uid, [('id', 'in', ids), ('commission_paid', '=', 1)], context=context)
         if line_ids and len(line_ids) > 0:
             wlines = self.browse(cr, uid, line_ids)
-            order_ids = [wline.order_id.name for wline in wlines]
+            invoice_ids = [wline.invoice_id.number for wline in wlines]
             raise osv.except_osv(_('Error!'), _("You can't delete this Commission Worksheet, \
-                                                because commission has been issued for Sales Order No. %s" % (",".join(order_ids))))
+                                                because commission has been issued for Invoice No. %s" % (",".join(invoice_ids))))
         else:
             return super(commission_worksheet_line, self).unlink(cr, uid, ids, context=context)
 

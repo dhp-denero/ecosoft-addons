@@ -19,9 +19,22 @@
 #
 ##############################################################################
 
-import commission_calc
-import product
-import res_users
-import account_invoice
+from osv import fields, osv
+
+
+class res_users(osv.osv):
+
+    _inherit = "res.users"
+    _columns = {
+        'commission_rule_id': fields.many2one('commission.rule', 'Applied Commission', required=False, readonly=False),
+        'comm_unpaid': fields.boolean('Allow unpaid invoice', help='Allow paying commission without invoice being paid.'),
+        'comm_overdue': fields.boolean('Allow overdue payment', help='Allow paying commission with overdue payment.')
+    }
+    _defaults = {
+        'comm_unpaid': False,
+        'comm_overdue': False,
+    }
+
+res_users()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
