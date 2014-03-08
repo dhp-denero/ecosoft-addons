@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data noupdate="0">
+    <data noupdate="1">
         <record id="product_product_commission" model="product.product">
             <field name="name">Sales Commission</field>
             <field name="product_main_code">COMM</field>
