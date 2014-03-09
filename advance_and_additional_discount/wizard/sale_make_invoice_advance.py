@@ -21,6 +21,7 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
+from openerp.tools import float_compare, DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class sale_advance_payment_inv(osv.osv_memory):
@@ -33,10 +34,15 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_id = context.get('active_id', False)
             if sale_id:
                 sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
-                if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
+                #DRB Modification remove condition
+                #if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
+                digits_compute = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
+                total_advance = sale.advance_percentage + sale.amount_deposit
+                if (sale.order_policy == 'manual' and ((float_compare(total_advance, 0, precision_rounding=digits_compute)) == 1 or  (not context.get('advance_type', False)))):
                     res.append(('all', 'Invoice the whole sales order'))
                     res.append(('lines', 'Some order lines'))
-                if not len(sale.invoice_ids) and context.get('advance_type', False):
+                #DRB Modification remove condition
+                if not ((sale.advance_percentage) or (sale.amount_deposit)) and context.get('advance_type', False) != False:
                     res.append(('percentage', 'Percentage'))
                     res.append(('fixed', 'Fixed price (deposit)'))
 

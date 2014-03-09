@@ -44,7 +44,7 @@ class account_invoice(AdditionalDiscountable, osv.Model):
         for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
             result[line.invoice_id.id] = True
         return result.keys()
-  
+
     def _get_invoice_tax(self, cr, uid, ids, context=None):
         """copy pasted from account_invoice"""
         result = {}
@@ -144,38 +144,95 @@ class account_invoice(AdditionalDiscountable, osv.Model):
         })
         return invoice_data
 
+    def _reset_delivery_2binvoiced(self, cr, uid, ids, module_name, context=None):
+        picking_pool = self.pool.get('stock.picking')
+        picking_ids = picking_pool.search(cr, uid, [('invoice_ids', 'in', ids)], context)
+        picking_obj = picking_pool.browse(cr, uid, picking_ids, context)
+        order_id_name = (module_name == 'sale.order' and 'sale_id' or 'purchase_id')
+        order_policy = (module_name == 'sale.order' and 'order_policy' or 'invoice_method')
+
+        for picking in  picking_obj:
+            if picking[order_id_name][order_policy] == 'picking':
+                picking_pool.write(cr, uid, picking.id, {'invoice_state': '2binvoiced'}, context)
+        return True
+
+    def _reset_advance_type(self, cr, uid, ids, module_name, context=None):
+        sale_obj = self.pool.get(module_name)
+
+        sale_ids = sale_obj.search(cr, uid, [('invoice_ids', 'in', ids)])
+        res = sale_obj._num_invoice(cr, uid, sale_ids, 'num_invoice', None, context)
+        res = dict((key, value) for key, value in res.iteritems() if value > 1)
+
+        if res:
+            res = sale_obj.read(cr, uid, sale_ids, ['name'], context)
+            raise osv.except_osv(
+                            _('Advance/Deposit!'),
+                            _('Unable to cancel this invoice.!\n First cancel all Invoice related to %s' % ','.join(x['name'] for x in res)))
+
+        inv_ids = self.search(cr, uid, [('id', 'in', ids), ('is_deposit', '=', True)], context)
+        if inv_ids:
+            sale_ids = sale_obj.search(cr, uid, [('invoice_ids', 'in', inv_ids)])
+            if sale_ids:
+                sale_obj.write(cr, uid, sale_ids, {'amount_deposit': False})
+
+        inv_ids = self.search(cr, uid, [('id', 'in', ids), ('is_advance', '=', True)], context)
+        if inv_ids:
+            sale_ids = sale_obj.search(cr, uid, [('invoice_ids', 'in', inv_ids)])
+            if sale_ids:
+                sale_obj.write(cr, uid, sale_ids, {'advance_amount': False})
+
+    def action_cancel(self, cr, uid, ids, context=None):
+        #Purchase
+        inv_ids = self.search(cr, uid, [('type', '=', 'in_invoice'), ('id', 'in', ids), '|', ('is_deposit', '=', True),\
+                                         ('is_advance', '=', True)], context)
+        if inv_ids:
+            self._reset_advance_type(cr, uid, ids, 'purchase.order', context)
+
+        #Sale Order
+        inv_ids = self.search(cr, uid, [('type', '=', 'out_invoice'), ('id', 'in', ids), '|', ('is_deposit', '=', True),\
+                                        ('is_advance', '=', True)], context)
+        if inv_ids:
+            self._reset_advance_type(cr, uid, ids, 'sale.order', context)
+
+        #Reset invoice_state in delivery order is 2binvoiced
+        self._reset_delivery_2binvoiced(cr, uid, ids, context)
+
+        super(account_invoice, self).action_cancel(cr, uid, ids, context)
+        return True
+
 account_invoice()
+
 
 class account_invoice_line(osv.osv):
 
     _inherit = 'account.invoice.line'
-    
+
     _columns = {
         'is_advance': fields.boolean('Advance'),
         'is_deposit': fields.boolean('Deposit'),
     }
-    
+
     _defaults = {
-        'is_advance': False,       
-        'is_deposit': False,             
+        'is_advance': False,
+        'is_deposit': False,
     }
-    
+
     # kittiu: also dr/cr advance, force creating new move_line
     def move_line_get(self, cr, uid, invoice_id, context=None):
-        
-        res = super(account_invoice_line,self).move_line_get(cr, uid, invoice_id, context=context)
+
+        res = super(account_invoice_line, self).move_line_get(cr, uid, invoice_id, context=context)
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
-        
-        if inv.add_disc_amt > 0.0:   
+
+        if inv.add_disc_amt > 0.0:
             sign = -1
             #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
-            prop = inv.type in ('out_invoice','out_refund') \
+            prop = inv.type in ('out_invoice', 'out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_customer', 'res.partner', context=context) \
                         or self.pool.get('ir.property').get(cr, uid, 'property_account_add_disc_supplier', 'res.partner', context=context)
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
-    
+
             res.append({
                 'type':'src',
                 'name': _('Additional Discount'),
@@ -188,17 +245,16 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id':False,
                 'taxes':False,
             })
-            
+
         if inv.amount_advance > 0.0: 
             sign = -1
             #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
-            prop = inv.type in ('out_invoice','out_refund') \
+            prop = inv.type in ('out_invoice', 'out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_advance_customer', 'res.partner', context=context) \
                         or self.pool.get('ir.property').get(cr, uid, 'property_account_advance_supplier', 'res.partner', context=context)
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
-    
             res.append({
                 'type':'src',
                 'name': _('Advance Amount'),
@@ -211,19 +267,18 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id':False,
                 'taxes':False,
             })
-            
+
         if inv.amount_deposit > 0.0: 
             sign = -1
             #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
-            prop = inv.type in ('out_invoice','out_refund') \
+            prop = inv.type in ('out_invoice', 'out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_customer', 'res.partner', context=context) \
                         or self.pool.get('ir.property').get(cr, uid, 'property_account_deposit_supplier', 'res.partner', context=context)
 
-                        
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
-    
+
             res.append({
                 'type':'src',
                 'name': _('Deposit Amount'),
@@ -236,17 +291,17 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id':False,
                 'taxes':False,
             })
-            
-        if inv.amount_retention > 0.0:  
+
+        if inv.amount_retention > 0.0:
             sign = -1
             #sign = inv.type in ('out_invoice','in_invoice') and -1 or 1
             # account code for advance
-            prop = inv.type in ('out_invoice','out_refund') \
+            prop = inv.type in ('out_invoice', 'out_refund') \
                         and self.pool.get('ir.property').get(cr, uid, 'property_account_retention_customer', 'res.partner', context=context) \
                         or self.pool.get('ir.property').get(cr, uid, 'property_account_retention_supplier', 'res.partner', context=context)
             prop_id = prop and prop.id or False
             account_id = self.pool.get('account.fiscal.position').map_account(cr, uid, inv.fiscal_position or False, prop_id)
-    
+
             res.append({
                 'type':'src',
                 'name': _('Retention Amount'),
@@ -259,10 +314,10 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id':False,
                 'taxes':False,
             })
-            
+
         return res
-    
 account_invoice_line()
+
 
 class account_invoice_tax(osv.Model):
 

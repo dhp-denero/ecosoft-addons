@@ -3,7 +3,7 @@ import decimal_precision as dp
 from tools.translate import _
 from common import AdditionalDiscountable
 import types
-
+import ast
 
 class sale_order(AdditionalDiscountable, osv.osv):
 
@@ -32,9 +32,15 @@ class sale_order(AdditionalDiscountable, osv.osv):
         '''Return the amount still to pay regarding all the payment orders'''
         if not ids:
             return {}
-        res = {}
-        for sale in self.browse(cursor, user, ids, context=context):
-            res[sale.id] = len(sale.invoice_ids)
+        res = dict.fromkeys(ids, False)
+
+        cursor.execute('SELECT rel.order_id ' \
+                'FROM sale_order_invoice_rel AS rel, account_invoice AS inv ' + \
+                'WHERE rel.invoice_id = inv.id AND inv.state <> \'cancel\' And rel.order_id in (%s)' % ','.join(str(x) for x in ids))
+        invs = cursor.fetchall()
+
+        for inv in invs:
+            res[inv[0]] += 1
         return res
 
     def _amount_all(self, *args, **kwargs):
@@ -105,6 +111,11 @@ class sale_order(AdditionalDiscountable, osv.osv):
     _defaults = {
             'add_disc': 0.0,
     }
+
+#     def action_view_invoice(self, cr, uid, ids, context=None):
+#         result = super(sale_order, self).action_view_invoice(cr, uid, ids, context=context)
+#         result['domain'] = str(ast.literal_eval(result['domain']) + [('state', '!=', 'cancel')])
+#         return result
 
     def copy(self, cr, uid, id, default=None, context=None):
         if not default:
