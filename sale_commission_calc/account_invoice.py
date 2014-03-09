@@ -22,12 +22,13 @@
 from osv import fields, osv
 
 
-class sale_order_team(osv.osv):
+class account_invoice_team(osv.osv):
 
-    _name = "sale.order.team"
+    _name = "account.invoice.team"
     _columns = {
-        'sale_id': fields.many2one('sale.order', 'Sale order', required=False, ondelete='cascade'),
-        'sale_team_id': fields.many2one('sale.team', 'Team', required=True),
+        'invoice_id': fields.many2one('account.invoice', 'Invoice', required=False, ondelete='cascade'),
+        'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False),
+        'sale_team_id': fields.many2one('sale.team', 'Team', required=False),
         'commission_rule_id': fields.many2one('commission.rule', 'Applied Commission', required=True, readonly=True),
     }
 
@@ -37,33 +38,51 @@ class sale_order_team(osv.osv):
         if sale_team_id:
             team = self.pool.get('sale.team').browse(cr, uid, sale_team_id)
             res['commission_rule_id'] = team.commission_rule_id.id
+            res['salesperson_id'] = False
 
         result['value'] = res
         return result
 
-sale_order_team()
+    def onchange_salesperson_id(self, cr, uid, ids, salesperson_id):
+        result = {}
+        res = {}
+        if salesperson_id:
+            salesperson = self.pool.get('res.users').browse(cr, uid, salesperson_id)
+            res['commission_rule_id'] = salesperson.commission_rule_id.id
+            res['sale_team_id'] = False
+
+        result['value'] = res
+        return result
+
+account_invoice_team()
 
 
-class sale_order(osv.osv):
+class account_invoice(osv.osv):
 
-    _inherit = "sale.order"
+    _inherit = "account.invoice"
     _columns = {
-        'sale_team_ids': fields.one2many('sale.order.team', 'sale_id', 'Teams', states={'draft': [('readonly', False)]})
+        'sale_team_ids': fields.one2many('account.invoice.team', 'invoice_id', 'Teams', states={'draft': [('readonly', False)]}),
+        'commission_worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', readonly=True)
     }
 
-    def _get_sale_team_ids(self, cr, uid, ids, user_id):
-        sale_team_ids = []
+    def _get_salesperson_ids(self, cr, uid, user_id):
+        salesperson_recs = []
         if user_id:
-            sale_order_team = self.pool.get('sale.order.team')
-            if ids:
-                sale_order_team.unlink(cr, uid, sale_order_team.search(cr, uid, [('sale_id', 'in', ids)]))
+            salesperson = self.pool.get('res.users').browse(cr, uid, user_id)
+            if salesperson.commission_rule_id:
+                salesperson_recs.append({'salesperson_id': salesperson.id, 'commission_rule_id':
+                                         salesperson.commission_rule_id.id})
+        return salesperson_recs
+
+    def _get_sale_team_ids(self, cr, uid, user_id):
+        team_recs = []
+        if user_id:
             cr.execute("""select a.tid team_id, b.tid as inherit_id  from sale_team_users_rel a
                             left outer join sale_team_implied_rel b on b.hid = a.tid
                             where uid = %s
                             """,
                             (user_id,))
             team_ids = []
-
             for team_id, inherit_id in cr.fetchall():
                 if team_id not in team_ids:
                     team_ids.append(team_id)
@@ -85,7 +104,6 @@ class sale_order(osv.osv):
                     team_ids = _get_all_inherited_team(cr, uid, team_ids, inherit_id)
 
             teams = self.pool.get('sale.team').browse(cr, uid, team_ids)
-            team_recs = []
             for team in teams:
                 team_recs.append({'sale_team_id': team.id, 'commission_rule_id': team.commission_rule_id.id})
         return team_recs
@@ -93,27 +111,25 @@ class sale_order(osv.osv):
     def onchange_user_id(self, cr, uid, ids, user_id):
         res = {'value': {'sale_team_ids': False}}
         if user_id:
-            sale_team_ids = self._get_sale_team_ids(cr, uid, ids, user_id)
-            res['value']['sale_team_ids'] = sale_team_ids
+            account_invoice_team = self.pool.get('account.invoice.team')
+            if ids:
+                account_invoice_team.unlink(cr, uid, account_invoice_team.search(cr, uid, [('invoice_id', 'in', ids)]))
+            salespersons = self._get_salesperson_ids(cr, uid, user_id)
+            sale_teams = self._get_sale_team_ids(cr, uid, user_id)
+            res['value']['sale_team_ids'] = salespersons + sale_teams
         return res
 
-    def create_sale_team(self, cr, uid, ids, context=None):
-        sale_recs = self.browse(cr, uid, ids, context)
-        sale_order_team = self.pool.get('sale.order.team')
-        sale_teams = []
-        for sale_rec in sale_recs:
-            sale_team_ids = self._get_sale_team_ids(cr, uid, [sale_rec.id], sale_rec.user_id.id)
-            for sale_value in sale_team_ids:
-                sale_value.update({'sale_id': sale_rec.id})
-                sale_team_id = sale_order_team.create(cr, uid, sale_value)
-                sale_teams.append(sale_team_id)
-        return sale_teams
-
     def create(self, cr, uid, vals, context=None):
-        new_id = super(sale_order, self).create(cr, uid, vals, context=context)
-        self.create_sale_team(cr, uid, [new_id], context)
-        return new_id
+        if not vals.get('sale_team_ids', False):
+            user_id = vals.get('user_id', False)
+            salespersons = self._get_salesperson_ids(cr, uid, user_id)
+            sale_teams = self._get_sale_team_ids(cr, uid, user_id)
+            records = []
+            for record in salespersons + sale_teams:
+                records.append([0, False, record])
+            vals.update({'sale_team_ids': records})
+        return super(account_invoice, self).create(cr, uid, vals, context=context)
 
-sale_order()
+account_invoice()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
