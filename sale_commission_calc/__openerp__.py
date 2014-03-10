@@ -72,8 +72,7 @@ How to count due date?
     'website': 'http://www.ecosoft.co.th',
     'images': [],
     'depends': ['product', 'sale', 'account'],
-    'demo': [
-        'commission_calc_demo.xml'],
+    'demo': [],
     'init_xml': [
           'commission_data.xml',
           'product_data.xml',
