@@ -4,20 +4,21 @@ from tools.translate import _
 from common import AdditionalDiscountable
 import types
 
+
 class purchase_order(AdditionalDiscountable, osv.osv):
 
     _inherit = "purchase.order"
     _description = "Purchase Order"
 
     _tax_column = 'taxes_id'
-    _line_column = 'order_line'    
-    
+    _line_column = 'order_line'
+
     def _invoiced_rate(self, cursor, user, ids, name, arg, context=None):
         res = {}
         for purchase in self.browse(cursor, user, ids, context=context):
             tot = 0.0
             for invoice in purchase.invoice_ids:
-                if invoice.state not in ('draft','cancel'):
+                if invoice.state not in ('draft', 'cancel'):
                     # Do not add amount, it this is a deposit/advance
                     tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
             if purchase.amount_net:
@@ -25,7 +26,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             else:
                 res[purchase.id] = 0.0
         return res
-    
+
     def _invoiced(self, cursor, user, ids, name, arg, context=None):
         res = {}
         deposit_invoiced = self._deposit_invoiced(cursor, user, ids, name, arg, context=context)
@@ -35,13 +36,13 @@ class purchase_order(AdditionalDiscountable, osv.osv):
                 invoiced = True
             res[purchase.id] = invoiced
         return res
-        
+
     def _deposit_invoiced(self, cursor, user, ids, name, arg, context=None):
         res = {}
         for purchase in self.browse(cursor, user, ids, context=context):
             tot = 0.0
             for invoice in purchase.invoice_ids:
-                if invoice.state not in ('draft','cancel'):
+                if invoice.state not in ('draft', 'cancel'):
                     tot += invoice.amount_deposit
             if purchase.amount_deposit > 0.0:
                 res[purchase.id] = False
@@ -50,24 +51,30 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             else:
                 res[purchase.id] = True
         return res
-        
+
     def _num_invoice(self, cursor, user, ids, name, args, context=None):
+
         '''Return the amount still to pay regarding all the payment orders'''
         if not ids:
             return {}
-        res = {}
-        for purchase in self.browse(cursor, user, ids, context=context):
-            res[purchase.id] = len(purchase.invoice_ids)
+        res = dict.fromkeys(ids, False)
+
+        cursor.execute('SELECT rel.purchase_id, count(rel.purchase_id) ' \
+                'FROM purchase_invoice_rel AS rel, account_invoice AS inv ' + \
+                'WHERE rel.invoice_id = inv.id AND inv.state <> \'cancel\' And rel.purchase_id in (%s) group by rel.purchase_id' % ','.join(str(x) for x in ids))
+        invs = cursor.fetchall()
+
+        for inv in invs:
+            res[inv[0]] = inv[1]
         return res
 
     def _amount_all(self, *args, **kwargs):
         return self._amount_all_generic(purchase_order, *args, **kwargs)
 
-    _columns={
+    _columns = {
             'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced', type='float'),
             'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
 
-              
             'add_disc': fields.float('Additional Discount(%)', digits_compute=dp.get_precision('Additional Discount'),
                                      states={'confirmed': [('readonly', True)],
                                              'approved': [('readonly', True)],
@@ -77,27 +84,26 @@ class purchase_order(AdditionalDiscountable, osv.osv):
                                             string='Additional Disc Amt',
                                             help="The additional discount on untaxed amount."),
             'amount_net': fields.function(_amount_all, method=True, store=True, multi='sums',
-                                          digits_compute= dp.get_precision('Account'),
+                                          digits_compute=dp.get_precision('Account'),
                                           string='Net Amount',
                                           help="The amount after additional discount."),
             'amount_untaxed': fields.function(_amount_all, method=True, store=True, multi="sums",
-                                              digits_compute= dp.get_precision('Purchase Price'),
+                                              digits_compute=dp.get_precision('Purchase Price'),
                                               string='Untaxed Amount',
                                               help="The amount without tax"),
             'amount_tax': fields.function(_amount_all, method=True, store=True, multi="sums",
-                                          digits_compute= dp.get_precision('Purchase Price'),
+                                          digits_compute=dp.get_precision('Purchase Price'),
                                           string='Taxes',
                                           help="The tax amount"),
             'amount_total': fields.function(_amount_all, method=True, store=True, multi="sums",
-                                         digits_compute= dp.get_precision('Purchase Price'),
+                                         digits_compute=dp.get_precision('Purchase Price'),
                                          string='Total',
                                          help="The total amount"),
-              
             # Advance Feature
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
-            'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
+            'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
-            'advance_percentage': fields.float('Advance (%)', digits=(16,6), required=False, readonly=True),
+            'advance_percentage': fields.float('Advance (%)', digits=(16, 6), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
             }
 
@@ -118,7 +124,6 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             res = inv_id
         return res
 
-
     def copy(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
@@ -135,7 +140,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             ids = [ids]
         orders = self.browse(cr, uid, ids, context=context)
         for order in orders:
-            if order.advance_type in ['advance','deposit']:
+            if order.advance_type in ['advance', 'deposit']:
                 i = 0
                 tax_ids = []
                 for line in order.order_line:
@@ -147,10 +152,10 @@ class purchase_order(AdditionalDiscountable, osv.osv):
                     tax_ids = next_line_tax_id
                     i += 1
         return True
-         
+
     def write(self, cr, uid, ids, vals, context=None):
         res = super(purchase_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)
         return res
-
+    
 purchase_order()

@@ -3,13 +3,14 @@ import decimal_precision as dp
 from tools.translate import _
 from common import AdditionalDiscountable
 import types
+import ast
 
 class sale_order(AdditionalDiscountable, osv.osv):
 
     _inherit = 'sale.order'
     _tax_column = 'tax_id'
     _line_column = 'order_line'
-    
+
     def _invoiced_rate(self, cursor, user, ids, name, arg, context=None):
         res = {}
         for sale in self.browse(cursor, user, ids, context=context):
@@ -26,24 +27,30 @@ class sale_order(AdditionalDiscountable, osv.osv):
             else:
                 res[sale.id] = 0.0
         return res
-        
+
     def _num_invoice(self, cursor, user, ids, name, args, context=None):
         '''Return the amount still to pay regarding all the payment orders'''
         if not ids:
             return {}
-        res = {}
-        for sale in self.browse(cursor, user, ids, context=context):
-            res[sale.id] = len(sale.invoice_ids)
+        res = dict.fromkeys(ids, False)
+
+        cursor.execute('SELECT rel.order_id ' \
+                'FROM sale_order_invoice_rel AS rel, account_invoice AS inv ' + \
+                'WHERE rel.invoice_id = inv.id AND inv.state <> \'cancel\' And rel.order_id in (%s)' % ','.join(str(x) for x in ids))
+        invs = cursor.fetchall()
+
+        for inv in invs:
+            res[inv[0]] += 1
         return res
-    
+
     def _amount_all(self, *args, **kwargs):
         return self._amount_all_generic(sale_order, *args, **kwargs)
 
     def _get_amount_retained(self, cr, uid, ids, field_names, arg, context=None):
         if context is None:
-            context = {}  
-            
-        res = {}     
+            context = {}
+
+        res = {}
         currency_obj = self.pool.get('res.currency')
         sale_obj = self.pool.get('sale.order')
 
@@ -67,11 +74,11 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                 where state = 'valid'
                                 and account_id = %s
                                 group by order_id
-                              """, (order.id,account_id))
+                              """, (order.id, account_id))
                 amount_debit = cr.rowcount and cr.fetchone()[0] or 0.0
                 amount = currency_obj.compute(cr, uid, order.company_id.currency_id.id, order.pricelist_id.currency_id.id, amount_debit)
                 res[order.id] = amount
-                
+
         return res
 
     _columns = {
@@ -82,29 +89,34 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                             store=True, multi='sums', help="The additional discount on untaxed amount."),
             'amount_untaxed': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
                                               store=True, multi='sums', help="The amount without tax."),
-            'amount_net': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Net Amount',
-                                              store = True,multi='sums', help="The amount after additional discount."),
+            'amount_net': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Net Amount',
+                                              store=True, multi='sums', help="The amount after additional discount."),
             'amount_tax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Taxes',
-                                          store = True,multi='sums', help="The tax amount."),
+                                          store=True, multi='sums', help="The tax amount."),
             'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Total',
-                                            store = True,multi='sums', help="The total amount."),
+                                            store=True, multi='sums', help="The total amount."),
             # Advance Feature
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=False),
-            'advance_type': fields.selection([('advance','Advance on 1st Invoice'), ('deposit','Deposit on 1st Invoice')], 'Advance Type', 
+            'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type', 
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
-            'advance_percentage': fields.float('Advance (%)', digits=(16,6), required=False, readonly=True),
+            'advance_percentage': fields.float('Advance (%)', digits=(16, 6), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
             # Retention Feature
-            'retention_percentage': fields.float('Retention (%)', digits=(16,6), required=False, readonly=True),
+            'retention_percentage': fields.float('Retention (%)', digits=(16, 6), required=False, readonly=True),
             'amount_retained': fields.function(_get_amount_retained, string='Retained Amount', type='float', readonly=True, digits_compute=dp.get_precision('Account'))
             #'amount_retained': fields.float('Retained Amount',readonly=True, digits_compute=dp.get_precision('Account'))
-        
+
         }
 
     _defaults = {
             'add_disc': 0.0,
     }
-    
+
+#     def action_view_invoice(self, cr, uid, ids, context=None):
+#         result = super(sale_order, self).action_view_invoice(cr, uid, ids, context=context)
+#         result['domain'] = str(ast.literal_eval(result['domain']) + [('state', '!=', 'cancel')])
+#         return result
+
     def copy(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
@@ -115,7 +127,6 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'retention_percentage': False,
         })
         return super(sale_order, self).copy(cr, uid, id, default, context=context)
-
 
     def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
         """Add a discount in the invoice after creation, and recompute the total
@@ -130,7 +141,6 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                           context)
         inv_obj.button_compute(cr, uid, [inv_id])
         return inv_id
-    
 
     def _prepare_invoice(self, cr, uid, order, lines, context=None):
         invoice_line_obj = self.pool.get('account.invoice.line')
@@ -139,18 +149,18 @@ class sale_order(AdditionalDiscountable, osv.osv):
             if result['is_advance']: # If created for advance, remove it.
                 lines.remove(result['id'])
             if result['is_deposit']: # If created for deposit, remove it.
-                lines.remove(result['id'])                
-                
+                lines.remove(result['id'])
+
         res = super(sale_order, self)._prepare_invoice(cr, uid, order, lines, context=context)
         return res
-    
+
     def _check_tax(self, cr, uid, ids, context=None):
         # For Advance or Deposit case, loop through each lines, check if tax different.
         if not isinstance(ids, types.ListType): # Make it a list
             ids = [ids]
         orders = self.browse(cr, uid, ids, context=context)
         for order in orders:
-            if order.advance_type in ['advance','deposit']:
+            if order.advance_type in ['advance', 'deposit']:
                 i = 0
                 tax_ids = []
                 for line in order.order_line:
@@ -162,7 +172,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
                     tax_ids = next_line_tax_id
                     i += 1
         return True
-          
+
     def write(self, cr, uid, ids, vals, context=None):
         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)

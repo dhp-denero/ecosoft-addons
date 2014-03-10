@@ -19,32 +19,23 @@
 #
 ##############################################################################
 
-from openerp.osv import osv
-from openerp import netsvc
+from openerp.osv import fields, osv
 
+from openerp.tools.translate import _
 
-class stock_picking_out(osv.osv):
+class stock_invoice_onshipping(osv.osv_memory):
 
-    _inherit = "stock.picking.out"
+    _inherit = 'stock.invoice.onshipping'
+    
+#     def create_invoice(self, cr, uid, ids, context=None):
+#         picking_pool = self.pool.get('stock.picking')
+#         active_ids = context.get('active_ids', [])
+#         active_picking = picking_pool.browse(cr, uid, context.get('active_id', False), context=context)
+#         acct_obj = self.pool.get('account.invoice')
+#         acct_obj = 
+#         res = super(stock_invoice_onshipping, self).create_invoice(cr, uid, ids, context=context)
+#         return res
 
-    def  action_cancel_draft(self, cr, uid, ids, context=None):
-        pickings = self.browse(cr, uid, ids, context)
-
-        for picking in pickings:
-            update_val = {'state': 'draft', 'invoice_state': '2binvoiced' if picking.sale_id and picking.sale_id.order_policy == 'picking' else 'none', }
-            self.write(cr, uid, picking.id, update_val, context)
-        move_line_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', 'in', ids)], context=context)
-        self.pool.get('stock.move').write(cr, uid, move_line_ids, {'state': 'draft'}, context)
-
-        wf_service = netsvc.LocalService("workflow")
-        for picking_id in ids:
-            wf_service.trg_create(uid, 'stock.picking', picking_id, cr)
-
-        for line_id in move_line_ids:
-            wf_service.trg_create(uid, 'stock.move', line_id, cr)
-
-        return True
-
-stock_picking_out()
+stock_invoice_onshipping()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

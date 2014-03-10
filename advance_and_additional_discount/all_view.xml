@@ -11,7 +11,9 @@
             <field name="arch" type="xml">
                 <data>
 					<xpath expr="/form/header/button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="attributes">
-						<attribute name="attrs">{'invisible': ['|','|',('state', 'not in', ('progress')),('advance_type', '=', False),('num_invoice', '&gt;', 0)]}</attribute>
+						<attribute name="attrs">{'invisible': ['|', '&amp;', ('advance_type', '=', 'deposit'), ('amount_deposit', '&gt;', 0),
+															   '|', '&amp;', ('advance_type', '=', 'advance'), ('advance_percentage', '&gt;', 0),
+															   '|',('state', 'not in', ('progress','invoice_except', 'done')),('advance_type', '=', False),]}</attribute>
 						<attribute name="context">{'advance_type':advance_type, 'retention': retention_percentage, 'num_invoice': num_invoice}</attribute>
 					</xpath>
 					<field name="amount_untaxed" position="after">
@@ -50,7 +52,9 @@
 				</xpath>
 				<xpath expr="/form/header/button[@name='view_invoice']" position="after">
                     <button name="%(action_view_purchase_advance_payment_inv)d" string="Receive Invoice"
-                    	attrs="{'invisible': ['|','|',('state', 'not in', ('approved')),('advance_type', '=', False),('num_invoice', '&gt;', 0)]}"
+                    	attrs="{'invisible': ['|', '&amp;', ('advance_type', '=', 'deposit'), ('amount_deposit', '&gt;', 0),
+											  '|', '&amp;', ('advance_type', '=', 'advance'), ('advance_percentage', '&gt;', 0),
+										      '|',('state', 'not in', ('approved')),('advance_type', '=', False),]}"
                         type="action" class="oe_highlight" groups="base.group_user"
                     	context="{'advance_type':advance_type}"/>
 				</xpath>                
@@ -64,9 +68,10 @@
                 </field>
                 <xpath expr="/form/sheet/notebook/page[@string='Incoming Shipments &amp; Invoices']/group" position="inside">
                     <group>
-                        <field name="advance_type" />
-						<field name="amount_deposit" />
-						<field name="advance_percentage" readonly="True" />
+						<field name="advance_type" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
+						<field name="amount_deposit" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
+						<field name="advance_percentage" readonly="True" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
+							
                         <field name="num_invoice" invisible="1"/>                   
 					</group>
 				</xpath> 
