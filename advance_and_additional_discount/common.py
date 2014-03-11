@@ -95,8 +95,14 @@ class AdditionalDiscountable(object):
             o_res['amount_advance'] = 0.0
             o_res['amount_deposit'] = 0.0
             o_res['amount_beforetax'] = o_res['amount_net']
-            if record.sale_order_ids or record.purchase_order_ids:
-                order = record.sale_order_ids and record.sale_order_ids[0] or record.purchase_order_ids[0]
+
+            #Modify BY DRB, get order from stock picking
+            order = False
+            #order = order or record.picking_ids and (record.picking_ids[0].sale_id or record.picking_ids[0].purchase_id)
+            order = order or (record.sale_order_ids and record.sale_order_ids[0]) or (record.purchase_order_ids and record.purchase_order_ids[0])
+            if order:
+#             if record.sale_order_ids or record.purchase_order_ids:
+#                 order = record.sale_order_ids and record.sale_order_ids[0] or record.purchase_order_ids[0]
                 if not record.is_advance:
                     advance_percentage = order.advance_percentage
                     if advance_percentage:
@@ -104,9 +110,10 @@ class AdditionalDiscountable(object):
                         o_res['amount_beforetax'] = cur_round(o_res['amount_beforetax']) - cur_round(o_res['amount_advance'])
                 if not record.is_deposit:
                     # Deposit will occur only in the last invoice (invoice that make it 100%)
-                    this_invoice_rate = order.amount_net and cur_round(o_res['amount_beforetax']) * 100 / order.amount_net or 0.0
+                    #this_invoice_rate = order.amount_net and cur_round(o_res['amount_beforetax']) * 100 / order.amount_net or 0.0
                     #total_invoice_rate = order.invoiced_rate + this_invoice_rate
-                    amount_deposit = order.invoiced_rate + this_invoice_rate >= 100.0 and order.amount_deposit or False
+                    #amount_deposit = order.invoiced_rate + this_invoice_rate >= 100.0 and order.amount_deposit or False
+                    amount_deposit = order.invoiced_rate >= 100.0 and order.amount_deposit or False
                     if amount_deposit:
                         o_res['amount_deposit'] = amount_deposit
                         o_res['amount_beforetax'] = o_res['amount_beforetax'] - o_res['amount_deposit']

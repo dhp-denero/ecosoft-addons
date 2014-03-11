@@ -31,6 +31,7 @@ class account_invoice(osv.osv):
     def _is_last_invoice(self, cr, uid, ids, type_inv, context=None):
         module_name = (type_inv == 'in_invoice' and 'purchase.order' or 'sale.order')
         order_field_name = (type_inv == 'in_invoice' and 'purchase_order_ids' or 'sale_order_ids')
+
         inv_ids = self.search(cr, uid, [('type', '=', type_inv),
                                         ('id', 'in', ids), ('state', '!=', 'cancel'),
                                         ('amount_deposit', '=', 0.00), ('amount_advance', '=', 0.00)], context=context)
@@ -38,14 +39,15 @@ class account_invoice(osv.osv):
             order_obj = self.pool.get(module_name)
             #Get Purchase Order has create invoice by line percent
             orders = order_obj.search(cr, uid, [('invoice_ids', 'in', inv_ids), ('invoiced_rate', '!=', False)], context=context)
-            inv_ids = self.search(cr, uid, [('type', '=', 'in_invoice'),
+            found_ids = self.search(cr, uid, [('type', '=', type_inv),
                                         ('state', '!=', 'cancel'),
                                         (order_field_name, 'in', orders),
                                         '|', ('amount_deposit', '>', 0.00), ('amount_advance', '>', 0.00)], context=context)
-            if inv_ids:
+            if found_ids:
                 raise osv.except_osv(
                             _('Advance/Deposit!'),
                             _('Unable to cancel this invoice.!\n First cancel the last invoice'))
+
         return True
 
     def action_cancel(self, cr, uid, ids, context=None):
