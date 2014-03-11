@@ -25,18 +25,19 @@
     'summary': '',
     'description': """
 Commission Management.
-====================================
-    * Salesperson
-    * Sale Teams
-    * Commission rules
-    * Commission Work Sheet
+======================
+
+By using a Commission Calculation Worksheet, a salesperson/team will be able to calculate their commission in 1 period.
+In short, one worksheet per salesperson/team per period. Given invoice has been paid, system can generate supplier invoice (as commisison) for that salesperson/team.
 
 Key Features
 ------------
-    * Manage Sale Teams
     * Manage Commission Rules
-    * Create Commission Work Sheet from Sale Order by Month
+    * Manage Sale Teams / Salesperson VS Commission Rules
+    * Invoices created, will be marked with those Sale Team / Salesperson and the Commission Rule to apply
+    * Create Commission Work Sheet from open invoices by period
     * Create Supplier Invoice from Commission Work Sheet
+    * Manage security, sales people can see only their own worksheet, while managers can manage all.
 
 Available Rule Types
 --------------------
@@ -45,6 +46,26 @@ Available Rule Types
     * Product Commission Rate
     * Commission Rate By Amount
     * Commission Rate By Monthly Accumulated Amount
+
+
+
+
+TODO:
+- Commission Worksheet, not deletable if already paid.
+- Set to Draft, after confirmed. If not yet paid.
+- Invoice created from SO, should have the Team/Commission
+- Group Security
+- Wizard to create commission worksheets for all sales and team with rules.
+- Condition only not over dued invoice
+- Template commission of all types
+- Consider Refund
+
+How to count due date?
+- Use Invoice Due Date <-> Last Payment
+- Use Invoice Date + Cust's Payment Term
+- 1st Billing Date + Cust's Payment Term <-> Last Payment
+- MH: 1st Collection Due Date <-> Last Payment
+
 """,
     'category': 'Sales',
     'sequence': 8,
@@ -53,12 +74,16 @@ Available Rule Types
     'depends': ['product', 'sale', 'account'],
     'demo': [
         'commission_calc_demo.xml'],
+    'init_xml': [
+          'commission_data.xml',
+          'product_data.xml',
+    ],
     'data': [
           'commission_calc_view.xml',
           'account_invoice_view.xml',
-          'product_data.xml',
           'commission_calc_sequence.xml',
-          'product_view.xml'
+          'product_view.xml',
+          'wizard/update_invoice_commission_view.xml',
     ],
     'test': [
         #'/test/commission_calc_demo.yml'

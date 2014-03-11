@@ -65,7 +65,7 @@ class account_invoice(osv.osv):
         'commission_worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', readonly=True)
     }
 
-    def _get_salesperson_ids(self, cr, uid, user_id):
+    def _get_salesperson_comm(self, cr, uid, user_id):
         salesperson_recs = []
         if user_id:
             salesperson = self.pool.get('res.users').browse(cr, uid, user_id)
@@ -74,7 +74,7 @@ class account_invoice(osv.osv):
                                          salesperson.commission_rule_id.id})
         return salesperson_recs
 
-    def _get_sale_team_ids(self, cr, uid, user_id):
+    def _get_sale_team_comm(self, cr, uid, user_id):
         team_recs = []
         if user_id:
             cr.execute("""select a.tid team_id, b.tid as inherit_id  from sale_team_users_rel a
@@ -114,16 +114,16 @@ class account_invoice(osv.osv):
             account_invoice_team = self.pool.get('account.invoice.team')
             if ids:
                 account_invoice_team.unlink(cr, uid, account_invoice_team.search(cr, uid, [('invoice_id', 'in', ids)]))
-            salespersons = self._get_salesperson_ids(cr, uid, user_id)
-            sale_teams = self._get_sale_team_ids(cr, uid, user_id)
+            salespersons = self._get_salesperson_comm(cr, uid, user_id)
+            sale_teams = self._get_sale_team_comm(cr, uid, user_id)
             res['value']['sale_team_ids'] = salespersons + sale_teams
         return res
 
     def create(self, cr, uid, vals, context=None):
         if not vals.get('sale_team_ids', False):
             user_id = vals.get('user_id', False)
-            salespersons = self._get_salesperson_ids(cr, uid, user_id)
-            sale_teams = self._get_sale_team_ids(cr, uid, user_id)
+            salespersons = self._get_salesperson_comm(cr, uid, user_id)
+            sale_teams = self._get_sale_team_comm(cr, uid, user_id)
             records = []
             for record in salespersons + sale_teams:
                 records.append([0, False, record])

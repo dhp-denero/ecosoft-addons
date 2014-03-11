@@ -24,6 +24,10 @@ import netsvc
 from osv import osv, fields
 from openerp.tools.translate import _
 
+LAST_PAY_DATE_RULE = [('invoice_duedate', 'Invoice Due Date (default)'),
+                      ('invoice_date_plus_cust_payterm', 'Invoice Date + Customer Payment Term'),
+                      ('1st_billing_date_plus_cust_payterm', '1st Billing Date + Customer')]
+
 
 class commission_rule(osv.osv):
 
@@ -98,7 +102,9 @@ class sale_team(osv.osv):
         'implied_ids': fields.many2many('sale.team', 'sale_team_implied_rel', 'tid', 'hid',
             string='Inherits', help='Users of this group automatically inherit those groups'),
         'comm_unpaid': fields.boolean('Allow unpaid invoice', help='Allow paying commission without invoice being paid.'),
-        'comm_overdue': fields.boolean('Allow overdue payment', help='Allow paying commission with overdue payment.')
+        'comm_overdue': fields.boolean('Allow overdue payment', help='Allow paying commission with overdue payment.'),
+        'last_pay_date_rule': fields.selection(LAST_PAY_DATE_RULE, 'Last Pay Date Rule'),
+        'buffer_days': fields.integer('Buffer Days')
     }
     _defaults = {
         'comm_unpaid': False,
@@ -120,26 +126,23 @@ class commission_worksheet(osv.osv):
     def _search_wait_pay(self, cr, uid, obj, name, args, domain=None, context=None):
         if not len(args):
             return []
-        lworksheet_obj = self.pool.get('commission.worksheet.line')
-
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for arg in args:
             if arg[1] == '=':
                 if arg[2]:
-                    lines = lworksheet_obj.search(cr, uid, [('invoice_paid', '=', 1), ('commission_paid', '=', 0)], context=context)
-                else:
-                    lines = lworksheet_obj.search(cr, uid, [('invoice_paid', '=', 1), ('commission_paid', '=', 1)], context=context)
-
+                    lines = worksheet_line_obj.search(cr, uid, [('invoice_state', '=', 'paid'), ('commission_state', '!=', 'done')], context=context)
         ids = self.search(cr, uid, [('worksheet_lines', 'in', lines), ('state', '=', 'confirmed')], context=context)
         return [('id', 'in', [x for x in ids])]
 
     def _invoice_wait_pay(self, cr, uid, ids, name, arg, context=None):
-        lworksheet_obj = self.pool.get('commission.worksheet.line')
-        res = {}.fromkeys(ids, {'wait_pay': False})
-        for id in ids:
-            #Checking invoice was paid
-            lines = lworksheet_obj.search(cr, uid, [('commission_worksheet_id', '=', id), ('state', '=', 'confirmed'), ('invoice_paid', '=', 1), ('commission_paid', '=', 0)], context=context)
-            if lines:
-                res[id] = {'wait_pay': True}
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        res = {}.fromkeys(ids, False)
+        for worksheet in self.browse(cr, uid, ids):
+            if worksheet.state == 'confirmed':
+                # Checking at least invoice was paid, and not commission paid
+                lines = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('invoice_state', '=', 'paid'), ('commission_state', '!=', 'done')], limit=1)
+                if len(lines) > 0:
+                    res[worksheet.id] = True
         return res
 
     def _get_period(self, cr, uid, context=None):
@@ -152,12 +155,12 @@ class commission_worksheet(osv.osv):
         return periods and periods[0] or False
 
     _columns = {
-        'name': fields.char('Name', size=64, required=True),
-        'sale_team_id': fields.many2one('sale.team', 'Team', required=False),
-        'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False),
-        'period_id': fields.many2one('account.period', 'Period', required=True,),
-        'worksheet_lines': fields.one2many('commission.worksheet.line', 'commission_worksheet_id', 'Calculation Lines', ondelete='cascade'),
-        'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Invoice Paid', fnct_search=_search_wait_pay, store=False),
+        'name': fields.char('Name', size=64, required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'sale_team_id': fields.many2one('sale.team', 'Team', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'period_id': fields.many2one('account.period', 'Period', required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'worksheet_lines': fields.one2many('commission.worksheet.line', 'commission_worksheet_id', 'Calculation Lines', ondelete='cascade', readonly=True, states={'draft': [('readonly', False)]}),
+        'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Ready to pay', fnct_search=_search_wait_pay, store=False),
         'state': fields.selection([('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),
@@ -166,7 +169,7 @@ class commission_worksheet(osv.osv):
                     \n* The \'Confirmed\' status is set when the work sheet is confirmed by related parties. \
                     \n* The \'Done\' status is set when the work sheet is ready to pay for commission. This state can not be undone. \
                     \n* The \'Cancelled\' status is set when a user cancel the work sheet.'),
-        'invoice_ids': fields.one2many('account.invoice', 'commission_worksheet_id', 'Invoices'),
+        'invoice_ids': fields.one2many('account.invoice', 'commission_worksheet_id', 'Invoices', readonly=True),
     }
     _defaults = {
         'state': 'draft',
@@ -333,8 +336,30 @@ class commission_worksheet(osv.osv):
             worksheet_line_obj.create(cr, uid, res)
         return True
 
+    def action_draft(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'draft'})
+        return True
+
     def action_confirm(self, cr, uid, ids, context=None):
+        # Only if today has passed the period, allow to confirm
+        period_obj = self.pool.get('account.period')
+        for worksheet in self.browse(cr, uid, ids):
+            period = period_obj.browse(cr, uid, worksheet.period_id.id)
+            if time.strftime('%Y-%m-%d') <= period.date_stop:
+                raise osv.except_osv(_('Warning!'), _("You cannot confirm this worksheet. Period not yet over!"))
+            self.action_calculate(cr, uid, ids, context=context)
+        # Confirm all worksheet
         self.write(cr, uid, ids, {'state': 'confirmed'})
+        return True
+
+    def action_cancel(self, cr, uid, ids, context=None):
+        # Only allow cancel if no commission has been paid yet.
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        for worksheet in self.browse(cr, uid, ids):
+            line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_state', '=', 'done')])
+            if line_ids:
+                raise osv.except_osv(_('Warning!'), _("Worksheet(s) has been commission paid and can not be cancelled!"))
+        self.write(cr, uid, ids, {'state': 'cancel'})
         return True
 
     def _get_product_commission(self, cr, uid):
@@ -365,9 +390,9 @@ class commission_worksheet(osv.osv):
                 continue
 
             if comm_unpaid:
-                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False)])
+                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_state', '!=', 'done')])
             else:
-                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False), ('invoice_state', '=', 'paid')])
+                line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_state', '!=', 'done'), ('invoice_state', '=', 'paid')])
             if not line_ids:
                 raise osv.except_osv(_('Warning!'), _("No Commission Invoice(s) can be created for Worksheet %s" % (worksheet.name)))
 
@@ -393,7 +418,8 @@ class commission_worksheet(osv.osv):
                                     price_unit=0, currency_id=inv_rec['currency_id'],
                                     context=None, company_id=inv_rec['company_id'])['value'])
                     inv_line_rec.update({
-                                         'name': 'Commission in period ' + worksheet.period_id.name,
+                                         'name': _('Period: ') + worksheet.period_id.name + \
+                                                _(', Invoice: ') + wline.invoice_id.number,
                                          'origin': worksheet.name,
                                          'invoice_id': invoice_id,
                                          'product_id': product_id,
@@ -405,8 +431,8 @@ class commission_worksheet(osv.osv):
                                          })
                     invline_obj.create(cr, uid, inv_line_rec, context=context)
                     #Update worksheet line was paid commission
-                    worksheet_line_obj.write(cr, uid, [wline.id], {'commission_paid': True}, context)
-                if worksheet_line_obj.search_count(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_paid', '=', False)]) <= 0:
+                    worksheet_line_obj.write(cr, uid, [wline.id], {'commission_state': 'done'}, context)
+                if worksheet_line_obj.search_count(cr, uid, [('commission_worksheet_id', '=', worksheet.id), ('commission_state', '!=', 'done')]) <= 0:
                     #All worksheet lines has been paid will update state of worksheet is done.
                     self.write(cr, uid, [worksheet.id], {'state': 'done'})
         #Show new Invoice
@@ -432,20 +458,18 @@ class commission_worksheet(osv.osv):
         for worksheet in self.browse(cr, uid, ids):
             salesperson_id = worksheet.salesperson_id and worksheet.salesperson_id.id or False
             sale_team_id = worksheet.sale_team_id and worksheet.sale_team_id.id or False
-            period_id = worksheet.period_id.id
-            if not (salesperson_id or sale_team_id) or not period_id:
+            period = period_obj.browse(cr, uid, worksheet.period_id.id)
+            if not (salesperson_id or sale_team_id) or not period:
                 continue
 
             rule = (worksheet.salesperson_id and worksheet.salesperson_id.commission_rule_id) \
                     or (worksheet.sale_team_id and worksheet.sale_team_id.commission_rule_id)
             if not rule:
                 raise osv.except_osv(_('Error!'), _('No commission rule specified for this salesperson/team!'))
-            date_start = period_obj.browse(cr, uid, period_id).date_start
-            date_stop = period_obj.browse(cr, uid, period_id).date_stop
             # Delete old lines
             line_ids = worksheet_line_obj.search(cr, uid, [('commission_worksheet_id', '=', worksheet.id)])
             worksheet_line_obj.unlink(cr, uid, line_ids)
-            # Search for matched Completed Sales Order for this work sheet (either salesperson or sales team)
+            # Search for matched Completed Invoice for this work sheet (either salesperson or sales team)
             res_id = salesperson_id or sale_team_id
             condition = salesperson_id and 't.salesperson_id = %s' or 't.sale_team_id = %s'
             cr.execute("select ai.id from account_invoice ai \
@@ -453,7 +477,7 @@ class commission_worksheet(osv.osv):
                                 where ai.state in ('open','paid') \
                                 and date_invoice >= %s and date_invoice <= %s \
                                 and " + condition + " order by ai.id", \
-                                (date_start, date_stop, res_id))
+                                (period.date_start, period.date_stop, res_id))
             invoice_ids = map(lambda x: x[0], cr.fetchall())
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
             self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
@@ -468,54 +492,42 @@ class commission_worksheet_line(osv.osv):
     _name = "commission.worksheet.line"
     _description = "Commission Worksheet Lines"
 
-#     def _search_invoice_done(self, cursor, uid, obj, name, args, domain=None, context=None):
-#         if not len(args):
-#             return []
-#         clause = ''
-#         sale_clause = ''
-#         no_invoiced = False
-#         for arg in args:
-#             if arg[1] == '=':
-#                 if arg[2]:
-#                     clause += 'AND inv.state = \'paid\''
-#                 else:
-#                     clause += 'AND inv.state != \'cancel\' AND sale.state != \'cancel\'  AND inv.state <> \'paid\'  AND rel.order_id = sale.id '
-#                     sale_clause = ',  sale_order AS sale '
-#                     no_invoiced = True
-# 
-#         cursor.execute('SELECT rel.order_id ' \
-#                 'FROM sale_order_invoice_rel AS rel, account_invoice AS inv ' + sale_clause + \
-#                 'WHERE rel.invoice_id = inv.id ' + clause)
-#         res = cursor.fetchall()
-#         if no_invoiced:
-#             cursor.execute('SELECT sale.id ' \
-#                     'FROM sale_order AS sale ' \
-#                     'WHERE sale.id NOT IN ' \
-#                         '(SELECT rel.order_id ' \
-#                         'FROM sale_order_invoice_rel AS rel) and sale.state != \'cancel\'')
-#             res.extend(cursor.fetchall())
-#         if not res:
-#             return [('order_id', '=', 0)]
-#         return [('order_id', 'in', [x[0] for x in res])]
+    def _get_paid_date(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for id in ids:
+            res[id] = False
+        return res
 
-#     def _is_invoice_done(self, cr, uid, ids, name, arg, context=None):
-#         invoice_line_obj = self.pool.get('account.invoice.line')
-#         res = {}.fromkeys(ids, {'invoice_paid': False})
-#         data_objs = self.browse(cr, uid, ids, context=context)
-# 
-#         for data in data_objs:
-#             #Checking invoice was paid
-#             inv_line_ids = invoice_line_obj.search(cr, uid, [('origin', '=', data.order_id.name)], context=context)
-#             paid_count = False
-#             if inv_line_ids and len(inv_line_ids) > 0:
-#                 lines_data = invoice_line_obj.browse(cr, uid, inv_line_ids, context)
-#                 paid = True
-#                 for line_data in lines_data:
-#                     if line_data.invoice_id.type == 'out_invoice':
-#                         paid_count = True
-#                         paid = paid and line_data.invoice_id.state == 'paid'
-#             res[data.id] = {'invoice_paid': paid_count and paid}
-#         return res
+    def _calculate_last_pay_date(self, cr, uid, rule, invoice, context=None):
+        if rule == 'invoice_duedate':
+            return invoice.date_due
+        else:
+            return False
+
+    def _get_last_pay_date(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        last_pay_date_rule = False
+        buffer_days = 0
+        if ids:
+            worksheet = self.browse(cr, uid, ids[0], context=context).commission_worksheet_id
+            if worksheet.salesperson_id:
+                last_pay_date_rule = worksheet.salesperson_id.last_pay_date_rule
+                buffer_days = worksheet.salesperson_id.buffer_days
+            elif worksheet.sale_team_id:
+                last_pay_date_rule = worksheet.sale_team_id.last_pay_date_rule
+                buffer_days = worksheet.sale_team_id.buffer_days
+
+        for worksheet_line in self.browse(cr, uid, ids, context=context):
+            invoice = worksheet_line.invoice_id
+            res[worksheet_line.id] = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context) \
+                                        or invoice.date_due  # Default fall back date
+        return res
+
+    def _get_overdue(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for id in ids:
+            res[id] = False
+        return res
 
     _columns = {
         'commission_worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet'),
@@ -528,19 +540,50 @@ class commission_worksheet_line(osv.osv):
                                         selection=[('open', 'Open'),
                                                     ('paid', 'Paid'),
                                                     ('cancel', 'Cancelled')]),
-        'commission_paid': fields.boolean('Done', readonly=True),
+        'paid_date': fields.function(_get_paid_date, type='date', string='Paid Date',
+            help="The date of payment that make this invoice marked as paid"),
+        'last_pay_date': fields.function(_get_last_pay_date, type='date', string='Due Payment Date',
+            help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
+        'overdue': fields.function(_get_overdue, type='boolean', string='Overdue',
+            help="For the paid invoice, is it over due?"),
+        'commission_state': fields.selection([('draft', 'Not Ready'),
+                                              ('valid', 'Ready'),
+                                              ('invalid', 'Invalid'),
+                                              ('done', 'Done')], 'State', required=True, readonly=True),
+    }
+    _defaults = {
+        'commission_state': 'draft',
     }
     _order = 'id'
 
     def unlink(self, cr, uid, ids, context=None):
-        line_ids = self.search(cr, uid, [('id', 'in', ids), ('commission_paid', '=', 1)], context=context)
+        line_ids = self.search(cr, uid, [('id', 'in', ids), ('commission_state', '=', 'done')], context=context)
         if line_ids and len(line_ids) > 0:
             wlines = self.browse(cr, uid, line_ids)
-            invoice_ids = [wline.invoice_id.number for wline in wlines]
+            invoice_numbers = [wline.invoice_id.number for wline in wlines]
             raise osv.except_osv(_('Error!'), _("You can't delete this Commission Worksheet, \
-                                                because commission has been issued for Invoice No. %s" % (",".join(invoice_ids))))
+                                                because commission has been issued for Invoice No. %s" % (",".join(invoice_numbers))))
         else:
             return super(commission_worksheet_line, self).unlink(cr, uid, ids, context=context)
 
 commission_worksheet_line()
+
+
+class res_users(osv.osv):
+
+    _inherit = "res.users"
+    _columns = {
+        'commission_rule_id': fields.many2one('commission.rule', 'Applied Commission', required=False, readonly=False),
+        'comm_unpaid': fields.boolean('Allow Unpaid Invoice', help='Allow paying commission without invoice being paid.'),
+        'comm_overdue': fields.boolean('Allow Overdue Payment', help='Allow paying commission with overdue payment.'),
+        'last_pay_date_rule': fields.selection(LAST_PAY_DATE_RULE, 'Last Pay Date Rule'),
+        'buffer_days': fields.integer('Buffer Days')
+    }
+    _defaults = {
+        'comm_unpaid': False,
+        'comm_overdue': False,
+    }
+
+res_users()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
