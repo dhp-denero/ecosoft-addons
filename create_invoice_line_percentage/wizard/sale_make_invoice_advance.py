@@ -21,24 +21,28 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
+from openerp.tools import float_compare, DEFAULT_SERVER_DATETIME_FORMAT
+
 
 class sale_advance_payment_inv(osv.osv_memory):
     _inherit = "sale.advance.payment.inv"
-    
+
     def _get_advance_payment_method(self, cr, uid, context=None):
         res = super(sale_advance_payment_inv, self)._get_advance_payment_method(cr, uid, context=context)
         if context.get('active_model', False) == 'sale.order':
             sale_id = context.get('active_id', False)
             if sale_id:
-                sale = self.pool.get('sale.order').browse(cr, uid, sale_id)        
-                if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
-                    res.append( ('line_percentage','Line Percentage') )
+                sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
+                total_advance = sale.advance_percentage + sale.amount_deposit
+                digits_compute = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
+                if (sale.order_policy == 'manual' and ((float_compare(total_advance, 0, precision_rounding=digits_compute)) == 1 or  (not context.get('advance_type', False)))):
+                    res.append(('line_percentage', 'Line Percentage'))
         return res
-    
+
     _columns = {
-        'line_percent':fields.float('Installment', digits_compute= dp.get_precision('Account'),
+        'line_percent': fields.float('Installment', digits_compute= dp.get_precision('Account'),
             help="The % of installment to be used to calculate the quantity to invoice"),
-        'advance_payment_method':fields.selection(_get_advance_payment_method,
+        'advance_payment_method': fields.selection(_get_advance_payment_method,
             'What do you want to invoice?', required=True,
             help="""Use All to create the final invoice.
                 Use Percentage to invoice a percentage of the total amount.
@@ -82,10 +86,9 @@ class sale_advance_payment_inv(osv.osv_memory):
             if res.get('res_id'):
                 self.pool.get('account.invoice').button_compute(cr, uid, [res.get('res_id')], context=context)
             return res
+        else:
+            return super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
 
-        return super(sale_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
-    
-    
 sale_advance_payment_inv()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
