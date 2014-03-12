@@ -59,6 +59,7 @@ TODO:
 - Condition only not over dued invoice
 - Template commission of all types
 - Consider Refund
+- Make it easy to manage and view and grouping in worksheet
 
 How to count due date?
 - Use Invoice Due Date <-> Last Payment
