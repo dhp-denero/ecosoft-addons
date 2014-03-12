@@ -19,7 +19,8 @@ class sale_order(AdditionalDiscountable, osv.osv):
                 continue
             tot = 0.0
             for invoice in sale.invoice_ids:
-                if invoice.state not in ('draft', 'cancel'):
+                if invoice.state not in ('cancel'):
+                #if invoice.state not in ('draft', 'cancel'):
                     # Do not add amount, it this is a deposit/advance
                     tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
             if tot:
@@ -174,6 +175,8 @@ class sale_order(AdditionalDiscountable, osv.osv):
         return True
 
     def write(self, cr, uid, ids, vals, context=None):
+        if not isinstance(ids, list):
+            ids = [ids]
         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)
         return res

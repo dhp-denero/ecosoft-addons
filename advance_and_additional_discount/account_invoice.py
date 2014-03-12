@@ -24,6 +24,7 @@ from osv import fields, osv
 from common import AdditionalDiscountable
 from tools.translate import _
 
+
 class account_invoice(AdditionalDiscountable, osv.Model):
 
     _inherit = "account.invoice"
@@ -195,8 +196,8 @@ class account_invoice(AdditionalDiscountable, osv.Model):
             self._reset_advance_type(cr, uid, ids, 'sale.order', context)
 
         #Reset invoice_state in delivery order is 2binvoiced
-        self._reset_delivery_2binvoiced(cr, uid, ids, context)
-
+        self._reset_delivery_2binvoiced(cr, uid, ids, 'sale.order', context)
+        self._reset_delivery_2binvoiced(cr, uid, ids, 'purchase.order', context)
         super(account_invoice, self).action_cancel(cr, uid, ids, context)
         return True
 
