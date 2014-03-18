@@ -54,6 +54,7 @@ M2O fields Restriction
                  'product',
                  'sale',
                  'purchase',
+                 'purchase_requisition',
                  'stock',
                  'account',
                  'account_voucher'],

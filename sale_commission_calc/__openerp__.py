@@ -59,6 +59,7 @@ TODO:
 - Condition only not over dued invoice
 - Template commission of all types
 - Consider Refund
+- Make it easy to manage and view and grouping in worksheet
 
 How to count due date?
 - Use Invoice Due Date <-> Last Payment
@@ -72,8 +73,7 @@ How to count due date?
     'website': 'http://www.ecosoft.co.th',
     'images': [],
     'depends': ['product', 'sale', 'account'],
-    'demo': [
-        'commission_calc_demo.xml'],
+    'demo': [],
     'init_xml': [
           'commission_data.xml',
           'product_data.xml',

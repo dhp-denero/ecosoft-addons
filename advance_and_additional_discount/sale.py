@@ -175,6 +175,8 @@ class sale_order(AdditionalDiscountable, osv.osv):
         return True
 
     def write(self, cr, uid, ids, vals, context=None):
+        if not isinstance(ids, list):
+            ids = [ids]
         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)
         return res

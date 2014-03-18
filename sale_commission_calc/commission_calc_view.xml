@@ -11,8 +11,8 @@
                 <tree string="Sales Team">
                     <field name="name"/>
                     <field name="commission_rule_id"/>
-                    <field name="comm_unpaid"/>
-                    <field name="comm_overdue"/>
+                    <field name="allow_unpaid"/>
+                    <field name="allow_overdue"/>
                     <field name="last_pay_date_rule"/>
                     <field name="buffer_days"/>
                 </tree>
@@ -28,8 +28,8 @@
                     <group col="4">
                         <field name="name"/>
                         <field name="commission_rule_id"/>
-	                    <field name="comm_unpaid"/>
-	                    <field name="comm_overdue"/>
+	                    <field name="allow_unpaid"/>
+	                    <field name="allow_overdue"/>
 	                    <field name="last_pay_date_rule"/>
 	                    <field name="buffer_days"/>
                     </group>
@@ -95,25 +95,14 @@
                     	    	     attrs="{'invisible':[('type','!=','percent_product_category')]}"/>
                     	    	<field name="fix_percent" attrs="{'invisible':[('type','!=','percent_fixed')]}"/>
 							</group>	                        
-							<field name="rule_rates" widget="one2many_list" colspan="4" nolabel="1"  attrs="{'invisible':[('type','not in',('percent_amount','percent_accumulate'))]}">
+							<field name="rule_rates" widget="one2many_list" colspan="4" nolabel="1"  attrs="{'invisible':[('type','not in',('percent_amount'))]}">
 								<tree string="Rule Rates" editable="bottom">
 	                                <field name="amount_over"/>
 	                                <field name="amount_upto"/>
 	                                <field name="percent_commission"/>
 	                            </tree>
 	                        </field>
-		            	</page>
-                    	<page string="Accumulate Conditions" attrs="{'invisible':[('type','not in',('percent_accumulate'))]}">                        
-							<field name="rule_conditions" widget="one2many_list" colspan="4" nolabel="1"  >
-								<tree string="Rule Conditions" editable="bottom">
-	                                <field name="sequence"/>
-	                                <field name="sale_margin_over"/>
-	                                <field name="sale_margin_upto"/>
-	                                <field name="commission_coeff"/>
-	                                <field name="accumulate_coeff"/>
-	                            </tree>
-	                        </field>
-		            	</page>		        	
+		            	</page>	        	
                     	<page string="Applied To" >     
                     	    <group>
 		                    	<group>
@@ -202,11 +191,11 @@
                     <notebook>
 						<page string="Worksheet Details">
 							<field name="worksheet_lines" widget="one2many_list" colspan="4" nolabel="1" >
-	                            <tree string="Worksheet Lines" editable="bottom" colors="blue:invoice_state in ('open')">
+	                            <tree string="Worksheet Lines" editable="bottom" colors="grey:commission_state in ('draft');blue:commission_state in ('valid');red:commission_state in ('invalid');">
 	                                <field name="invoice_id"/>
 	                                <field name="date_invoice"/>
-	                                <field name="invoice_amt"/>
-	                                <field name="accumulated_amt"/>
+	                                <field name="invoice_amt" sum="Total Amount"/>
+	                                <field name="accumulated_amt" invisible="1"/>
 	                                <field name="commission_amt" sum="Total Commission" />
 	                                <field name="invoice_state"/>
 	                                <field name="paid_date"/>
@@ -280,8 +269,8 @@
                 <tree string="Salesperson Commission Rule" editable="top">
                     <field name="name" readonly="1"/>
                     <field name="commission_rule_id"/>
-                    <field name="comm_unpaid"/>
-                    <field name="comm_overdue"/>
+                    <field name="allow_unpaid"/>
+                    <field name="allow_overdue"/>
                     <field name="last_pay_date_rule"/>
                     <field name="buffer_days"/>
                     <field name="active" readonly="1"/>

@@ -62,7 +62,7 @@ class account_invoice(osv.osv):
     _inherit = "account.invoice"
     _columns = {
         'sale_team_ids': fields.one2many('account.invoice.team', 'invoice_id', 'Teams', states={'draft': [('readonly', False)]}),
-        'commission_worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', readonly=True)
+        'worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', readonly=True)
     }
 
     def _get_salesperson_comm(self, cr, uid, user_id):
