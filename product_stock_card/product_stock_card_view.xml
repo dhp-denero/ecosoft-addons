@@ -5,7 +5,8 @@
             <field name="name">product.stock.card.tree</field>
             <field name="model">product.stock.card</field>
             <field name="arch" type="xml">
-                <tree string="Stock Card">
+
+                <tree string="Stock Card">               	
                 	<field name="id"/>
                		<field name="name"/>
                		<field name="date"/>

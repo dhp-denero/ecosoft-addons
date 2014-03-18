@@ -11,8 +11,9 @@
             		<page string="Stock Location">
             			<field name="stock_product_location_ids" readonly="1" context="{'product_id': active_id}">
             				<tree>
-            					<field name="location_id" />
+            					<field name="location_id"/>
                             	<field name="qty_avaliable" sum='Total Quantity'/>
+                            	<field name="virtual_avaliable" sum='Total Forecasted'/>
                             </tree>
             			</field>
             		</page>

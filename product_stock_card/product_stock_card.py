@@ -31,6 +31,7 @@ class product_stock_card(osv.osv):
     _description = "Product Stock Card"
     _auto = False
     _order = "product_id, date"
+    _table = "product_stock_card"
 
     def _get_stock_tacking(self, cr, uid, ids, name, arg, context={}):
         uom_obj = self.pool.get('product.uom')

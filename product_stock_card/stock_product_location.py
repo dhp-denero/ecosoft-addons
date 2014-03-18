@@ -40,22 +40,24 @@ class stock_product_location(osv.osv):
     _name = "stock.product.location"
     _description = "Product Stock By Location"
     _auto = False
+    _table = "stock_product_location"
 
     _columns = {
            'location_id': fields.many2one('stock.location', 'Location', select=True, required=True, readonly=True),
            'product_id': fields.many2one('product.product', 'Product', select=True, required=True, readonly=True),
            'company_id': fields.many2one('res.company', 'Company', readonly=True),
            'qty_avaliable': fields.related('location_id', 'stock_real', type="float", relation="stock.location", string="Quantity On Hand", readonly=True),
+           'virtual_avaliable': fields.related('location_id', 'stock_virtual', type="float", relation="stock.location", string="Forecasted Quantity", readonly=True),
 }
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_location')
-
+        location_id = self.pool.get('ir.model.data').get_object_reference(cr, None, 'stock', 'stock_location_locations_virtual')[1]
         cr.execute("""create or replace view stock_product_location
                 as
             SELECT ROW_NUMBER() OVER (ORDER BY location_id, product_id DESC) AS id, *
             FROM (
-                SELECT 
+                SELECT
                  l.id AS location_id,product_id,
                  l.company_id
                 FROM stock_location l,
@@ -64,6 +66,7 @@ class stock_product_location(osv.osv):
                   AND i.location_dest_id = l.id
                   AND state != 'cancel'
                   AND i.company_id = l.company_id
+                  And l.location_id <> %s
                 UNION
                 SELECT
                     l.id AS location_id ,product_id,
@@ -74,17 +77,19 @@ class stock_product_location(osv.osv):
                   AND o.location_id = l.id
                   AND state != 'cancel'
                   AND o.company_id = l.company_id
+                  And l.location_id <> %s
                   ) AS product_stock_location
                 ORDER BY location_id, product_id DESC
-                    ;""")
+                    ;""" % (str(location_id), str(location_id)))
 
 stock_product_location()
 
 
 class product_product(osv.osv):
     _inherit = "product.product"
+
     _columns = {
-                'stock_product_location_ids': fields.one2many('stock.product.location', 'product_id', 'Product by Stock '),
+                'stock_product_location_ids': fields.one2many('stock.product.location', 'product_id', 'Product by Stock', ),
                 }
 
     #copy must not copy stock_product_by_location_ids
@@ -98,8 +103,17 @@ product_product()
 
 class stock_location(osv.osv):
     _inherit = "stock.location"
+
+    def _search_product_value(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        res_ids = self.search(cr, uid, args, offset, limit, order, context=context, count=count)
+        loc_obj = self.browse(cr, uid, res_ids, context=context)
+        res_ids = [x.id for x in loc_obj if x.stock_real != 0]
+        return res_ids
+
     _columns = {
-        'stock_product_location_ids': fields.one2many('stock.product.location', 'location_id', 'Product by Stock '),
+                'stock_product_location_ids': fields.one2many('stock.product.location', 'location_id', 'Product by Stock'),
     }
 
     def copy(self, cr, uid, id, default={}, context=None):
