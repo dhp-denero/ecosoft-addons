@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 ##############################################
@@ -48,7 +46,7 @@ class stock_product_location(osv.osv):
            'company_id': fields.many2one('res.company', 'Company', readonly=True),
            'qty_avaliable': fields.related('location_id', 'stock_real', type="float", relation="stock.location", string="Quantity On Hand", readonly=True),
            'virtual_avaliable': fields.related('location_id', 'stock_virtual', type="float", relation="stock.location", string="Forecasted Quantity", readonly=True),
-}
+    }
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_location')
@@ -89,15 +87,15 @@ class product_product(osv.osv):
     _inherit = "product.product"
 
     _columns = {
-                'stock_product_location_ids': fields.one2many('stock.product.location', 'product_id', 'Product by Stock', ),
-                }
+        'stock_product_location_ids': fields.one2many('stock.product.location', 'product_id', 'Product by Stock', ),
+    }
 
     #copy must not copy stock_product_by_location_ids
     def copy(self, cr, uid, id, default={}, context=None):
         default = default.copy()
         default['stock_product_location_ids'] = []
         return super(product_product, self).copy(cr, uid, id, default, context)
-    # end def copy
+
 product_product()
 
 
@@ -113,7 +111,7 @@ class stock_location(osv.osv):
         return res_ids
 
     _columns = {
-                'stock_product_location_ids': fields.one2many('stock.product.location', 'location_id', 'Product by Stock'),
+        'stock_product_location_ids': fields.one2many('stock.product.location', 'location_id', 'Product by Stock'),
     }
 
     def copy(self, cr, uid, id, default={}, context=None):
