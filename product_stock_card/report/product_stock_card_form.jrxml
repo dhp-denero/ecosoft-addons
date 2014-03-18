@@ -131,7 +131,7 @@
 ($P{from_date} == null || $V{MoveDate} >= $P{from_date} ) &&
 ($P{to_date} == null || $V{MoveDate} < $P{to_date} ) &&
 ($F{Type} != ($P{location_id} == null ? "move":"") )]]></filterExpression>
-	<group name="Product" isStartNewPage="true" footerPosition="ForceAtBottom">
+	<group name="Product" footerPosition="ForceAtBottom">
 		<groupExpression><![CDATA[$F{id}]]></groupExpression>
 	</group>
 	<background>
