@@ -12,7 +12,7 @@
 		                <field name="discount_amount" on_change="onchange_discount_amount(discount_amount, price_unit)"/>
 	                </field>   
 	                <field name="discount" position="attributes">
-	                	<attribute name="invisible">False</attribute>
+	                	<attribute name="invisible">True</attribute>
 	                </field>	                	    
                	</data>
             </field>
@@ -28,7 +28,7 @@
 		                <field name="discount_amount" on_change="onchange_discount_amount(discount_amount, price_unit)"/>
 	                </field>   
 	                <field name="discount" position="attributes">
-	                	<attribute name="invisible">False</attribute>
+	                	<attribute name="invisible">True</attribute>
 	                </field>	                	    
                	</data>
             </field>
@@ -44,7 +44,7 @@
 		                <field name="discount_amount" on_change="onchange_discount_amount(discount_amount, price_unit)"/>
 	                </field>   
 	                <field name="discount" position="attributes">
-	                	<attribute name="invisible">False</attribute>
+	                	<attribute name="invisible">True</attribute>
 	                </field>	                	    
                	</data>
             </field>
