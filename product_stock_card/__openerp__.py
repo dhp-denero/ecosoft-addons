@@ -24,7 +24,20 @@
     'version': '1.0',
     'category': 'Warehouse',
     'description': """
-Module adds Product Stock Card view.\n
+
+Normally, when user want to see the movement of a product, they will use Inventory Move.
+Although it give full information about the movement of the product, it is not easy for user to understand quickly.
+Stock Card will give the movement view of a product for a location is a simpler way.
+
+For a given location, it gives,
+  * In Qty
+  * Out Qty
+  * Balance
+
+2 ways to use stock card,
+  * Open a product, click More > Stock Card, then choose Location and Date Range.
+  * New Stock Card menu in Warehouse > Inventory Control > Stock Card, then choose Product, Location and Date Range.
+
     """,
     'author': 'Ecosoft',
     'website': 'http://www.ecosoft.co.th',
