@@ -28,11 +28,9 @@
 
 If the supplier return tax invoice that does not match what is in the system, allow minor adjustment on base and tax amount.
 
-TODO:
+Note: This will be for case when we use Included VAT only!
 
-* Not editable if 1) WHT 2) Suspended Tax
-* Waning if Total Amount not same.
-    """,
+""",
     'category': 'Accounting',
     'website': 'http://www.ecosoft.co.th',
     'images': [],
