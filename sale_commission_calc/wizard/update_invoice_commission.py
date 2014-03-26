@@ -29,7 +29,7 @@ class update_invoce_commission(osv.osv_memory):
     _description = "Update Invoice Commission"
 
     _columns = {
-        'update': fields.integer('Number of invoice updated', readonly=True),
+        'result': fields.text('Result', readonly=True),
         'state': fields.selection([('init', 'init'), ('done', 'done')], 'Status', readonly=True),
     }
     _defaults = {
@@ -37,10 +37,9 @@ class update_invoce_commission(osv.osv_memory):
     }
 
     def update_commission(self, cr, uid, ids, context=None):
-
+        updated = 0
         invoice_obj = self.pool.get('account.invoice')
         invoice_team_obj = self.pool.get('account.invoice.team')
-
         # Get salepersons/team commission for users in invoices
         cr.execute("select distinct user_id from account_invoice where type in ('out_invoice','out_refund')")
         users = cr.dictfetchall()
@@ -56,15 +55,16 @@ class update_invoce_commission(osv.osv_memory):
             invoice_ids = invoice_obj.search(cr, uid, [('user_id', '=', user_id), ('type', 'in', ('out_invoice', 'out_refund'))])
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
             # Only for invoice without commission, create it.
-            updated = 0
             for invoice in invoices:
                 if not invoice.sale_team_ids:
                     for invoice_comm in invoice_comms:
                         invoice_comm.update({'invoice_id': invoice.id})
                         invoice_team_obj.create(cr, uid, invoice_comm)
-                        updated += 1
+                    updated += 1
+        # Message
+        result_message = _('Number of invoice updated') + ' = ' + str(updated)
 
-        self.write(cr, uid, ids, {'update': updated, 'state': 'done'}, context=context)
+        self.write(cr, uid, ids, {'result': result_message, 'state': 'done'}, context=context)
         res = {
             'name': _("Update Invoice's Commission"),
             'view_type': 'form',

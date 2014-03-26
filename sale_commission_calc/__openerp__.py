@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': "Sales Commission Calculations",
+    'name': "Sales Commission Calculations (In Progress)",
     'author': 'Ecosoft',
     'summary': '',
     'description': """
@@ -38,6 +38,8 @@ Key Features
     * Create Commission Work Sheet from open invoices by period
     * Create Supplier Invoice from Commission Work Sheet
     * Manage security, sales people can see only their own worksheet, while managers can manage all.
+    * Process: Update Invoice Commission, go to each invoice that has not been assigned commission and assign it.
+    * Process: Generate Commission Worksheet(s), look through team/commission worksheet that has not been created to date, and create them.
 
 Available Rule Types
 --------------------
@@ -47,19 +49,18 @@ Available Rule Types
     * Commission Rate By Amount
     * Commission Rate By Monthly Accumulated Amount
 
-
-
-
 TODO:
+- Make sure that Refund Invoice will be used to deduct the commission (we may never pay back to cust?)
 - Commission Worksheet, not deletable if already paid.
 - Set to Draft, after confirmed. If not yet paid.
 - Invoice created from SO, should have the Team/Commission
 - Group Security
-- Wizard to create commission worksheets for all sales and team with rules.
-- Condition only not over dued invoice
 - Template commission of all types
 - Consider Refund
 - Make it easy to manage and view and grouping in worksheet
+- Need to make method "check_commission_line_status()" a scheduled process, this is to ensure that wait_pay is working.
+- Skip should be another status of line? Why skip disappear when generate invoice
+- Summary amount on every page.
 
 How to count due date?
 - Use Invoice Due Date <-> Last Payment
@@ -84,9 +85,9 @@ How to count due date?
           'commission_calc_sequence.xml',
           'product_view.xml',
           'wizard/update_invoice_commission_view.xml',
+          'wizard/generate_commission_worksheet_view.xml',
     ],
     'test': [
-        #'/test/commission_calc_demo.yml'
     ],
     'auto_install': False,
     'application': True,

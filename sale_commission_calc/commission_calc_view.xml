@@ -185,7 +185,7 @@
                         </group>
                         <group>
                         	<field name="period_id"/>
-                        	<field name="wait_pay"/>
+                        	<field name="wait_pay" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -201,7 +201,10 @@
 	                                <field name="paid_date"/>
 	                                <field name="last_pay_date"/>
 	                                <field name="overdue"/>
+	                                <field name="skip"/>
+	                                <field name="note" attrs="{'required': [('skip','=',True)]}"/>
 	                                <field name="commission_state"/>
+	                                <field name="state" invisible="1"/>
 	                            </tree>
 	                        </field>
 	                    </page>
@@ -269,9 +272,9 @@
                 <tree string="Salesperson Commission Rule" editable="top">
                     <field name="name" readonly="1"/>
                     <field name="commission_rule_id"/>
+                    <field name="last_pay_date_rule" attrs="{'required': [('commission_rule_id','!=',False)]}"/>
                     <field name="allow_unpaid"/>
                     <field name="allow_overdue"/>
-                    <field name="last_pay_date_rule"/>
                     <field name="buffer_days"/>
                     <field name="active" readonly="1"/>
                 </tree>
@@ -285,23 +288,24 @@
             <field name="view_id" ref="view_salesperson_commission_rule"/>
         </record>        
 
+        <!-- Worksheet -->
         <menuitem name="Commission Calc" id="menu_commission_calc" parent="base.menu_base_partner"/>
         
-
-        <menuitem name="Commission Rules" id="menu_commission_rule" parent="menu_commission_calc" 
-            action="action_commission_rule_form"  sequence="10"/>
-        <menuitem name="Salespersons" id="menu_salesperson_commission_rule" parent="menu_commission_calc" 
-            action="action_salesperson_commission_rule" sequence="20"/>          
-        <menuitem name="Sale Teams" id="menu_sale_team" parent="menu_commission_calc" 
-            action="action_sale_team_form" sequence="30"/>        
         <menuitem name="Salesperson Worksheet" id="menu_user_commission_worksheet" parent="menu_commission_calc" 
-            action="action_user_commission_worksheet_form"  sequence="40"/>
+            action="action_user_commission_worksheet_form"  sequence="10"/>
         <menuitem name="Team Worksheet" id="menu_team_commission_worksheet" parent="menu_commission_calc" 
-            action="action_team_commission_worksheet_form"  sequence="50"/>
-
-
+            action="action_team_commission_worksheet_form"  sequence="20"/>
         
+        <!-- Config -->
+        <menuitem name="Configuration" id="menu_commission_calc_config" parent="menu_commission_calc" sequence="100"/>
 
-        
+        <menuitem name="Commission Rules" id="menu_commission_rule" parent="menu_commission_calc_config" 
+            action="action_commission_rule_form"  sequence="10"/>
+        <menuitem name="Salespersons" id="menu_salesperson_commission_rule" parent="menu_commission_calc_config" 
+            action="action_salesperson_commission_rule" sequence="20"/>          
+        <menuitem name="Sale Teams" id="menu_sale_team" parent="menu_commission_calc_config" 
+            action="action_sale_team_form" sequence="30"/>        
+
+
     </data>
 </openerp>
