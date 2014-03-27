@@ -20,6 +20,7 @@
 ##############################################################################
 
 import commission_calc
+import commission_rule
 import product
 import account_invoice
 import wizard

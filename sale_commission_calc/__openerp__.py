@@ -49,6 +49,12 @@ Available Rule Types
     * Commission Rate By Amount
     * Commission Rate By Monthly Accumulated Amount
 
+Available Last Payment Date (to be eligible for commission)
+-----------------------------------------------------------
+    * Normal Invoice Due Date
+    * Invoice Date + Customer Payment Term
+    * Period + Months
+    
 TODO:
 - Make sure that Refund Invoice will be used to deduct the commission (we may never pay back to cust?)
 - Commission Worksheet, not deletable if already paid.
@@ -59,15 +65,16 @@ TODO:
 - Consider Refund
 - Make it easy to manage and view and grouping in worksheet
 - Need to make method "check_commission_line_status()" a scheduled process, this is to ensure that wait_pay is working.
-- Skip should be another status of line? Why skip disappear when generate invoice
-- Summary amount on every page.
-- A button to force done.
 
-How to count due date?
-- Use Invoice Due Date <-> Last Payment
-- Use Invoice Date + Cust's Payment Term
-- 1st Billing Date + Cust's Payment Term <-> Last Payment
-- MH: 1st Collection Due Date <-> Last Payment
+MH
+- Seperate VAT and No-VAT commission amount
+- Product Price < Come Benchmark Amount that won't get commission
+- Table for % by Product for easy update
+- Progressive Rate for Product Commission
+- Ability to edit commission amount
+- Rule > Commission by margin, start from SO will have a new field "Cost"
+  - This field will be visible only for selected salesperson
+
 
 """,
     'category': 'Sales',
@@ -82,6 +89,7 @@ How to count due date?
     ],
     'data': [
           'commission_calc_view.xml',
+          'commission_rule_view.xml',
           'account_invoice_view.xml',
           'commission_calc_sequence.xml',
           'product_view.xml',

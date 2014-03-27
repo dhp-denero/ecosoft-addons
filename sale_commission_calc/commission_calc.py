@@ -26,12 +26,6 @@ from osv import osv, fields
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 
-# Available commission rule
-COMMISSION_RULE = [('percent_fixed', 'Fixed Commission Rate'),
-                      ('percent_product_category', 'Product Category Commission Rate'),
-                      ('percent_product', 'Product Commission Rate'),
-                      ('percent_amount', 'Commission Rate By Amount')]
-
 # Define the due date available for any commission rule
 LAST_PAY_DATE_RULE = [('invoice_duedate', 'Invoice Due Date (default)'),
                       ('invoice_date_plus_cust_payterm', 'Invoice Date + Customer Payment Term')]
@@ -41,42 +35,6 @@ COMMISSION_LINE_STATE = [('draft', 'Not Ready'),
                           ('invalid', 'Invalid'),
                           ('done', 'Done'),
                           ('skip', 'Skipped')]
-
-
-class commission_rule(osv.osv):
-
-    _name = "commission.rule"
-    _description = "Commission Rule"
-    _columns = {
-        'name': fields.char('Name', size=64, required=True),
-        'type': fields.selection(COMMISSION_RULE, 'Type', required=True),
-        'fix_percent': fields.float('Fix Percentage'),
-        'rule_rates': fields.one2many('commission.rule.rate', 'commission_rule_id', 'Rates'),
-        'rule_conditions': fields.one2many('commission.rule.condition', 'commission_rule_id', 'Conditions'),
-        'active': fields.boolean('Active'),
-        'sale_team_ids': fields.one2many('sale.team', 'commission_rule_id', 'Teams'),
-        'salesperson_ids': fields.one2many('res.users', 'commission_rule_id', 'Salesperson'),
-    }
-    _defaults = {
-        'active': True
-    }
-
-commission_rule()
-
-
-class commission_rule_rate(osv.osv):
-
-    _name = "commission.rule.rate"
-    _description = "Commission Rule Rate"
-    _columns = {
-        'commission_rule_id': fields.many2one('commission.rule', 'Commission Rule'),
-        'amount_over': fields.float('Amount Over', required=True),
-        'amount_upto': fields.float('Amount Up-To', required=True),
-        'percent_commission': fields.float('Commission (%)', required=True),
-    }
-    _order = 'id'
-
-commission_rule_rate()
 
 
 class sale_team(osv.osv):
@@ -348,6 +306,11 @@ class commission_worksheet(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'commission.worksheet') or '/'
         return super(commission_worksheet, self).create(cr, uid, vals, context=context)
 
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(commission_worksheet, self).write(cr, uid, ids, vals, context=context)
+        self.update_line_status(cr, uid, ids, context=context)
+        return res
+
     def action_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'draft'})
         return True
@@ -359,7 +322,7 @@ class commission_worksheet(osv.osv):
             period = period_obj.browse(cr, uid, worksheet.period_id.id)
             if time.strftime('%Y-%m-%d') <= period.date_stop:
                 raise osv.except_osv(_('Warning!'), _("You cannot confirm this worksheet. Period not yet over!"))
-            self.action_calculate(cr, uid, ids, context=context)
+            # self.action_calculate(cr, uid, ids, context=context)
         # Confirm all worksheet
         self.write(cr, uid, ids, {'state': 'confirmed'})
         return True
@@ -372,6 +335,10 @@ class commission_worksheet(osv.osv):
             if line_ids:
                 raise osv.except_osv(_('Warning!'), _("Worksheet(s) has issued commission(s) and can not be cancelled!"))
         self.write(cr, uid, ids, {'state': 'cancel'})
+        return True
+
+    def action_done(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'done'})
         return True
 
     def action_calculate(self, cr, uid, ids, context=None):
@@ -406,6 +373,15 @@ class commission_worksheet(osv.osv):
             invoice_ids = map(lambda x: x[0], cr.fetchall())
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
             self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
+            # Update satus
+            line_ids = [line.id for line in worksheet.worksheet_lines]
+            self.pool.get('commission.worksheet.line').check_commission_line_status(cr, uid, line_ids, context=context)
+        return True
+
+    def update_line_status(self, cr, uid, ids, context=None):
+        for worksheet in self.browse(cr, uid, ids):
+            line_ids = [line.id for line in worksheet.worksheet_lines]
+            self.pool.get('commission.worksheet.line').check_commission_line_status(cr, uid, line_ids, context=context)
         return True
 
     def action_create_invoice(self, cr, uid, ids, context=None):
@@ -469,10 +445,10 @@ class commission_worksheet(osv.osv):
                                          })
                     invline_obj.create(cr, uid, inv_line_rec, context=context)
                     #Update worksheet line was paid commission
-                    worksheet_line_obj.write(cr, uid, [wline.id], {'done': True}, context)
-                if worksheet_line_obj.search_count(cr, uid, [('worksheet_id', '=', worksheet.id), ('done', '=', False)]) <= 0:
-                    #All worksheet lines has been paid will update state of worksheet is done.
-                    self.write(cr, uid, [worksheet.id], {'state': 'done'})
+                    worksheet_line_obj.write(cr, uid, [wline.id], {'done': True, 'commission_state': 'done'}, context)
+            if worksheet_line_obj.search_count(cr, uid, [('worksheet_id', '=', worksheet.id), ('commission_state', 'in', ('draft', 'valid'))]) <= 0:
+                #All worksheet lines has been paid will update state of worksheet is done.
+                self.write(cr, uid, [worksheet.id], {'state': 'done'})
         #Show new Invoice
         mod_obj = self.pool.get('ir.model.data')
         act_obj = self.pool.get('ir.actions.act_window')
@@ -526,30 +502,24 @@ class commission_worksheet_line(osv.osv):
                 buffer_days = i.buffer_days
         return allow_unpaid, allow_overdue, last_pay_date_rule, buffer_days
 
-    def check_commission_line_status(self, cr, uid, ids, name, arg, context=None):
+    def check_commission_line_status(self, cr, uid, ids, context=None):
         result = {}
         # Prepare parameter from worksheet
         allow_unpaid, allow_overdue, last_pay_date_rule, buffer_days = self._get_commission_params(cr, uid, ids, context=context)
 
         # For each worksheet line,
         for line in self.browse(cr, uid, ids, context=context):
-            result[line.id] = {
-                'paid_date': False,
-                'last_pay_date': False,
-                'overdue': False,
-            }
             invoice = line.invoice_id
             # Calculate each field,
             # 1) paid_date
-            result[line.id]['paid_date'] = paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or False)
+            paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or False)
             # 2) last_pay_date
             last_pay_date = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context)
             # Add buffer
             last_pay_date = (datetime.strptime(last_pay_date, '%Y-%m-%d') + relativedelta(days=buffer_days or 0)).strftime('%Y-%m-%d')
-            result[line.id]['last_pay_date'] = last_pay_date
             # 3) is overdue
             # If allow commission overdue, this will never be overdue. Else, check paid_date against last pay date
-            result[line.id]['overdue'] = overdue = not allow_overdue and \
+            overdue = not allow_overdue and \
                                                 last_pay_date and \
                                                 paid_date and \
                                                 (datetime.strptime(paid_date, '%Y-%m-%d') > datetime.strptime(last_pay_date, '%Y-%m-%d')) or \
@@ -565,9 +535,14 @@ class commission_worksheet_line(osv.osv):
                               (not allow_overdue and not allow_unpaid and overdue and 'invalid') or \
                               (line.invoice_state == 'cancel' and 'invalid') or \
                               'draft'
-            if line.commission_state != commission_state:
-                self.write(cr, uid, [line.id], {'commission_state': commission_state})
-            # Set flags
+            # Updates
+            if line.paid_date != paid_date or line.last_pay_date != last_pay_date \
+                or line.overdue != overdue or line.commission_state != commission_state:
+                self.write(cr, uid, [line.id], {'paid_date': paid_date,
+                                                'last_pay_date': last_pay_date,
+                                                'overdue': overdue,
+                                                'commission_state': commission_state})
+            # Set valid
             if commission_state in ('valid', 'done'):
                 self.write(cr, uid, [line.id], {'valid': True})
         return result
@@ -583,22 +558,14 @@ class commission_worksheet_line(osv.osv):
                                         selection=[('open', 'Open'),
                                                     ('paid', 'Paid'),
                                                     ('cancel', 'Cancelled')]),
-        'paid_date': fields.function(check_commission_line_status, multi='status', type='date', string='Paid Date', readonly=True, states={'draft': [('readonly', False)]},
-            help="The date of payment that make this invoice marked as paid"),
-        'last_pay_date': fields.function(check_commission_line_status, multi='status', type='date', string='Due Payment Date', readonly=True, states={'draft': [('readonly', False)]},
-            help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
-        'overdue': fields.function(check_commission_line_status, multi='status', type='boolean', string='Overdue', readonly=True, states={'draft': [('readonly', False)]},
-            help="For the paid invoice, is it over due?"),
-#         'commission_state': fields.function(check_commission_line_status, multi='status', string='State', type='selection', readonly=True, states={'draft': [('readonly', False)]},
-#                                             selection=COMMISSION_LINE_STATE,
-#                                             store={
-#                                                 'commission.worksheet.line': (lambda self, cr, uid, ids, ctx=None: ids, ['valid', 'done', 'skip'], 10)
-#                                             }),
-        'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=False),
+        'paid_date': fields.boolean('Paid Date', readonly=True, help="The date of payment that make this invoice marked as paid"),
+        'last_pay_date': fields.boolean('Due Payment Date', readonly=True, help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
+        'overdue': fields.boolean('Overdue', readonly=True, help="For the paid invoice, is it over due?"),
+        'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=True),
         'valid': fields.boolean('Ready', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission is ready to be issued."),
         'done': fields.boolean('Done', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission has been issued."),
-        'skip': fields.boolean('Skip', help="Force skipping this invoice, no commission.", readonly=False, states={'draft': [('readonly', True)]},),
-        'note': fields.text('Note', help="Reason for skipping commission.", readonly=False, states={'draft': [('readonly', True)]},),
+        'skip': fields.boolean('Skip', help="Force skipping this invoice, no commission.", readonly=False, states={'draft': [('readonly', True)], 'done': [('readonly', True)]},),
+        'note': fields.text('Note', help="Reason for skipping commission.", readonly=False, states={'draft': [('readonly', True)], 'done': [('readonly', True)]},),
         'state': fields.related('worksheet_id', 'state', type='selection', selection=[('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),
