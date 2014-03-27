@@ -24,6 +24,7 @@ import time
 import netsvc
 from osv import osv, fields
 from openerp.tools.translate import _
+import openerp.addons.decimal_precision as dp
 
 # Available commission rule
 COMMISSION_RULE = [('percent_fixed', 'Fixed Commission Rate'),
@@ -34,6 +35,12 @@ COMMISSION_RULE = [('percent_fixed', 'Fixed Commission Rate'),
 # Define the due date available for any commission rule
 LAST_PAY_DATE_RULE = [('invoice_duedate', 'Invoice Due Date (default)'),
                       ('invoice_date_plus_cust_payterm', 'Invoice Date + Customer Payment Term')]
+
+COMMISSION_LINE_STATE = [('draft', 'Not Ready'),
+                          ('valid', 'Ready'),
+                          ('invalid', 'Invalid'),
+                          ('done', 'Done'),
+                          ('skip', 'Skipped')]
 
 
 class commission_rule(osv.osv):
@@ -245,6 +252,39 @@ class commission_worksheet(osv.osv):
         product = ir_model_data.get_object(cr, uid, 'sale_commission_calc', 'product_product_commission')
         return product.id
 
+    def _get_worksheet(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('commission.worksheet.line').browse(cr, uid, ids, context=context):
+            result[line.worksheet_id.id] = True
+        return result.keys()
+
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for worksheet in self.browse(cr, uid, ids, context=context):
+            res[worksheet.id] = {
+                'amount_draft': 0.0,
+                'amount_valid': 0.0,
+                'amount_invalid': 0.0,
+                'amount_done': 0.0,
+                'amount_skip': 0.0,
+                'amount_total': 0.0,
+            }
+            total = 0.0
+            for line in worksheet.worksheet_lines:
+                if line.commission_state == 'draft':
+                    res[worksheet.id]['amount_draft'] += line.commission_amt
+                if line.commission_state == 'valid':
+                    res[worksheet.id]['amount_valid'] += line.commission_amt
+                if line.commission_state == 'invalid':
+                    res[worksheet.id]['amount_invalid'] += line.commission_amt
+                if line.commission_state == 'done':
+                    res[worksheet.id]['amount_done'] += line.commission_amt
+                if line.commission_state == 'skip':
+                    res[worksheet.id]['amount_skip'] += line.commission_amt
+                total += line.commission_amt
+            res[worksheet.id]['amount_total'] = total
+        return res
+
     _columns = {
         'name': fields.char('Name', size=64, required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'sale_team_id': fields.many2one('sale.team', 'Team', required=False, readonly=True, states={'draft': [('readonly', False)]}),
@@ -261,6 +301,37 @@ class commission_worksheet(osv.osv):
                     \n* The \'Done\' status is set when the work sheet is ready to pay for commission. This state can not be undone. \
                     \n* The \'Cancelled\' status is set when a user cancel the work sheet.'),
         'invoice_ids': fields.one2many('account.invoice', 'worksheet_id', 'Invoices', readonly=True),
+        'amount_draft': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Not Ready', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+        'amount_valid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Ready', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+        'amount_invalid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Invalid', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+        'amount_done': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Done', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+        'amount_skip': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Skipped', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total Amount', multi='sums',
+            store={
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+            },),
+
     }
     _defaults = {
         'state': 'draft',
@@ -334,8 +405,8 @@ class commission_worksheet(osv.osv):
                                 (period.date_start, period.date_stop, res_id))
             invoice_ids = map(lambda x: x[0], cr.fetchall())
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
-            res = self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
-        return res
+            self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
+        return True
 
     def action_create_invoice(self, cr, uid, ids, context=None):
         if context is None:
@@ -356,7 +427,10 @@ class commission_worksheet(osv.osv):
             else:
                 continue
 
-            line_ids = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id), ('valid', '=', True)])
+            line_ids = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id),
+                                                           ('skip', '=', False),
+                                                           ('valid', '=', True),
+                                                           ('done', '=', False), ])
             if not line_ids:
                 raise osv.except_osv(_('Warning!'), _("No Commission Invoice(s) can be created for Worksheet %s" % (worksheet.name)))
 
@@ -463,7 +537,6 @@ class commission_worksheet_line(osv.osv):
                 'paid_date': False,
                 'last_pay_date': False,
                 'overdue': False,
-                'commission_state': 'draft'
             }
             invoice = line.invoice_id
             # Calculate each field,
@@ -483,7 +556,8 @@ class commission_worksheet_line(osv.osv):
                                                 False
             # 4) commission_state
             # If allow_unpaid, state always valid. Else, check with overdue
-            result[line.id]['commission_state'] = (line.done or line.skip) and 'done' or \
+            commission_state = (line.done and 'done') or \
+                              (line.skip and 'skip') or \
                               (allow_unpaid and 'valid') or \
                               (allow_overdue and line.invoice_state == 'paid' and 'valid') or \
                               (not allow_unpaid and line.invoice_state == 'open' and 'draft') or \
@@ -491,8 +565,10 @@ class commission_worksheet_line(osv.osv):
                               (not allow_overdue and not allow_unpaid and overdue and 'invalid') or \
                               (line.invoice_state == 'cancel' and 'invalid') or \
                               'draft'
+            if line.commission_state != commission_state:
+                self.write(cr, uid, [line.id], {'commission_state': commission_state})
             # Set flags
-            if result[line.id]['commission_state'] in ('valid', 'done'):
+            if commission_state in ('valid', 'done'):
                 self.write(cr, uid, [line.id], {'valid': True})
         return result
 
@@ -513,15 +589,16 @@ class commission_worksheet_line(osv.osv):
             help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
         'overdue': fields.function(check_commission_line_status, multi='status', type='boolean', string='Overdue', readonly=True, states={'draft': [('readonly', False)]},
             help="For the paid invoice, is it over due?"),
-        'commission_state': fields.function(check_commission_line_status, multi='status', string='State', type='selection', readonly=True, states={'draft': [('readonly', False)]},
-                                            selection=[('draft', 'Not Ready'),
-                                              ('valid', 'Ready'),
-                                              ('invalid', 'Invalid'),
-                                              ('done', 'Done')]),
+#         'commission_state': fields.function(check_commission_line_status, multi='status', string='State', type='selection', readonly=True, states={'draft': [('readonly', False)]},
+#                                             selection=COMMISSION_LINE_STATE,
+#                                             store={
+#                                                 'commission.worksheet.line': (lambda self, cr, uid, ids, ctx=None: ids, ['valid', 'done', 'skip'], 10)
+#                                             }),
+        'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=False),
         'valid': fields.boolean('Ready', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission is ready to be issued."),
         'done': fields.boolean('Done', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission has been issued."),
-        'skip': fields.boolean('Skip', help="Force skipping this invoice, no commission.", readonly=False),
-        'note': fields.text('Note', help="Reason for skipping commission.", readonly=False),
+        'skip': fields.boolean('Skip', help="Force skipping this invoice, no commission.", readonly=False, states={'draft': [('readonly', True)]},),
+        'note': fields.text('Note', help="Reason for skipping commission.", readonly=False, states={'draft': [('readonly', True)]},),
         'state': fields.related('worksheet_id', 'state', type='selection', selection=[('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),

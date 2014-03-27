@@ -61,6 +61,7 @@ TODO:
 - Need to make method "check_commission_line_status()" a scheduled process, this is to ensure that wait_pay is working.
 - Skip should be another status of line? Why skip disappear when generate invoice
 - Summary amount on every page.
+- A button to force done.
 
 How to count due date?
 - Use Invoice Due Date <-> Last Payment
