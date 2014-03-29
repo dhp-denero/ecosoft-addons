@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import netsvc
+from openerp import netsvc
 from osv import osv, fields
 from openerp.tools.amount_to_text_en import amount_to_text
 

@@ -229,8 +229,6 @@
         <!-- Config -->
         <menuitem name="Configuration" id="menu_commission_calc_config" parent="menu_commission_calc" sequence="100"/>
 
-        <menuitem name="Commission Rules" id="menu_commission_rule" parent="menu_commission_calc_config" 
-            action="action_commission_rule_form"  sequence="10"/>
         <menuitem name="Salespersons" id="menu_salesperson_commission_rule" parent="menu_commission_calc_config" 
             action="action_salesperson_commission_rule" sequence="20"/>          
         <menuitem name="Sale Teams" id="menu_sale_team" parent="menu_commission_calc_config" 

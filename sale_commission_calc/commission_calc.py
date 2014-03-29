@@ -21,7 +21,7 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import time
-import netsvc
+from openerp import netsvc
 from osv import osv, fields
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp

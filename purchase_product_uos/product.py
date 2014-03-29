@@ -22,7 +22,7 @@
 import time
 from lxml import etree
 
-import netsvc
+from openerp import netsvc
 from osv import osv, fields
 from tools.translate import _
 import decimal_precision as dp

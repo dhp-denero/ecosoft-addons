@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import netsvc
+from openerp import netsvc
 from openerp.osv import fields, osv
 
 class stock_location_product(osv.osv_memory):

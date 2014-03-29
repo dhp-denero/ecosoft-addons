@@ -1,4 +1,4 @@
-import netsvc
+from openerp import netsvc
 import time
 from openerp.osv import osv, fields
 from tools.translate import _

@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import netsvc
+from openerp import netsvc
 from osv import osv, fields
 
 class account_account(osv.osv):

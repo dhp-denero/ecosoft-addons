@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import netsvc
+from openerp import netsvc
 from osv import orm, osv, fields
 
 # Remove report from the list, if the view security is assigned.

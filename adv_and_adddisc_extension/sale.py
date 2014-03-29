@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import netsvc
+from openerp import netsvc
 from osv import osv, fields
 import openerp.addons.decimal_precision as dp
 
