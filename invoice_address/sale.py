@@ -18,9 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
+from openerp.osv import fields, osv
 
 class sale_order(osv.osv):
 

@@ -22,10 +22,8 @@
 import time
 from lxml import etree
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
-import decimal_precision as dp
+from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
 
 class purchase_order(osv.osv):
 

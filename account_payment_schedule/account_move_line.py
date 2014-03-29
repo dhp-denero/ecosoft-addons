@@ -20,7 +20,7 @@
 ##############################################################################
 
 import openerp.addons.decimal_precision as dp
-from osv import osv, fields
+from openerp.osv import fields, osv
 
 class account_move_line(osv.osv):
     

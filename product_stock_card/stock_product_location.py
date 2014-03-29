@@ -30,8 +30,8 @@
 # 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 ###############################################
-from osv import fields,osv
-from tools.sql import drop_view_if_exists
+from openerp.osv import fields, osv
+from openerp.tools.sql import drop_view_if_exists
 
 
 class stock_product_location(osv.osv):

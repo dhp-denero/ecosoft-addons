@@ -1,9 +1,8 @@
-from osv import fields, osv
-import decimal_precision as dp
-from tools.translate import _
+from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
+from openerp.tools.translate import _
 from common import AdditionalDiscountable
 import types
-import ast
 
 class sale_order(AdditionalDiscountable, osv.osv):
 

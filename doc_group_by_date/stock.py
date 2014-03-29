@@ -21,7 +21,7 @@
 ##############################################################################
 
 from datetime import datetime
-from osv import fields, osv
+from openerp.osv import fields, osv
 
 
 class stock_picking(osv.osv):

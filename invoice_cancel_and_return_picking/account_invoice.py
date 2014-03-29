@@ -19,10 +19,7 @@
 #
 ##############################################################################
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
-import time
+from openerp.osv import fields, osv
 
 class account_invoice(osv.osv):
        

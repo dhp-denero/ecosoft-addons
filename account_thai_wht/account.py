@@ -19,10 +19,7 @@
 #
 ##############################################################################
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
-from openerp.tools.float_utils import float_round
+from openerp.osv import fields, osv
 
 
 class account_tax(osv.osv):

@@ -20,7 +20,7 @@
 ##############################################################################
 
 from openerp import netsvc
-from osv import orm, osv, fields
+from openerp.osv import fields, osv
 
 # Remove report from the list, if the view security is assigned.
 def check_print_list(result):

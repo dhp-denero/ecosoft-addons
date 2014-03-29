@@ -19,9 +19,7 @@
 #
 ##############################################################################
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
+from openerp.osv import fields, osv
 import openerp.addons.decimal_precision as dp
 
 class product_pricelist_item(osv.osv):

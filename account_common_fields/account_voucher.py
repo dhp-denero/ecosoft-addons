@@ -19,9 +19,7 @@
 #
 ##############################################################################
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
+from openerp.osv import fields, osv
 import time
 
 class account_voucher_line(osv.osv):

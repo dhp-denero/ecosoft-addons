@@ -19,10 +19,8 @@
 #
 ##############################################################################
 
-from openerp import netsvc
-from osv import osv, fields
-from tools.translate import _
-import time
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
 
 class purchase_order(osv.osv):
     

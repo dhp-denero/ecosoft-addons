@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from osv import fields, osv
+from openerp.osv import fields, osv
 
 class stock_warehouse(osv.osv):
     _inherit = "stock.warehouse"

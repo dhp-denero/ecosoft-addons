@@ -19,9 +19,7 @@
 #
 ##############################################################################
 
-import decimal_precision as dp
-from osv import fields, osv
-from tools.translate import _
+from openerp.osv import osv
 
 class account_voucher_tax(osv.osv):
 

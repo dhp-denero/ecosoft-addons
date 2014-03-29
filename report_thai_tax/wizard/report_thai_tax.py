@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from osv import fields, osv
+from openerp.osv import fields, osv
 import time
 
 

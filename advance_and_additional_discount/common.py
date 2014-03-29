@@ -1,5 +1,4 @@
-from osv import osv
-from tools.translate import _
+from openerp.osv import fields, osv
 
 class AdditionalDiscountable(object):
 

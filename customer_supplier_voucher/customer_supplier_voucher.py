@@ -20,14 +20,8 @@
 #
 ##############################################################################
 
-
-import time
-from lxml import etree
-
-from openerp import netsvc
-from osv import osv, fields
-import decimal_precision as dp
-from tools.translate import _
+from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
 
 class account_voucher(osv.osv):
     _inherit = 'account.voucher'

@@ -19,10 +19,10 @@
 #
 ##############################################################################
 
-import decimal_precision as dp
-from osv import fields, osv
+import openerp.addons.decimal_precision as dp
+from openerp.osv import fields, osv
 from common import AdditionalDiscountable
-from tools.translate import _
+from openerp.tools.translate import _
 
 
 class account_invoice(AdditionalDiscountable, osv.Model):

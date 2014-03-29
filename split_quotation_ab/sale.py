@@ -20,7 +20,7 @@
 ##############################################################################
 
 from openerp import netsvc
-from osv import osv, fields
+from openerp.osv import fields, osv
 from openerp.tools.translate import _
 
 

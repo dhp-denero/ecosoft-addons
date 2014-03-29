@@ -20,7 +20,7 @@
 ##############################################################################
 
 from openerp import netsvc
-from osv import osv, fields
+from openerp.osv import fields, osv
 
 class product_category(osv.osv):
     

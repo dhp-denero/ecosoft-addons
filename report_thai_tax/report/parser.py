@@ -4,7 +4,7 @@
 #
 ##############################################################################
 import jasper_reports
-from osv import osv,fields 
+from openerp.osv import fields, osv
 import pooler
 import datetime
 
