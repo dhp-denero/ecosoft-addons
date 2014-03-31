@@ -1,6 +1,6 @@
 {
     "name": "Advance and Additional discount",
-    "version": "1.0",
+    "version": "1.1",
     "depends": ["base","sale","purchase","account",
                 "stock","picking_invoice_rel",
                 "account_thai_wht",

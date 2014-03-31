@@ -3,7 +3,7 @@
 <openerp>
     <data>
     	<record id="action_view_sale_advance_payment_inv1" model="ir.actions.act_window">
-            <field name="name">Invoice Order</field>
+            <field name="name">Invoice Order1</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">sale.advance.payment.inv</field>
             <field name="view_type">form</field>
