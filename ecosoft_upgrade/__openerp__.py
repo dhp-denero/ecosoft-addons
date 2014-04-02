@@ -25,13 +25,12 @@
     'author' : 'Ecosoft',
     'summary': 'Checking Modules was update',
     'description': """
-    
-Schedule Backup and Restore Database (Crontab Configuration)
 ============================================================
-This module will be 
+This module will be checking modules has been modification.
 
 Features
 ========
+Check module has been to modification.
 
     """,
     'category': 'Tools',
