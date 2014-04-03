@@ -38,7 +38,9 @@ class module(osv.osv):
                 result = self.pool.get('ecosoft.modules').compare_version(cr, uid, mod.ecosoft_module[0].addon_id, mod.name, context)
                 if result in (1, 2, 3):
                     sourcedir = os.path.join(mod.ecosoft_module[0].addon_id.root_path, mod.name)
-                    destdir = mod.ecosoft_module[0].addon_id.production_path
+                    destdir = os.path.join(mod.ecosoft_module[0].addon_id.production_path, mod.name)
+                    if os.path.exists(destdir):
+                        shutil.rmtree(destdir)
                     shutil.copytree(sourcedir, destdir)
                 self.pool.get('ecosoft.modules').unlink(cr, uid, [mod.ecosoft_module[0].id], context)
         return super(module, self).button_immediate_upgrade(cr, uid, ids, context)
