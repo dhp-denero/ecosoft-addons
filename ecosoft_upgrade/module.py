@@ -44,15 +44,15 @@ class module(osv.osv):
                     shutil.copytree(sourcedir, destdir)
                 self.pool.get('ecosoft.modules').unlink(cr, uid, [mod.ecosoft_module[0].id], context)
 
-                cr.commit()
-                openerp.service.restart_server()
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'home',
-                    'params': {'wait': True},
-                }
-        return super(module, self).button_immediate_upgrade(cr, uid, ids, context)
+        super(module, self).button_immediate_upgrade(cr, uid, ids, context)
 
+        cr.commit()
+        openerp.service.restart_server()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'home',
+            'params': {'wait': True},
+        }
 module()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
