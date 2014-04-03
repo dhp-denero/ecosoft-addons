@@ -23,7 +23,7 @@ from openerp.osv import osv, fields
 from openerp.tools.translate import _
 import os
 import shutil
-
+import openerp
 
 class module(osv.osv):
     _inherit = "ir.module.module"
@@ -43,6 +43,14 @@ class module(osv.osv):
                         shutil.rmtree(destdir)
                     shutil.copytree(sourcedir, destdir)
                 self.pool.get('ecosoft.modules').unlink(cr, uid, [mod.ecosoft_module[0].id], context)
+
+                cr.commit()
+                openerp.service.restart_server()
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'home',
+                    'params': {'wait': True},
+                }
         return super(module, self).button_immediate_upgrade(cr, uid, ids, context)
 
 module()
