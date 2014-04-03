@@ -40,15 +40,15 @@ class sale_advance_payment_inv(osv.osv_memory):
         return res
 
     _columns = {
-        'line_percent': fields.float('Installment', digits_compute=dp.get_precision('Account'),
+        'line_percent': fields.float('Installment', digits_compute= dp.get_precision('Account'),
             help="The % of installment to be used to calculate the quantity to invoice"),
-#         'advance_payment_method': fields.selection(_get_advance_payment_method,
-#             'What do you want to invoice?', required=True,
-#             help="""Use All to create the final invoice.
-#                 Use Percentage to invoice a percentage of the total amount.
-#                 Use Line Percentage to invoice a percentage of lines from Sales Order.
-#                 Use Fixed Price to invoice a specific amount in advance.
-#                 Use Some Order Lines to invoice a selection of the sales order lines."""),
+        'advance_payment_method': fields.selection(_get_advance_payment_method,
+            'What do you want to invoice?', required=True,
+            help="""Use All to create the final invoice.
+                Use Percentage to invoice a percentage of the total amount.
+                Use Line Percentage to invoice a percentage of lines from Sales Order.
+                Use Fixed Price to invoice a specific amount in advance.
+                Use Some Order Lines to invoice a selection of the sales order lines."""),
     }
 
     def create_invoices(self, cr, uid, ids, context=None):

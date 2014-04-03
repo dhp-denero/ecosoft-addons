@@ -21,7 +21,7 @@
 
 {
     'name': 'Create Invoice Line by Percentage',
-    'version': '1.1',
+    'version': '1.0',
     'author': 'Ecosoft',
     'summary': 'New method to creating invoice based on Sales Order line by percentage',
     'description': """

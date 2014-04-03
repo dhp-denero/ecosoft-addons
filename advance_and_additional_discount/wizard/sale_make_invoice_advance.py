@@ -49,12 +49,12 @@ class sale_advance_payment_inv(osv.osv_memory):
         return res
 
     _columns = {
-#         'advance_payment_method': fields.selection(_get_advance_payment_method,
-#             'What do you want to invoice?', required=True,
-#             help="""Use All to create the final invoice.
-#                 Use Percentage to invoice a percentage of the total amount.
-#                 Use Fixed Price to invoice a specific amound in advance.
-#                 Use Some Order Lines to invoice a selection of the sales order lines."""),
+        'advance_payment_method': fields.selection(_get_advance_payment_method,
+            'What do you want to invoice?', required=True,
+            help="""Use All to create the final invoice.
+                Use Percentage to invoice a percentage of the total amount.
+                Use Fixed Price to invoice a specific amound in advance.
+                Use Some Order Lines to invoice a selection of the sales order lines."""),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'),
             help="The amount to be invoiced in advance."),
         # Retention
