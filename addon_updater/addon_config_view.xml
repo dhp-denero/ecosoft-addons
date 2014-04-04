@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        
+        <!-- Addons Updater -->
+        <menuitem id="menu_addons_updater" parent="base.menu_management" name="Addons Updater" sequence="100" groups="base.group_no_one" />
+
+        <!-- Modules -->
+        <record id="addon_config_form" model="ir.ui.view">
+            <field name="name">addon.config.form</field>
+            <field name="model">addon.config</field>
+            <field name="arch" type="xml">
+                <form string="Add-on Config" version="7.0">
+                    <sheet>
+                        <group>
+		                    <group>
+		                        <field name="name" on_change="onchange_addon(name)"/>
+		                    </group>
+		                    <group>
+	                        	<field name="bzr_source"/>
+		                    </group>
+		                </group>
+		                <group>
+		                    <group>
+		                        <field name="root_path" on_change="onchange_rootpath(root_path)"/>
+		                    </group>
+		                    <group>
+		                        <field name="backup_path"/>
+		                    </group>
+	                    </group>
+		                <group>
+	                        <field name="production_path"/>
+	                        <field name="note"/>
+	                    </group>        
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="addon_config_tree" model="ir.ui.view">
+            <field name="name">addon.config.tree</field>
+            <field name="model">addon.config</field>
+            <field name="arch" type="xml">
+                <tree string="Add-on Config">
+                    <field name="name"/>
+                    <field name="bzr_source"/>
+                </tree>
+            </field>
+        </record>
+        <record id="open_addon_config_tree" model="ir.actions.act_window">
+            <field name="name">Add-on Config</field>
+            <field name="res_model">addon.config</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+              <p><b>No Addon Projects found!</b></p>
+            </field>
+        </record>
+        <menuitem id="menu_addon_config_tree" parent="menu_addons_updater" name="Addons Projects" sequence="60" action="open_addon_config_tree" />
+    </data>
+</openerp>
