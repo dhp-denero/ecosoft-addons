@@ -40,12 +40,30 @@
                		</header>
 	                <sheet>
 	                    <h1>
-	                        <label string="Sheet "/>
 	                        <field name="name" class="oe_inline" readonly="1"/>
 	                    </h1>
 	                    <div class="oe_right oe_button_box">
 	                        <button name="action_check" string="Check Updated Modules" states="draft,check" type="object" />
-	                    </div>                             
+	                    </div>        
+	                    <group>
+	                       <p attrs="{'invisible':[('state','&lt;&gt;','draft')]}" class="oe_grey">
+	                           Select addon project you want to work on. Then click on "Check Update Modules" button. It will lish new/updated addons available.
+	                           <b>Please note that this process can take long time depend on size of the project.</b>
+	                       </p>    
+	                       <p attrs="{'invisible':[('state','&lt;&gt;','check')]}" class="oe_grey">
+								"Select" addon you want to upgrade. Then click "Send to Production" to uploaded selected addons to production folder.
+	                       </p>   
+	                       <p attrs="{'invisible':[('state','&lt;&gt;','ready')]}" class="oe_highlight">
+								Click "Upgrade" to complete the task or click "Revert" to bring system back to last know working stage.
+	                      	    <br><b>Do not leave it pending at this state. As code and database are no syncronized, it can result in a serious outcome!</b></br>
+	                       </p>
+	                       <p attrs="{'invisible':[('state','&lt;&gt;','done')]}" class="oe_grey">
+	                           All selected module has been updated successfully!
+	                       </p>
+	                       <p attrs="{'invisible':[('state','&lt;&gt;','revert')]}" class="oe_grey">
+	                           All selected module has been revereted!
+	                       </p>
+                   		</group>
 						<group colspan="4">
 	                        <group>
 	                       		<field name="config_id" />
@@ -56,7 +74,7 @@
 	                        </group>
 	                    </group>
 	                    <notebook>
-							<page string="Worksheet Details">
+							<page string="Available Updated Modules">
 								<field name="update_lines" widget="one2many_list" colspan="4" nolabel="1" >
 		                            <tree string="Update Lines" editable="bottom" colors="blue:type in ('update');red:type in ('new');">
 		                                <field name="select"/>
@@ -86,6 +104,6 @@
             </field>
         </record>
 
-        <menuitem id="menu_addon_update_tree" parent="menu_addons_updater" name="Addon Update Sheet" sequence="100" action="action_addon_update_tree" />
+        <menuitem id="menu_addon_update_tree" parent="menu_addons_updater" name="Addon Update Sheet" sequence="100" action="action_addon_update_tree" groups="base.group_no_one" />
     </data>
 </openerp>

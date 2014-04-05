@@ -20,8 +20,7 @@
 ##############################################################################
 
 from openerp.osv import osv, fields
-from openerp import modules, pooler, tools, addons
-from openerp.tools.translate import _
+from openerp import tools
 import os
 
 
@@ -53,7 +52,6 @@ class addon_config(osv.osv):
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'No duplication of addon project allowed!'),
     ]
-
 
     def onchange_addon(self, cr, uid, ids, addon, context=None):
         res = {}

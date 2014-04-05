@@ -29,13 +29,10 @@ import bzrlib.directory_service
 import filecmp
 import shutil
 import logging
-import openerp
 from openerp import pooler
 import subprocess
 
-
 _logger = logging.getLogger(__name__)
-
 
 
 class addon_update(osv.osv):
@@ -43,11 +40,11 @@ class addon_update(osv.osv):
     _name = "addon.update"
     _description = 'Addon Update Worksheet'
     _columns = {
-        'name': fields.char('Name', size=64, required=True),
-        'config_id': fields.many2one('addon.config', 'Addon Project', required=True),
-        'update_lines': fields.one2many('addon.update.line', 'update_id', 'Update Lines', ondelete='cascade'),
+        'name': fields.char('Name', size=64, required=True, readonly=True),
+        'config_id': fields.many2one('addon.config', 'Addon Project', required=True, readonly=True, states={'draft': [('readonly', False)], 'check': [('readonly', False)]}),
+        'update_lines': fields.one2many('addon.update.line', 'update_id', 'Update Lines', ondelete='cascade', readonly=True, states={'draft': [('readonly', False)], 'check': [('readonly', False)]}),
         'revision': fields.integer('Revision', readonly=True),
-        'check_time': fields.datetime('Last Check'),
+        'check_time': fields.datetime('Last Check', readonly=True),
         'state': fields.selection([('draft', 'Draft'),
                                    ('check', 'Checked'),
                                    ('ready', 'Ready'),
@@ -186,10 +183,10 @@ class addon_update(osv.osv):
                           'added_files': added_files,
                           'removed_files': removed_files})
         return result
-    
+
     def action_cancel(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'cancel'}, context=context)
-    
+
     def action_check(self, cr, uid, ids, context=None):
         if context == None:
             context = {}
@@ -202,7 +199,7 @@ class addon_update(osv.osv):
             config = update.config_id
             # Delete backup directory, it will be created in action_sent
             if os.path.isdir(config.backup_path):
-                shutil.rmtree(config.backup_path)            
+                shutil.rmtree(config.backup_path)
             try:
                 revision = self._update_from_bzr(cr, uid, config.id, context)
             except Exception, e:
@@ -214,7 +211,7 @@ class addon_update(osv.osv):
                 if result['type'] in ['new', 'update']:
                     self._add_to_update_list(cr, uid, update.id, mod_name, result, context=context)
 
-            self.write(cr, uid, [update.id], {'state': 'check', 
+            self.write(cr, uid, [update.id], {'state': 'check',
                                               'revision': revision,
                                               'check_time': time.strftime("%Y-%m-%d %H:%M:%S")}, context=context)
         return True
@@ -244,16 +241,16 @@ class addon_update(osv.osv):
                         shutil.move(destdir, backupdir)
                     # Copy from local to production
                     shutil.copytree(sourcedir, destdir)
-            
+
             if not install_list + upgrade_list:
                 raise osv.except_osv(_('Warning!'), _('You have not select any addons to install/upgrade!'))
-            
+
             self.write(cr, uid, [update.id], {'state': 'ready'}, context=context)
-            
+
             # Update module list
             module_obj = self.pool.get('ir.module.module')
             module_obj.update_list(cr, uid,)
-            
+
             # Update ir_module_module state
             to_install_ids = module_obj.search(cr, uid, [('name', 'in', install_list)])
             to_upgrade_ids = module_obj.search(cr, uid, [('name', 'in', upgrade_list)])
@@ -261,7 +258,7 @@ class addon_update(osv.osv):
             module_obj.write(cr, uid, to_upgrade_ids, {'state': 'to upgrade'})
 
         return True
-        
+
     def upgrade_module(self, cr, uid, ids, context=None):
         ir_module = self.pool.get('ir.module.module')
 
@@ -279,7 +276,7 @@ class addon_update(osv.osv):
                                      _('Following modules are not installed or unknown: %s') % ('\n\n' + '\n'.join(unmet_packages)))
 
             ir_module.download(cr, uid, module_ids, context=context)
-            cr.commit() # save before re-creating cursor below
+            cr.commit()  # save before re-creating cursor below
 
         # Change state, if not specified, set to done.
         self.write(cr, uid, ids, {'state': context.get('to_state', False) or 'done'}, context=context)
@@ -312,18 +309,20 @@ class addon_update(osv.osv):
                     backupdir = os.path.join(config.backup_path, update_line.name)
                     destdir = os.path.join(config.production_path, update_line.name)
                     # Copy from back from backup to production
-                    shutil.rmtree(destdir)
+                    if os.path.isdir(destdir):
+                        shutil.rmtree(destdir)
                     if os.path.isdir(backupdir):
                         shutil.copytree(backupdir, destdir)
             self.write(cr, uid, [update.id], {'state': 'revert'}, context=context)
-            
+
             # Update ir_module_module state
             module_obj = self.pool.get('ir.module.module')
             to_install_ids = module_obj.search(cr, uid, [('name', 'in', install_list)])
             to_upgrade_ids = module_obj.search(cr, uid, [('name', 'in', upgrade_list)])
-            module_obj.write(cr, uid, to_install_ids, {'state': 'uninstalled'})  # remove
+            module_obj.write(cr, uid, to_install_ids, {'state': 'uninstalled'})  # to remove
+            module_obj.unlink(cr, uid, to_install_ids)  # remove it.
             module_obj.write(cr, uid, to_upgrade_ids, {'state': 'to upgrade'})
-            
+
         context.update({'to_state': 'revert'})
         self.upgrade_module(cr, uid, ids, context=context)
         return True
@@ -338,8 +337,8 @@ class addon_update_line(osv.osv):
     _columns = {
         'update_id': fields.many2one('addon.update', 'Addon Update', required=True),
         'select': fields.boolean('Select', required=False),
-        'module_id': fields.many2one('ir.module.module', 'Module', required=False),
-        'name': fields.char('Technical Name', size=64, required=False),
+        'module_id': fields.many2one('ir.module.module', 'Module', readonly=True, required=False),
+        'name': fields.char('Technical Name', size=64, readonly=True, required=False),
         'type': fields.selection([
             ('new', 'New'),  # New state for package not available on production yet.
             ('update', 'Updated'),
