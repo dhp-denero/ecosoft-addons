@@ -230,16 +230,16 @@ class commission_worksheet(osv.osv):
             total = 0.0
             for line in worksheet.worksheet_lines:
                 if line.commission_state == 'draft':
-                    res[worksheet.id]['amount_draft'] += line.commission_amt
+                    res[worksheet.id]['amount_draft'] += line.amount_subtotal
                 if line.commission_state == 'valid':
-                    res[worksheet.id]['amount_valid'] += line.commission_amt
+                    res[worksheet.id]['amount_valid'] += line.amount_subtotal
                 if line.commission_state == 'invalid':
-                    res[worksheet.id]['amount_invalid'] += line.commission_amt
+                    res[worksheet.id]['amount_invalid'] += line.amount_subtotal
                 if line.commission_state == 'done':
-                    res[worksheet.id]['amount_done'] += line.commission_amt
+                    res[worksheet.id]['amount_done'] += line.amount_subtotal
                 if line.commission_state == 'skip':
-                    res[worksheet.id]['amount_skip'] += line.commission_amt
-                total += line.commission_amt
+                    res[worksheet.id]['amount_skip'] += line.amount_subtotal
+                total += line.amount_subtotal
             res[worksheet.id]['amount_total'] = total
         return res
 
@@ -262,32 +262,32 @@ class commission_worksheet(osv.osv):
         'amount_draft': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Not Ready', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
         'amount_valid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Ready', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
         'amount_invalid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Invalid', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
         'amount_done': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Done', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
         'amount_skip': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Skipped', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total Amount', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'skip', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
             },),
 
     }
@@ -384,6 +384,14 @@ class commission_worksheet(osv.osv):
             self.pool.get('commission.worksheet.line').check_commission_line_status(cr, uid, line_ids, context=context)
         return True
 
+    def final_update_invoice(self, cr, uid, inv_rec, context=None):
+        # Prepare for hook
+        return inv_rec
+
+    def final_update_invoice_line(self, cr, uid, inv_rec_line, context=None):
+        # Prepare for hook
+        return inv_rec_line
+
     def action_create_invoice(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -404,9 +412,7 @@ class commission_worksheet(osv.osv):
                 continue
 
             line_ids = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id),
-                                                           ('skip', '=', False),
-                                                           ('valid', '=', True),
-                                                           ('done', '=', False), ])
+                                                           ('commission_state', '=', 'valid')])
             if not line_ids:
                 raise osv.except_osv(_('Warning!'), _("No Commission Invoice(s) can be created for Worksheet %s" % (worksheet.name)))
 
@@ -421,7 +427,9 @@ class commission_worksheet(osv.osv):
                                 'worksheet_id': worksheet.id,
                                 'type': 'in_invoice',
                                 'partner_id': user.partner_id.id,
-                                'date_invoice': time.strftime('%Y-%m-%d')})
+                                'date_invoice': time.strftime('%Y-%m-%d'),
+                                'comment': context.get('comment', False)})
+                inv_rec = self.final_update_invoice(cr, uid, inv_rec, context=context)
                 invoice_id = inv_obj.create(cr, uid, inv_rec, context=context)
                 invoice_ids.append(invoice_id)
                 wlines = worksheet_line_obj.browse(cr, uid, line_ids, context=context)
@@ -440,8 +448,8 @@ class commission_worksheet(osv.osv):
                                          'partner_id': user.partner_id.id,
                                          'company_id': inv_rec['company_id'],
                                          'currency_id': inv_rec['currency_id'],
-                                         'price_unit': wline.commission_amt,
-                                         'price_subtotal': wline.commission_amt,
+                                         'price_unit': wline.amount_subtotal,
+                                         'price_subtotal': wline.amount_subtotal,
                                          })
                     invline_obj.create(cr, uid, inv_line_rec, context=context)
                     #Update worksheet line was paid commission
@@ -527,7 +535,8 @@ class commission_worksheet_line(osv.osv):
             # 4) commission_state
             # If allow_unpaid, state always valid. Else, check with overdue
             commission_state = (line.done and 'done') or \
-                              (line.skip and 'skip') or \
+                              (line.force == 'skip' and 'skip') or \
+                              (line.force == 'allow' and 'valid') or \
                               (allow_unpaid and 'valid') or \
                               (allow_overdue and line.invoice_state == 'paid' and 'valid') or \
                               (not allow_unpaid and line.invoice_state == 'open' and 'draft') or \
@@ -547,25 +556,33 @@ class commission_worksheet_line(osv.osv):
                 self.write(cr, uid, [line.id], {'valid': True})
         return result
 
+    def _amount_subtotal(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id] = line.commission_amt + line.adjust_amt
+        return res
+
     _columns = {
         'worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', ondelete='cascade'),
-        'invoice_id': fields.many2one('account.invoice', 'Invoice', readonly=True, states={'draft': [('readonly', False)]}),
-        'date_invoice': fields.date('Invoice Date', readonly=True, states={'draft': [('readonly', False)]}),
-        'invoice_amt': fields.float('Amount', readonly=True, states={'draft': [('readonly', False)]}),
-        'accumulated_amt': fields.float('Accumulated', readonly=True, states={'draft': [('readonly', False)]}),
-        'commission_amt': fields.float('Commission', readonly=True, states={'draft': [('readonly', False)]}),
-        'invoice_state': fields.related('invoice_id', 'state', type='selection', readonly=True, states={'draft': [('readonly', False)]}, string="Status",
+        'invoice_id': fields.many2one('account.invoice', 'Invoice', readonly=True),
+        'date_invoice': fields.date('Invoice Date', readonly=True),
+        'invoice_amt': fields.float('Amount', readonly=True),
+        'accumulated_amt': fields.float('Accumulated', readonly=True),
+        'commission_amt': fields.float('Commission', readonly=True, states={'confirmed': [('readonly', False)]},),
+        'adjust_amt': fields.float('Adjust', readonly=True, states={'confirmed': [('readonly', False)]}, help="Adjustment can be both positive or negative"),
+        'amount_subtotal': fields.function(_amount_subtotal, digits_compute=dp.get_precision('Account'), string='Total', store=True),
+        'invoice_state': fields.related('invoice_id', 'state', type='selection', readonly=True, string="Status",
                                         selection=[('open', 'Open'),
                                                     ('paid', 'Paid'),
                                                     ('cancel', 'Cancelled')]),
-        'paid_date': fields.boolean('Paid Date', readonly=True, help="The date of payment that make this invoice marked as paid"),
-        'last_pay_date': fields.boolean('Due Payment Date', readonly=True, help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
+        'paid_date': fields.date('Paid Date', readonly=True, help="The date of payment that make this invoice marked as paid"),
+        'last_pay_date': fields.date('Due Date', readonly=True, help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
         'overdue': fields.boolean('Overdue', readonly=True, help="For the paid invoice, is it over due?"),
         'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=True),
-        'valid': fields.boolean('Ready', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission is ready to be issued."),
-        'done': fields.boolean('Done', readonly=True, states={'draft': [('readonly', False)]}, help="This flag show whether the commission has been issued."),
-        'skip': fields.boolean('Skip', help="Force skipping this invoice, no commission.", readonly=False, states={'draft': [('readonly', True)], 'done': [('readonly', True)]},),
-        'note': fields.text('Note', help="Reason for skipping commission.", readonly=False, states={'draft': [('readonly', True)], 'done': [('readonly', True)]},),
+        'valid': fields.boolean('Ready', readonly=True, help="This flag show whether the commission is ready to be issued."),
+        'done': fields.boolean('Done', readonly=True, help="This flag show whether the commission has been issued."),
+        'force': fields.selection([('skip', 'Skip'), ('allow', 'Allow')], 'Force', readonly=True, states={'confirmed': [('readonly', False)]},),
+        'note': fields.text('Note', help="Reason for forcing", readonly=True, states={'confirmed': [('readonly', False)]},),
         'state': fields.related('worksheet_id', 'state', type='selection', selection=[('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),

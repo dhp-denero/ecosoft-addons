@@ -40,6 +40,7 @@ Key Features
     * Manage security, sales people can see only their own worksheet, while managers can manage all.
     * Process: Update Invoice Commission, go to each invoice that has not been assigned commission and assign it.
     * Process: Generate Commission Worksheet(s), look through team/commission worksheet that has not been created to date, and create them.
+    * Feature: Ability to force allow/skip for the given commission regardless of the calculation result.
 
 Available Rule Types
 --------------------
@@ -65,6 +66,8 @@ TODO:
 - Consider Refund
 - Make it easy to manage and view and grouping in worksheet
 - Need to make method "check_commission_line_status()" a scheduled process, this is to ensure that wait_pay is working.
+BUG:
+- If still group by in worksheet, when generate invoice will have error.
 - Why Due Payment Date always True???
 MH
 - Seperate VAT and No-VAT commission amount
@@ -72,19 +75,21 @@ MH
 - Table for % by Product for easy update
 - Progressive Rate for Product Commission
 - Ability to edit commission amount
-- Rule > Commission by margin, start from SO will have a new field "Cost"
-  - This field will be visible only for selected salesperson
 SQP
 ===
 * Allow salesperson to see their own worksheet, all readonly
 * Manager to be able to edit / every windows
 * User to see only worksheets, but can confirm and create invoice
-* SO window, to have adjusted amount that will be used to determine paid mode
+
 ** In SO, will have a new field to says it is completed / amount -> Before Tax but after Discount
 ** Payment Detail to tell that it due, use Last Payment Item
 ** Add SO / Amount Overwrite in Worksheet Details
 * p'Som to send commission approval form
 ** Add adjustment table (with checkbox) -> Commission Discount + Description in footer of worksheet.
+
+* SO window, to have adjusted amount that will be used to determine paid mode
+- Rule > Commission by margin, start from SO will have a new field "Cost"
+  - This field will be visible only for selected salesperson
 
 """,
     'category': 'Sales',
@@ -98,6 +103,7 @@ SQP
           'product_data.xml',
     ],
     'data': [
+          'wizard/create_commission_invoice_view.xml',
           'commission_calc_view.xml',
           'commission_rule_view.xml',
           'account_invoice_view.xml',
