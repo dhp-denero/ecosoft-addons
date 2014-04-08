@@ -27,14 +27,17 @@ from openerp.osv import fields, osv
 import openerp.addons.decimal_precision as dp
 from openerp.tools.translate import _
 
+
 class payment_register(osv.osv):
-    
+
     def _get_reference(self, cr, uid, context=None):
-        if context is None: context = {}
+        if context is None:
+            context = {}
         return context.get('reference', False)
-    
+
     def _get_narration(self, cr, uid, context=None):
-        if context is None: context = {}
+        if context is None:
+            context = {}
         return context.get('narration', False)
 
     def _make_journal_search(self, cr, uid, ttype, context=None):
@@ -46,7 +49,8 @@ class payment_register(osv.osv):
         Return the default value for field original_pay_currency_id: the currency of the journal
         if there is one, otherwise the currency of the user's company
         """
-        if context is None: context = {}
+        if context is None:
+            context = {}
         journal_pool = self.pool.get('account.journal')
         journal_id = context.get('journal_id', False)
         if journal_id:
@@ -57,20 +61,21 @@ class payment_register(osv.osv):
         return self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.currency_id.id
 
     def _paid_amount_in_company_currency(self, cr, uid, ids, name, args, context=None):
-        if not ids: return {}
+        if not ids:
+            return {}
         res = {}
         rate = 1.0
         for register in self.browse(cr, uid, ids, context=context):
             if register.currency_id:
                 if register.company_id.currency_id.id == register.original_pay_currency_id.id:
-                    rate =  1 / register.exchange_rate
+                    rate = 1 / register.exchange_rate
                 else:
                     ctx = context.copy()
                     ctx.update({'date': register.date})
                     voucher_rate = self.browse(cr, uid, register.id, context=ctx).currency_id.rate
                     company_currency_rate = register.company_id.currency_id.rate
                     rate = voucher_rate * company_currency_rate
-            res[register.id] =  register.amount / rate
+            res[register.id] = register.amount / rate
         return res
 
     _name = 'payment.register'
@@ -79,7 +84,6 @@ class payment_register(osv.osv):
     _order = "date desc, id desc"
     _rec_name = 'number'
     _columns = {
-                
         # Document
         'number': fields.char('Number', size=32, readonly=True,),
 
@@ -89,34 +93,34 @@ class payment_register(osv.osv):
         'date_payment': fields.related('voucher_id', 'date', type='date', relation='account.voucher', string='Payment Date', store=True, readonly=True),
         'journal_transit_id': fields.related('voucher_id', 'journal_id', type='many2one', relation='account.journal', string='Payment in Transit', store=True, readonly=True),
         'account_transit_id': fields.related('voucher_id', 'account_id', type='many2one', relation='account.account', string='Account in Transit', store=True, readonly=True),
-        'original_pay_currency_id': fields.many2one('res.currency', 'Original Payment Currency', required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'original_pay_currency_id': fields.many2one('res.currency', 'Original Payment Currency', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_pay_total': fields.related('voucher_id', 'amount', type='float', relation='account.voucher', string='Payment Total', store=True, readonly=True),
-        'original_pay_amount': fields.float('Original Pay Amount', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'original_pay_amount': fields.float('Original Pay Amount', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
 
         # Company Information
         'company_id': fields.related('voucher_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True),
         'company_currency_id': fields.related('company_id', 'currency_id', type='many2one', relation='res.currency', string='Company Currency', store=True, readonly=True),
         'paid_amount_in_company_currency': fields.function(_paid_amount_in_company_currency, string='Paid Amount in Company Currency', type='float', readonly=True),
-        'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),     
-        'reference': fields.char('Ref #', size=64, readonly=True, states={'draft':[('readonly',False)]}, help="Transaction reference number."),
+        'memo': fields.char('Memo', size=256, readonly=True, states={'draft': [('readonly', False)]}),
+        'reference': fields.char('Ref #', size=64, readonly=True, states={'draft': [('readonly', False)]}, help="Transaction reference number."),
 
         # Multi Currency from Original Currency to Target Currency
         'is_multi_currency': fields.boolean('Multi Currency Voucher', help='Fields with internal purpose only that depicts if the voucher is a multi currency one or not'),
-        'exchange_rate': fields.float('Exchange Rate', digits=(12,6), required=True, readonly=True, states={'draft': [('readonly', False)]},
+        'exchange_rate': fields.float('Exchange Rate', digits=(12, 6), required=True, readonly=True, states={'draft': [('readonly', False)]},
             help='The specific rate that will be used, in this voucher, between the selected currency (in \'Payment Rate Currency\' field)  and the voucher currency.'),
 
         # Payment Detail
         'pay_detail_id': fields.many2one('account.voucher.pay.detail', 'Payment Detail Ref', ondelete='restrict', select=True),
-        'name': fields.char('Bank/Branch', size=128, readonly=True, states={'draft':[('readonly',False)]}),
+        'name': fields.char('Bank/Branch', size=128, readonly=True, states={'draft': [('readonly', False)]}),
         'type': fields.selection([
-            ('check','Check'),
-            ('cash','Cash'),
-            ('transfer','Transfer'),
-            ],'Type', required=True, readonly=True, states={'draft':[('readonly',False)]}),
-        'check_no': fields.char('Check No.', size=64, readonly=True, states={'draft':[('readonly',False)]}),
-        'date_due': fields.date('Date Due', readonly=True, states={'draft':[('readonly',False)]}),
+            ('check', 'Check'),
+            ('cash', 'Cash'),
+            ('transfer', 'Transfer'),
+            ], 'Type', required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'check_no': fields.char('Check No.', size=64, readonly=True, states={'draft': [('readonly', False)]}),
+        'date_due': fields.date('Date Due', readonly=True, states={'draft': [('readonly', False)]}),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
-        
+
         # Payment Register
         'date':fields.date('Pay-in Date', readonly=True, select=True, states={'draft':[('readonly',False)]}, help="Effective date for accounting entries"),
         'period_id': fields.many2one('account.period', 'Period', readonly=True, states={'draft':[('readonly',False)]}),
@@ -171,7 +175,7 @@ class payment_register(osv.osv):
     }
 
     def create(self, cr, uid, vals, context=None):
-        register =  super(payment_register, self).create(cr, uid, vals, context=context)
+        register = super(payment_register, self).create(cr, uid, vals, context=context)
         self.create_send_note(cr, uid, [register], context=context)
         return register
 
@@ -182,19 +186,8 @@ class payment_register(osv.osv):
         return super(payment_register, self).unlink(cr, uid, ids, context=context)
 
     def copy(self, cr, uid, id, default=None, context=None):
-        if default is None:
-            default = {}
-        default.update({
-            'state': 'draft',
-            'number': False,
-            'move_id': False,
-            'line_cr_ids': False,
-            'line_dr_ids': False,
-            'reference': False
-        })
-        if 'date' not in default:
-            default['date'] = time.strftime('%Y-%m-%d')
-        return super(payment_register, self).copy(cr, uid, id, default, context)
+        # No longer allow copying
+        raise osv.except_osv(_('Error!'), _('Duplication of Payment Detail not allowed. If this payment detail is cancelled, and you want to renew, use "Set to Draft" instead.'))
 
     def create_send_note(self, cr, uid, ids, context=None):
         for obj in self.browse(cr, uid, ids, context=context):
