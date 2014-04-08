@@ -47,13 +47,15 @@ class sale_team(osv.osv):
         'users': fields.many2many('res.users', 'sale_team_users_rel', 'tid', 'uid', 'Users'),
         'implied_ids': fields.many2many('sale.team', 'sale_team_implied_rel', 'tid', 'hid',
             string='Inherits', help='Users of this group automatically inherit those groups'),
-        'allow_unpaid': fields.boolean('Allow unpaid invoice', help='Allow paying commission without invoice being paid.'),
+        'require_paid': fields.boolean('Require Paid Invoice', help='Require invoice to be paid in full amount.'),
+        'require_posted': fields.boolean('Require Payment Detail Posted', help='Require that all payment detail related to payments to invoice has been posted.'),
         'allow_overdue': fields.boolean('Allow overdue payment', help='Allow paying commission with overdue payment.'),
         'last_pay_date_rule': fields.selection(LAST_PAY_DATE_RULE, 'Last Pay Date Rule'),
         'buffer_days': fields.integer('Buffer Days', help="Additional days after last payment date to be eligible for commission.")
     }
     _defaults = {
-        'allow_unpaid': False,
+        'require_paid': False,
+        'require_posted': False,
         'allow_overdue': False,
         'buffer_days': 0,
     }
@@ -70,27 +72,27 @@ class commission_worksheet(osv.osv):
     _description = 'Commission Worksheet'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
 
-    def _search_wait_pay(self, cr, uid, obj, name, args, domain=None, context=None):
-        if not len(args):
-            return []
-        worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        for arg in args:
-            if arg[1] == '=':
-                if arg[2]:
-                    lines = worksheet_line_obj.search(cr, uid, [('valid', '=', True)], context=context)
-        ids = self.search(cr, uid, [('worksheet_lines', 'in', lines), ('state', '=', 'confirmed')], context=context)
-        return [('id', 'in', [x for x in ids])]
-
-    def _invoice_wait_pay(self, cr, uid, ids, name, arg, context=None):
-        worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        res = {}.fromkeys(ids, False)
-        for worksheet in self.browse(cr, uid, ids):
-            if worksheet.state == 'confirmed':
-                # Checking at least invoice was paid, and not commission paid
-                lines = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id), ('valid', '=', True)], limit=1)
-                if len(lines) > 0:
-                    res[worksheet.id] = True
-        return res
+#     def _search_wait_pay(self, cr, uid, obj, name, args, domain=None, context=None):
+#         if not len(args):
+#             return []
+#         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+#         for arg in args:
+#             if arg[1] == '=':
+#                 if arg[2]:
+#                     lines = worksheet_line_obj.search(cr, uid, [('valid', '=', True)], context=context)
+#         ids = self.search(cr, uid, [('worksheet_lines', 'in', lines), ('state', '=', 'confirmed')], context=context)
+#         return [('id', 'in', [x for x in ids])]
+# 
+#     def _invoice_wait_pay(self, cr, uid, ids, name, arg, context=None):
+#         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+#         res = {}.fromkeys(ids, False)
+#         for worksheet in self.browse(cr, uid, ids):
+#             if worksheet.state == 'confirmed':
+#                 # Checking at least invoice was paid, and not commission paid
+#                 lines = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id), ('valid', '=', True)], limit=1)
+#                 if len(lines) > 0:
+#                     res[worksheet.id] = True
+#         return res
 
     def _get_period(self, cr, uid, context=None):
         if context is None:
@@ -249,7 +251,7 @@ class commission_worksheet(osv.osv):
         'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False, readonly=True, states={'draft': [('readonly', False)]}),
         'period_id': fields.many2one('account.period', 'Period', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'worksheet_lines': fields.one2many('commission.worksheet.line', 'worksheet_id', 'Calculation Lines', ondelete='cascade', readonly=False),
-        'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Ready to pay', fnct_search=_search_wait_pay, store=False),
+#        'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Ready to pay', fnct_search=_search_wait_pay, store=False),
         'state': fields.selection([('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),
@@ -262,32 +264,32 @@ class commission_worksheet(osv.osv):
         'amount_draft': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Not Ready', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
         'amount_valid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Ready', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
         'amount_invalid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Invalid', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
         'amount_done': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Done', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
         'amount_skip': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Skipped', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total Amount', multi='sums',
             store={
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['valid', 'done', 'force', 'commission_state'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
 
     }
@@ -496,7 +498,8 @@ class commission_worksheet_line(osv.osv):
             return False
 
     def _get_commission_params(self, cr, uid, ids, context=None):
-        allow_unpaid = False
+        require_paid = False
+        require_posted = False
         allow_overdue = False
         last_pay_date_rule = False
         buffer_days = 0
@@ -504,16 +507,43 @@ class commission_worksheet_line(osv.osv):
             worksheet = self.browse(cr, uid, ids[0], context=context).worksheet_id
             i = worksheet.salesperson_id or worksheet.sale_team_id
             if i:
-                allow_unpaid = i.allow_unpaid
+                require_paid = i.require_paid
+                require_posted = i.require_posted
                 allow_overdue = i.allow_overdue
                 last_pay_date_rule = i.last_pay_date_rule
                 buffer_days = i.buffer_days
-        return allow_unpaid, allow_overdue, last_pay_date_rule, buffer_days
+        return require_paid, require_posted, allow_overdue, last_pay_date_rule, buffer_days
+
+    def _is_pay_posted(self, cr, uid, move_lines, context=None):
+        ids = [x.id for x in move_lines]
+        # Payment is posted if total in posted payment_details >= total pay about in payments
+        cr.execute("select sum(av.amount) from account_voucher av \
+                        where av.id in ( \
+                            select mv.id from account_move_line ml \
+                            inner join account_move m on m.id = ml.move_id \
+                            inner join account_voucher mv on mv.move_id = m.id \
+                            where ml.id in %s \
+                        ) \
+                        and state = 'posted'", (tuple(ids),))
+        sum_payments = cr.fetchone()[0] or 0.0
+        cr.execute("select sum(pd.amount) from payment_register pd \
+                        inner join account_voucher av on av.id = pd.voucher_id \
+                        where av.id in ( \
+                            select mv.id from account_move_line ml \
+                            inner join account_move m on m.id = ml.move_id \
+                            inner join account_voucher mv on mv.move_id = m.id \
+                            where ml.id in %s \
+                        ) \
+                        and pd.state = 'posted'", (tuple(ids),))
+        sum_registers = cr.fetchone()[0] or 0.0
+        if sum_registers >= sum_payments:
+            return True
+        return False
 
     def check_commission_line_status(self, cr, uid, ids, context=None):
         result = {}
         # Prepare parameter from worksheet
-        allow_unpaid, allow_overdue, last_pay_date_rule, buffer_days = self._get_commission_params(cr, uid, ids, context=context)
+        require_paid, require_posted, allow_overdue, last_pay_date_rule, buffer_days = self._get_commission_params(cr, uid, ids, context=context)
 
         # For each worksheet line,
         for line in self.browse(cr, uid, ids, context=context):
@@ -525,35 +555,58 @@ class commission_worksheet_line(osv.osv):
             last_pay_date = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context)
             # Add buffer
             last_pay_date = (datetime.strptime(last_pay_date, '%Y-%m-%d') + relativedelta(days=buffer_days or 0)).strftime('%Y-%m-%d')
-            # 3) is overdue
+            # 3) posted payment
+            posted = invoice.state == 'paid' and self._is_pay_posted(cr, uid, invoice.payment_ids) or False
+            # 4) is overdue
             # If allow commission overdue, this will never be overdue. Else, check paid_date against last pay date
             overdue = not allow_overdue and \
-                                                last_pay_date and \
-                                                paid_date and \
-                                                (datetime.strptime(paid_date, '%Y-%m-%d') > datetime.strptime(last_pay_date, '%Y-%m-%d')) or \
-                                                False
-            # 4) commission_state
-            # If allow_unpaid, state always valid. Else, check with overdue
-            commission_state = (line.done and 'done') or \
-                              (line.force == 'skip' and 'skip') or \
-                              (line.force == 'allow' and 'valid') or \
-                              (allow_unpaid and 'valid') or \
-                              (allow_overdue and line.invoice_state == 'paid' and 'valid') or \
-                              (not allow_unpaid and line.invoice_state == 'open' and 'draft') or \
-                              (not allow_overdue and not allow_unpaid and not overdue and line.invoice_state == 'paid' and 'valid') or \
-                              (not allow_overdue and not allow_unpaid and overdue and 'invalid') or \
-                              (line.invoice_state == 'cancel' and 'invalid') or \
-                              'draft'
+                        last_pay_date and \
+                        paid_date and \
+                        (datetime.strptime(paid_date, '%Y-%m-%d') > datetime.strptime(last_pay_date, '%Y-%m-%d')) or \
+                        False
+            # 5) commission_state
+            state = 'draft'
+            if line.done:  # Done, always done and do nothing.
+                state = 'done'
+            elif line.invoice_state == 'cancel':  # Cancelled invoice, always invalid
+                state = 'invalid'
+            elif line.force == 'skip':  # Skip, always skip.
+                state = 'skip'
+            elif line.force == 'allow':  # Allow, always valid.
+                state = 'valid'
+            elif line.invoice_state == 'open':  # Allow unpaid, always valid.
+                if not require_paid:
+                    state = 'valid'
+            elif line.invoice_state == 'paid':
+                if posted:
+                    if not overdue:
+                        state = 'valid'  # Paid + posted + Not Overdue
+                    else:
+                        if allow_overdue:
+                            state = 'valid'  # Paid + posted + Overdue, but allow over due
+                        else:
+                            state = 'invalid'  # otherwise invalid
+                else:
+                    if not require_posted:
+                        if not overdue:
+                            state = 'valid'  # Paid + posted + Not Overdue
+                        else:
+                            if allow_overdue:
+                                state = 'valid'  # Paid + posted + Overdue, but allow over due
+                            else:
+                                state = 'invalid'  # otherwise invalid
+                    else:
+                        state = 'invalid'  # Paid + Not posted
+
             # Updates
             if line.paid_date != paid_date or line.last_pay_date != last_pay_date \
-                or line.overdue != overdue or line.commission_state != commission_state:
+                or line.overdue != overdue or line.commission_state != state:
                 self.write(cr, uid, [line.id], {'paid_date': paid_date,
                                                 'last_pay_date': last_pay_date,
+                                                'posted': posted,
                                                 'overdue': overdue,
-                                                'commission_state': commission_state})
-            # Set valid
-            if commission_state in ('valid', 'done'):
-                self.write(cr, uid, [line.id], {'valid': True})
+                                                'commission_state': state})
+
         return result
 
     def _amount_subtotal(self, cr, uid, ids, name, arg, context=None):
@@ -568,7 +621,7 @@ class commission_worksheet_line(osv.osv):
         'date_invoice': fields.date('Invoice Date', readonly=True),
         'invoice_amt': fields.float('Amount', readonly=True),
         'accumulated_amt': fields.float('Accumulated', readonly=True),
-        'commission_amt': fields.float('Commission', readonly=True, states={'confirmed': [('readonly', False)]},),
+        'commission_amt': fields.float('Commission', readonly=True),
         'adjust_amt': fields.float('Adjust', readonly=True, states={'confirmed': [('readonly', False)]}, help="Adjustment can be both positive or negative"),
         'amount_subtotal': fields.function(_amount_subtotal, digits_compute=dp.get_precision('Account'), string='Total', store=True),
         'invoice_state': fields.related('invoice_id', 'state', type='selection', readonly=True, string="Status",
@@ -579,7 +632,8 @@ class commission_worksheet_line(osv.osv):
         'last_pay_date': fields.date('Due Date', readonly=True, help="Last payment date that will make commission valid. This date is calculated by the due date condition"),
         'overdue': fields.boolean('Overdue', readonly=True, help="For the paid invoice, is it over due?"),
         'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=True),
-        'valid': fields.boolean('Ready', readonly=True, help="This flag show whether the commission is ready to be issued."),
+        'posted': fields.boolean('Posted', readonly=True, help="This flag show whether all payment has been posted as Payment Details"),
+#        'valid': fields.boolean('Ready', readonly=True, help="This flag show whether the commission is ready to be issued."),
         'done': fields.boolean('Done', readonly=True, help="This flag show whether the commission has been issued."),
         'force': fields.selection([('skip', 'Skip'), ('allow', 'Allow')], 'Force', readonly=True, states={'confirmed': [('readonly', False)]},),
         'note': fields.text('Note', help="Reason for forcing", readonly=True, states={'confirmed': [('readonly', False)]},),
@@ -590,7 +644,7 @@ class commission_worksheet_line(osv.osv):
     }
     _defaults = {
         'done': False,
-        'valid': False
+#        'valid': False
     }
     _order = 'id'
 
@@ -612,13 +666,15 @@ class res_users(osv.osv):
     _inherit = "res.users"
     _columns = {
         'commission_rule_id': fields.many2one('commission.rule', 'Applied Commission', required=False, readonly=False),
-        'allow_unpaid': fields.boolean('Allow Unpaid Invoice', help='Allow paying commission without invoice being paid.'),
+        'require_paid': fields.boolean('Require Paid Invoice', help='Require invoice to be paid in full amount.'),
+        'require_posted': fields.boolean('Require Payment Detail Posted', help='Require that all payment detail related to payments to invoice has been posted.'),
         'allow_overdue': fields.boolean('Allow Overdue Payment', help='Allow paying commission with overdue payment.'),
         'last_pay_date_rule': fields.selection(LAST_PAY_DATE_RULE, 'Last Pay Date Rule'),
         'buffer_days': fields.integer('Buffer Days')
     }
     _defaults = {
-        'allow_unpaid': False,
+        'require_paid': False,
+        'require_posted': False,
         'allow_overdue': False,
         'buffer_days': 0,
     }

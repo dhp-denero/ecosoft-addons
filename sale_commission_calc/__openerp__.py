@@ -69,7 +69,7 @@ TODO:
 BUG:
 - If still group by in worksheet, when generate invoice will have error.
 - Why Due Payment Date always True???
-MH
+MH:
 - Seperate VAT and No-VAT commission amount
 - Product Price < Come Benchmark Amount that won't get commission
 - Table for % by Product for easy update
@@ -96,7 +96,7 @@ SQP
     'sequence': 8,
     'website': 'http://www.ecosoft.co.th',
     'images': [],
-    'depends': ['product', 'sale', 'account'],
+    'depends': ['product', 'sale', 'account', 'payment_register'],
     'demo': [],
     'init_xml': [
           'commission_data.xml',
