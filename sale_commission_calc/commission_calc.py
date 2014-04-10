@@ -72,28 +72,6 @@ class commission_worksheet(osv.osv):
     _description = 'Commission Worksheet'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
 
-#     def _search_wait_pay(self, cr, uid, obj, name, args, domain=None, context=None):
-#         if not len(args):
-#             return []
-#         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-#         for arg in args:
-#             if arg[1] == '=':
-#                 if arg[2]:
-#                     lines = worksheet_line_obj.search(cr, uid, [('valid', '=', True)], context=context)
-#         ids = self.search(cr, uid, [('worksheet_lines', 'in', lines), ('state', '=', 'confirmed')], context=context)
-#         return [('id', 'in', [x for x in ids])]
-# 
-#     def _invoice_wait_pay(self, cr, uid, ids, name, arg, context=None):
-#         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-#         res = {}.fromkeys(ids, False)
-#         for worksheet in self.browse(cr, uid, ids):
-#             if worksheet.state == 'confirmed':
-#                 # Checking at least invoice was paid, and not commission paid
-#                 lines = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id), ('valid', '=', True)], limit=1)
-#                 if len(lines) > 0:
-#                     res[worksheet.id] = True
-#         return res
-
     def _get_period(self, cr, uid, context=None):
         if context is None:
             context = {}
@@ -110,6 +88,8 @@ class commission_worksheet(osv.osv):
             return self._calculate_percent_product_category(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_product':
             return self._calculate_percent_product(cr, uid, rule, worksheet, invoices, context=context)
+        if rule.type == 'percent_product_step':
+            return self._calculate_percent_product_step(cr, uid, rule, worksheet, invoices, context=context)
         if rule.type == 'percent_amount':
             return self._calculate_percent_amount(cr, uid, rule, worksheet, invoices, context=context)
         # No matched rule return False as signal.
@@ -178,6 +158,41 @@ class commission_worksheet(osv.osv):
             commission_amt = 0.0
             for line in invoice.invoice_line:
                 percent_commission = line.product_id.percent_commission
+                commission_rate = percent_commission and percent_commission / 100 or 0.0
+                if commission_rate:
+                    commission_amt += line.price_subtotal * commission_rate
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+            worksheet_line_obj.create(cr, uid, res)
+        return True
+
+    def _calculate_percent_product_step(self, cr, uid, rule, worksheet, invoices, context=None):
+        if context is None:
+            context = {}
+        commission_rate = 0.0
+        accumulated_amt = 0.0
+        worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        product_uom_obj = self.pool.get('product.uom')
+        for invoice in invoices:
+            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += amount_untaxed
+            # For each product line
+            commission_amt = 0.0
+            for line in invoice.invoice_line:
+                # Getting steps commission
+                product = line.product_id
+                if not product:
+                    continue
+                percent_commission = product.percent_commission
+                default_uom = product.uom_id and product.uom_id.id
+                q = product_uom_obj._compute_qty(cr, uid, line.uos_id.id, 1, default_uom)
+                uom_price_unit = line.price_unit / (q or 1.0)
+                for rate_step in product.rate_step_ids:
+                    if uom_price_unit > rate_step.amount_over:
+                        percent_commission = rate_step.percent_commission
+                        break
+                    else:
+                        break
+                # --
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate

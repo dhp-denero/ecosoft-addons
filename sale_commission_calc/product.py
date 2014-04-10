@@ -26,10 +26,24 @@ class product_product(osv.osv):
 
     _inherit = "product.product"
     _columns = {
-        'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False)
+        'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False),
+        'rate_step_ids': fields.one2many('commission.rate.step', 'product_id', 'Commission Rate Steps', readonly=False)
     }
 
 product_product()
+
+
+class commission_rate_step(osv.osv):
+
+    _name = "commission.rate.step"
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Product', readonly=True, ondelete='cascade', select=True),
+        'amount_over': fields.float('Amount Over', digits=(16, 2), readonly=False),
+        'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False),
+    }
+    _order = 'amount_over'
+
+commission_rate_step()
 
 
 class product_category(osv.osv):

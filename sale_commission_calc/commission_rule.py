@@ -24,7 +24,8 @@ from openerp.osv import fields, osv
 COMMISSION_RULE = [('percent_fixed', 'Fixed Commission Rate'),
                       ('percent_product_category', 'Product Category Commission Rate'),
                       ('percent_product', 'Product Commission Rate'),
-                      ('percent_amount', 'Commission Rate By Amount')]
+                      ('percent_product_step', 'Product Commission Rate Steps'),
+                      ('percent_amount', 'Commission Rate By Order Amount')]
 
 
 class commission_rule(osv.osv):
