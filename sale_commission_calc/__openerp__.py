@@ -108,7 +108,7 @@ SQP
           'commission_rule_view.xml',
           'account_invoice_view.xml',
           'commission_calc_sequence.xml',
-          'product_view.xml',
+          #'product_view.xml',  # Not require, as we moved them to commission_calc_view.xml
           'wizard/update_invoice_commission_view.xml',
           'wizard/generate_commission_worksheet_view.xml',
     ],

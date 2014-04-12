@@ -157,7 +157,8 @@ class commission_worksheet(osv.osv):
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
-                percent_commission = line.product_id.percent_commission
+                # Make sure the product price each the limit_price, before assign commission
+                percent_commission = (line.price_unit >= line.product_id.limit_price) and line.product_id.percent_commission or 0.0
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
@@ -182,7 +183,8 @@ class commission_worksheet(osv.osv):
                 product = line.product_id
                 if not product:
                     continue
-                percent_commission = product.percent_commission
+                # Make sure the product price each the limit_price, before assign commission
+                percent_commission = (line.price_unit >= line.product_id.limit_price) and line.product_id.percent_commission or 0.0
                 default_uom = product.uom_id and product.uom_id.id
                 q = product_uom_obj._compute_qty(cr, uid, line.uos_id.id, 1, default_uom)
                 uom_price_unit = line.price_unit / (q or 1.0)

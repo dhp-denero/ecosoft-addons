@@ -20,6 +20,7 @@
 ##############################################################################
 
 from openerp.osv import fields, osv
+import openerp.addons.decimal_precision as dp
 
 
 class product_product(osv.osv):
@@ -27,6 +28,7 @@ class product_product(osv.osv):
     _inherit = "product.product"
     _columns = {
         'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False),
+        'limit_price': fields.float('Limit Price', digits_compute=dp.get_precision('Product Price'), readonly=False, help="Minimum product selling price to get commission"),
         'rate_step_ids': fields.one2many('commission.rate.step', 'product_id', 'Commission Rate Steps', readonly=False)
     }
 
