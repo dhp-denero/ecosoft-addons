@@ -87,6 +87,7 @@
                         <button name="action_done" states="confirmed" string="Done" type="object"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
                		</header>
+               		<p></p>
                     <h1>
                         <label string="Worksheet "/>
                         <field name="name" class="oe_inline" readonly="1"/>
@@ -143,6 +144,20 @@
 	                    <page string="Commission Invoices">
 	                        <field name="invoice_ids" />
 	                    </page>
+                        <page string="Other Information">
+                            <group>
+                                <group>
+                                    <field name="commission_rule_id"/>
+                                    <field name="last_pay_date_rule"/>
+                                </group>
+                                <group>
+                                    <field name="require_paid"/>
+                                    <field name="require_posted"/>
+                                    <field name="allow_overdue"/>
+                                    <field name="buffer_days"/>
+                                </group>
+                            </group>
+                        </page>
 	            	</notebook>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>

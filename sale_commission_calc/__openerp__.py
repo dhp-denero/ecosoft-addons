@@ -46,7 +46,8 @@ Available Rule Types
 --------------------
     * Fixed Commission Rate
     * Product Category Commission Rate
-    * Product Commission Rate
+    * Product Commission Rate (with limit price)
+    * Product Commission Rate Steps (with limit price)
     * Commission Rate By Amount
     * Commission Rate By Monthly Accumulated Amount
 
@@ -55,7 +56,8 @@ Available Last Payment Date (to be eligible for commission)
     * Normal Invoice Due Date
     * Invoice Date + Customer Payment Term
     * Period + Months
-    
+
+
 TODO:
 - Make sure that Refund Invoice will be used to deduct the commission (we may never pay back to cust?)
 - Commission Worksheet, not deletable if already paid.

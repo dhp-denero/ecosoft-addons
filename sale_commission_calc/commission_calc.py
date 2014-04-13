@@ -72,6 +72,21 @@ class commission_worksheet(osv.osv):
     _description = 'Commission Worksheet'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
 
+    def _get_other_info(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for sheet in self.browse(cr, uid, ids, context):
+            object = sheet.salesperson_id or sheet.sale_team_id or False
+            if object:
+                res[sheet.id] = {
+                    'commission_rule_id': object.commission_rule_id and object.commission_rule_id.id or False,
+                    'last_pay_date_rule': object.last_pay_date_rule,
+                    'require_paid': object.require_paid,
+                    'require_posted': object.require_posted,
+                    'allow_overdue': object.allow_overdue,
+                    'buffer_days': object.buffer_days
+                }
+        return res
+
     def _get_period(self, cr, uid, context=None):
         if context is None:
             context = {}
@@ -95,12 +110,12 @@ class commission_worksheet(osv.osv):
         # No matched rule return False as signal.
         return False
 
-    def _prepare_worksheet_line(self, worksheet, invoice, accumulated_amt, commission_amt):
+    def _prepare_worksheet_line(self, worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=None):
         res = {
             'worksheet_id': worksheet.id,
             'invoice_id': invoice.id,
             'date_invoice': invoice.date_invoice,
-            'invoice_amt': invoice.amount_total - invoice.amount_tax,
+            'invoice_amt': base_amt,
             'accumulated_amt': accumulated_amt,
             'commission_amt': commission_amt,
         }
@@ -115,13 +130,13 @@ class commission_worksheet(osv.osv):
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += amount_untaxed
+            base_amt = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += base_amt
             # For each order, find its match rule line
             commission_amt = 0.0
             if commission_rate:
-                commission_amt = amount_untaxed * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+                commission_amt = base_amt * commission_rate
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -132,8 +147,8 @@ class commission_worksheet(osv.osv):
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += amount_untaxed
+            base_amt = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -141,7 +156,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -152,8 +167,8 @@ class commission_worksheet(osv.osv):
         accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += amount_untaxed
+            base_amt = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -162,7 +177,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -174,8 +189,8 @@ class commission_worksheet(osv.osv):
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         product_uom_obj = self.pool.get('product.uom')
         for invoice in invoices:
-            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += amount_untaxed
+            base_amt = (invoice.amount_total - invoice.amount_tax)
+            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -198,7 +213,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -218,7 +233,7 @@ class commission_worksheet(osv.osv):
                 if amount_untaxed <= range.amount_upto:
                     commission_amt = amount_untaxed * commission_rate
                     break
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt)
+            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -308,7 +323,19 @@ class commission_worksheet(osv.osv):
                 #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
                 'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
             },),
-
+        # Other Info
+        'commission_rule_id': fields.function(_get_other_info, type='many2one', relation='commission.rule', string='Applied Commission',
+            store=False, multi='other_info'),
+        'last_pay_date_rule': fields.function(_get_other_info, type='selection', selection=LAST_PAY_DATE_RULE, string='Last Pay Date Rule',
+            store=False, multi='other_info'),
+        'require_paid': fields.function(_get_other_info, type='boolean', string='Require Paid Invoice',
+            store=False, multi='other_info'),
+        'require_posted': fields.function(_get_other_info, type='boolean', string='Require Payment Detail Posted',
+            store=False, multi='other_info'),
+        'allow_overdue': fields.function(_get_other_info, type='boolean', string='Allow Overdue Payment',
+            store=False, multi='other_info'),
+        'buffer_days': fields.function(_get_other_info, type='integer', relation='commission.rule', string='Buffer Days',
+            store=False, multi='other_info'),
     }
     _defaults = {
         'state': 'draft',
@@ -325,10 +352,10 @@ class commission_worksheet(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'commission.worksheet') or '/'
         return super(commission_worksheet, self).create(cr, uid, vals, context=context)
 
-    def write(self, cr, uid, ids, vals, context=None):
-        res = super(commission_worksheet, self).write(cr, uid, ids, vals, context=context)
-        self.update_line_status(cr, uid, ids, context=context)
-        return res
+#     def write(self, cr, uid, ids, vals, context=None):
+#         res = super(commission_worksheet, self).write(cr, uid, ids, vals, context=context)
+#         self.update_line_status(cr, uid, ids, context=context)
+#         return res
 
     def action_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'draft'})
@@ -394,14 +421,14 @@ class commission_worksheet(osv.osv):
             self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
             # Update satus
             line_ids = [line.id for line in worksheet.worksheet_lines]
-            self.pool.get('commission.worksheet.line').check_commission_line_status(cr, uid, line_ids, context=context)
+            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
         return True
 
-    def update_line_status(self, cr, uid, ids, context=None):
-        for worksheet in self.browse(cr, uid, ids):
-            line_ids = [line.id for line in worksheet.worksheet_lines]
-            self.pool.get('commission.worksheet.line').check_commission_line_status(cr, uid, line_ids, context=context)
-        return True
+#     def update_line_status(self, cr, uid, ids, context=None):
+#         for worksheet in self.browse(cr, uid, ids):
+#             line_ids = [line.id for line in worksheet.worksheet_lines]
+#             self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+#         return True
 
     def final_update_invoice(self, cr, uid, inv_rec, context=None):
         # Prepare for hook
@@ -515,25 +542,31 @@ class commission_worksheet_line(osv.osv):
             return False
 
     def _get_commission_params(self, cr, uid, ids, context=None):
-        require_paid = False
-        require_posted = False
-        allow_overdue = False
-        last_pay_date_rule = False
-        buffer_days = 0
+        res = {
+            'require_paid': False,
+            'require_posted': False,
+            'allow_overdue': False,
+            'last_pay_date_rule': False,
+            'buffer_days': 0,
+        }
         if ids:
             worksheet = self.browse(cr, uid, ids[0], context=context).worksheet_id
             i = worksheet.salesperson_id or worksheet.sale_team_id
             if i:
-                require_paid = i.require_paid
-                require_posted = i.require_posted
-                allow_overdue = i.allow_overdue
-                last_pay_date_rule = i.last_pay_date_rule
-                buffer_days = i.buffer_days
-        return require_paid, require_posted, allow_overdue, last_pay_date_rule, buffer_days
+                res['require_paid'] = i.require_paid
+                res['require_posted'] = i.require_posted
+                res['allow_overdue'] = i.allow_overdue
+                res['last_pay_date_rule'] = i.last_pay_date_rule
+                res['buffer_days'] = i.buffer_days
+        return res
 
-    def _is_pay_posted(self, cr, uid, move_lines, context=None):
-        ids = [x.id for x in move_lines]
-        # Payment is posted if total in posted payment_details >= total pay about in payments
+    def _get_invoice_related_payment_amt(self, cr, uid, invoice, context=None):
+        """
+        This method will get amount of all payment related to this invoice. Note that, the amount will also cover other invoices
+        """
+        ids = [x.id for x in invoice.payment_ids]
+        if not ids:
+            return 0.0
         cr.execute("select sum(av.amount) from account_voucher av \
                         where av.id in ( \
                             select mv.id from account_move_line ml \
@@ -542,7 +575,16 @@ class commission_worksheet_line(osv.osv):
                             where ml.id in %s \
                         ) \
                         and state = 'posted'", (tuple(ids),))
-        sum_payments = cr.fetchone()[0] or 0.0
+        sum_payments = ids and cr.fetchone()[0] or 0.0
+        return sum_payments
+
+    def _get_invoice_related_payment_detail_amt(self, cr, uid, invoice, context=None):
+        """
+        This method will get amount of all payment details related to this invoice. Note that, the amount will also cover other invoices
+        """
+        ids = [x.id for x in invoice.payment_ids]
+        if not ids:
+            return 0.0
         cr.execute("select sum(pd.amount) from payment_register pd \
                         inner join account_voucher av on av.id = pd.voucher_id \
                         where av.id in ( \
@@ -552,50 +594,68 @@ class commission_worksheet_line(osv.osv):
                             where ml.id in %s \
                         ) \
                         and pd.state = 'posted'", (tuple(ids),))
-        sum_registers = cr.fetchone()[0] or 0.0
-        if sum_registers >= sum_payments:
+        sum_registers = ids and cr.fetchone()[0] or 0.0
+        return sum_registers
+
+    def _is_pay_posted(self, cr, uid, invoice, context=None):
+        payment_amt = self._get_invoice_related_payment_amt(cr, uid, invoice) or 0.0
+        paid_amt = self._get_invoice_related_payment_detail_amt(cr, uid, invoice) or 0.0
+        # Payment is posted if total in posted payment_details >= total pay about in payments
+        if paid_amt >= payment_amt:
             return True
         return False
 
-    def check_commission_line_status(self, cr, uid, ids, context=None):
-        result = {}
-        # Prepare parameter from worksheet
-        require_paid, require_posted, allow_overdue, last_pay_date_rule, buffer_days = self._get_commission_params(cr, uid, ids, context=context)
-
-        # For each worksheet line,
-        for line in self.browse(cr, uid, ids, context=context):
-            invoice = line.invoice_id
-            # Calculate each field,
-            # 1) paid_date
-            paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or False)
-            # 2) last_pay_date
-            last_pay_date = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context)
-            # Add buffer
-            last_pay_date = (datetime.strptime(last_pay_date, '%Y-%m-%d') + relativedelta(days=buffer_days or 0)).strftime('%Y-%m-%d')
-            # 3) posted payment
-            posted = invoice.state == 'paid' and self._is_pay_posted(cr, uid, invoice.payment_ids) or False
-            # 4) is overdue
-            # If allow commission overdue, this will never be overdue. Else, check paid_date against last pay date
-            overdue = not allow_overdue and \
-                        last_pay_date and \
-                        paid_date and \
-                        (datetime.strptime(paid_date, '%Y-%m-%d') > datetime.strptime(last_pay_date, '%Y-%m-%d')) or \
-                        False
-            # 5) commission_state
-            state = 'draft'
-            if line.done:  # Done, always done and do nothing.
-                state = 'done'
-            elif line.invoice_state == 'cancel':  # Cancelled invoice, always invalid
-                state = 'invalid'
-            elif line.force == 'skip':  # Skip, always skip.
-                state = 'skip'
-            elif line.force == 'allow':  # Allow, always valid.
+    def _check_commission_line_status(self, cr, uid, line, params, context=None):
+        res = {}
+        # Params
+        require_paid = params['require_paid']
+        require_posted = params['require_posted']
+        allow_overdue = params['allow_overdue']
+        last_pay_date_rule = params['last_pay_date_rule']
+        buffer_days = params['buffer_days']
+        # Checks
+        invoice = line.invoice_id
+        # Calculate each field,
+        # 1) paid_date
+        paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or False)
+        # 2) last_pay_date
+        last_pay_date = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context)
+        # Add buffer
+        last_pay_date = (datetime.strptime(last_pay_date, '%Y-%m-%d') + relativedelta(days=buffer_days or 0)).strftime('%Y-%m-%d')
+        # 3) posted payment?
+        # 3.1) invoie's payment and paid amount
+        posted = invoice.state == 'paid' and self._is_pay_posted(cr, uid, invoice) or False
+        # 4) is overdue
+        # If allow commission overdue, this will never be overdue. Else, check paid_date against last pay date
+        overdue = not allow_overdue and \
+                    last_pay_date and \
+                    paid_date and \
+                    (datetime.strptime(paid_date, '%Y-%m-%d') > datetime.strptime(last_pay_date, '%Y-%m-%d')) or \
+                    False
+        # 5) commission_state
+        state = 'draft'
+        if line.done:  # Done, always done and do nothing.
+            state = 'done'
+        elif line.invoice_state == 'cancel':  # Cancelled invoice, always invalid
+            state = 'invalid'
+        elif line.force == 'skip':  # Skip, always skip.
+            state = 'skip'
+        elif line.force == 'allow':  # Allow, always valid.
+            state = 'valid'
+        elif line.invoice_state == 'open':  # Allow unpaid, always valid.
+            if not require_paid:
                 state = 'valid'
-            elif line.invoice_state == 'open':  # Allow unpaid, always valid.
-                if not require_paid:
-                    state = 'valid'
-            elif line.invoice_state == 'paid':
-                if posted:
+        elif line.invoice_state == 'paid':
+            if posted:
+                if not overdue:
+                    state = 'valid'  # Paid + posted + Not Overdue
+                else:
+                    if allow_overdue:
+                        state = 'valid'  # Paid + posted + Overdue, but allow over due
+                    else:
+                        state = 'invalid'  # otherwise invalid
+            else:
+                if not require_posted:
                     if not overdue:
                         state = 'valid'  # Paid + posted + Not Overdue
                     else:
@@ -604,27 +664,38 @@ class commission_worksheet_line(osv.osv):
                         else:
                             state = 'invalid'  # otherwise invalid
                 else:
-                    if not require_posted:
-                        if not overdue:
-                            state = 'valid'  # Paid + posted + Not Overdue
-                        else:
-                            if allow_overdue:
-                                state = 'valid'  # Paid + posted + Overdue, but allow over due
-                            else:
-                                state = 'invalid'  # otherwise invalid
-                    else:
-                        state = 'invalid'  # Paid + Not posted
+                    state = 'invalid'  # Paid + Not posted
+        # Updates
+        res = {
+            'paid_date': paid_date,
+            'last_pay_date': last_pay_date,
+            'posted': posted,
+            'overdue': overdue,
+            'commission_state': state
+        }
+        return res
 
-            # Updates
-            if line.paid_date != paid_date or line.last_pay_date != last_pay_date \
-                or line.overdue != overdue or line.commission_state != state:
-                self.write(cr, uid, [line.id], {'paid_date': paid_date,
-                                                'last_pay_date': last_pay_date,
-                                                'posted': posted,
-                                                'overdue': overdue,
-                                                'commission_state': state})
-
-        return result
+    def update_commission_line_status(self, cr, uid, ids, context=None):
+        res = {}
+        # Prepare parameter from worksheet
+        params = self._get_commission_params(cr, uid, ids, context=context)
+        # For each worksheet line,
+        for line in self.browse(cr, uid, ids, context=context):
+            res = self._check_commission_line_status(cr, uid, line, params, context=context)
+            cr.execute('update commission_worksheet_line set \
+                            paid_date = %s, \
+                            last_pay_date = %s, \
+                            posted = %s, \
+                            overdue = %s, \
+                            commission_state = %s \
+                            where id = %s',
+                                    (res['paid_date'],
+                                     res['last_pay_date'],
+                                     res['posted'],
+                                     res['overdue'],
+                                     res['commission_state'],
+                                     line.id))
+        return True
 
     def _amount_subtotal(self, cr, uid, ids, name, arg, context=None):
         res = {}
@@ -650,7 +721,6 @@ class commission_worksheet_line(osv.osv):
         'overdue': fields.boolean('Overdue', readonly=True, help="For the paid invoice, is it over due?"),
         'commission_state': fields.selection(COMMISSION_LINE_STATE, 'State', readonly=True),
         'posted': fields.boolean('Posted', readonly=True, help="This flag show whether all payment has been posted as Payment Details"),
-#        'valid': fields.boolean('Ready', readonly=True, help="This flag show whether the commission is ready to be issued."),
         'done': fields.boolean('Done', readonly=True, help="This flag show whether the commission has been issued."),
         'force': fields.selection([('skip', 'Skip'), ('allow', 'Allow')], 'Force', readonly=True, states={'confirmed': [('readonly', False)]},),
         'note': fields.text('Note', help="Reason for forcing", readonly=True, states={'confirmed': [('readonly', False)]},),
@@ -661,7 +731,6 @@ class commission_worksheet_line(osv.osv):
     }
     _defaults = {
         'done': False,
-#        'valid': False
     }
     _order = 'id'
 
@@ -674,6 +743,11 @@ class commission_worksheet_line(osv.osv):
                                                 because commission has been issued for Invoice No. %s" % (",".join(invoice_numbers))))
         else:
             return super(commission_worksheet_line, self).unlink(cr, uid, ids, context=context)
+
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(commission_worksheet_line, self).write(cr, uid, ids, vals, context=context)
+        self.update_commission_line_status(cr, uid, ids, context=context)
+        return res
 
 commission_worksheet_line()
 
