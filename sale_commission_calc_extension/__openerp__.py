@@ -44,11 +44,12 @@ This module depend on advance_and_additonal_discount, which is a very big module
     'sequence': 20,
     'website': 'http://www.ecosoft.co.th',
     'images': [],
-    'depends': ['sale_commission_calc'],
+    'depends': ['sale_commission_calc', 'advance_and_additional_discount'],
     'demo': [
     ],
     'data': [
           'wizard/create_commission_invoice_view.xml',
+          'commission_calc_view.xml',
     ],
     'test': [
     ],
