@@ -82,8 +82,8 @@
                 <form string="Commission Worksheet" version="7.0">
 					<header>                        
                         <button name="action_draft" states="cancel" string="Set to Draft" type="object"/>
-                        <button name="action_confirm" states="draft" string="Confirm" type="object" class="oe_highlight"/>
-                        <button name="action_cancel" states="confirmed" string="Cancel" type="object"/>
+                        <button name="action_confirm" states="draft" string="Confirm" type="object" class="oe_highlight" groups="sale_commission_calc.group_sale_commission_calc_manager"/>
+                        <button name="action_cancel" states="confirmed" string="Cancel" type="object" />
                         <button name="action_done" states="confirmed" string="Done" type="object"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
                		</header>
@@ -142,8 +142,20 @@
                             <div class="oe_clear"/>  
                         </page>
 	                    <page string="Commission Invoices">
-	                        <field name="invoice_ids" />
-	                    </page>
+	                        <field name="invoice_ids">
+								<tree>	
+									<field name="partner_id" string="Receiver"/>
+									<field name="number"/>                    
+									<field name="date_invoice"/>    
+									<field name="currency_id"/>
+									<field name="amount_untaxed"/>
+									<field name="amount_tax"/>
+									<field name="amount_total"/>
+									<field name="comment"/>
+									<field name="state"/>
+	                    		</tree>
+	                    	</field>
+						</page>
                         <page string="Other Information">
                             <group>
                                 <group>
@@ -235,20 +247,21 @@
         </record>        
 
         <!-- Worksheet -->
-        <menuitem name="Commission Calc" id="menu_commission_calc" parent="base.menu_base_partner"/>
+        <menuitem name="Commission Calc" id="menu_commission_calc" parent="base.menu_base_partner" groups="sale_commission_calc.group_sale_commission_calc_sale"/>
         
         <menuitem name="Salesperson Worksheet" id="menu_user_commission_worksheet" parent="menu_commission_calc" 
-            action="action_user_commission_worksheet_form"  sequence="10"/>
+            action="action_user_commission_worksheet_form"  sequence="10" groups="sale_commission_calc.group_sale_commission_calc_sale"/> 
         <menuitem name="Team Worksheet" id="menu_team_commission_worksheet" parent="menu_commission_calc" 
-            action="action_team_commission_worksheet_form"  sequence="20"/>
+            action="action_team_commission_worksheet_form"  sequence="20" groups="sale_commission_calc.group_sale_commission_calc_user"/>  
         
         <!-- Config -->
-        <menuitem name="Configuration" id="menu_commission_calc_config" parent="menu_commission_calc" sequence="100"/>
+        <menuitem name="Configuration" id="menu_commission_calc_config" parent="menu_commission_calc" sequence="100"
+        	groups="sale_commission_calc.group_sale_commission_calc_user" />
 
         <menuitem name="Salespersons" id="menu_salesperson_commission_rule" parent="menu_commission_calc_config" 
-            action="action_salesperson_commission_rule" sequence="20"/>          
-        <menuitem name="Sale Teams" id="menu_sale_team" parent="menu_commission_calc_config" 
-            action="action_sale_team_form" sequence="30"/>        
+            action="action_salesperson_commission_rule" sequence="20" groups="sale_commission_calc.group_sale_commission_calc_user"/>          
+        <menuitem name="Sale Teams" id="menu_sale_team" parent="menu_commission_calc_config"
+            action="action_sale_team_form" sequence="30" groups="sale_commission_calc.group_sale_commission_calc_user"/>        
 
 
     </data>

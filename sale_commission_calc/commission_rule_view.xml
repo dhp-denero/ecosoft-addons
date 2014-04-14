@@ -198,15 +198,16 @@
         
         <!-- Menu -->
         
-        <menuitem name="Rules &amp; Rates" id="menu_commission_calc_rule_rate" parent="menu_commission_calc" sequence="70"/>
-
-        <menuitem name="Commission Rules" id="menu_commission_rule" parent="menu_commission_calc_rule_rate" 
-            action="action_commission_rule_form"  sequence="10"/>
-        <menuitem name="Product Rates" id="menu_product_rate" parent="menu_commission_calc_rule_rate" 
-            action="action_product_rate"  sequence="20"/>
-        <menuitem name="Product Rate Price Step" id="menu_product_rate_price_step" parent="menu_commission_calc_rule_rate" 
-            action="action_product_rate_price_step"  sequence="25"/>
-        <menuitem name="Product Category Rates" id="menu_product_categ_rate" parent="menu_commission_calc_rule_rate" 
-            action="action_product_categ_rate"  sequence="30"/>
+        <menuitem name="Rules" id="menu_commission_calc_rule" parent="menu_commission_calc" sequence="70" groups="sale_commission_calc.group_sale_commission_calc_user"/>
+        <menuitem name="Rates" id="menu_commission_calc_rate" parent="menu_commission_calc" sequence="75" groups="sale_commission_calc.group_sale_commission_calc_user"/>
+        	
+        <menuitem name="Commission Rules" id="menu_commission_rule" parent="menu_commission_calc_rule" 
+            action="action_commission_rule_form" sequence="10" groups="sale_commission_calc.group_sale_commission_calc_user"/>
+        <menuitem name="Product Rates" id="menu_product_rate" parent="menu_commission_calc_rate" 
+            action="action_product_rate"  sequence="20" groups="sale_commission_calc.group_sale_commission_calc_user"/>
+        <menuitem name="Product Rate Price Step" id="menu_product_rate_price_step" parent="menu_commission_calc_rate" 
+            action="action_product_rate_price_step"  sequence="25" groups="sale_commission_calc.group_sale_commission_calc_user"/>
+        <menuitem name="Product Category Rates" id="menu_product_categ_rate" parent="menu_commission_calc_rate" 
+            action="action_product_categ_rate"  sequence="30" groups="sale_commission_calc.group_sale_commission_calc_user"/>
     </data>
 </openerp>

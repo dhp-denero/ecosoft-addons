@@ -20,78 +20,98 @@
 ##############################################################################
 
 {
-    'name': "Sales Commission Calculations (In Progress)",
+    'name': "Sales Commission Calculations",
     'author': 'Ecosoft',
     'summary': '',
     'description': """
-Commission Management.
-======================
 
-By using a Commission Calculation Worksheet, a salesperson/team will be able to calculate their commission in 1 period.
-In short, one worksheet per salesperson/team per period. Given invoice has been paid, system can generate supplier invoice (as commisison) for that salesperson/team.
+Concept
+=======
 
-Key Features
-------------
-    * Manage Commission Rules
-    * Manage Sale Teams / Salesperson VS Commission Rules
-    * Invoices created, will be marked with those Sale Team / Salesperson and the Commission Rule to apply
-    * Create Commission Work Sheet from open invoices by period
-    * Create Supplier Invoice from Commission Work Sheet
-    * Manage security, sales people can see only their own worksheet, while managers can manage all.
-    * Process: Update Invoice Commission, go to each invoice that has not been assigned commission and assign it.
-    * Process: Generate Commission Worksheet(s), look through team/commission worksheet that has not been created to date, and create them.
-    * Feature: Ability to force allow/skip for the given commission regardless of the calculation result.
+Each Salesperson (or Team) will have 1 Worksheet per Period.
+Each worksheet will list commission lines, each with a calculated commission to be released as Commission Invoice.
+Commission amount will be created based on the Commission Rule assiged to each Salesperson (or Team).
+Whether each commission line is "Ready" will be based Release Conditions specified for each salesperson / team.
+If those conditions are met (e.g., is paid, due date, etc) the commission line status will be changed to "Ready",
+and the commission invoice then can be created for that particular salesperson.
+And whether or not the commission is ready, user can always force release or skip.
 
-Available Rule Types
---------------------
-    * Fixed Commission Rate
-    * Product Category Commission Rate
-    * Product Commission Rate (with limit price)
-    * Product Commission Rate Steps (with limit price)
-    * Commission Rate By Amount
-    * Commission Rate By Monthly Accumulated Amount
+Workflows
+=========
 
-Available Last Payment Date (to be eligible for commission)
------------------------------------------------------------
-    * Normal Invoice Due Date
-    * Invoice Date + Customer Payment Term
-    * Period + Months
+1) Assign commission rule and release conditions for all salesperson / sales team. Use Configuration > Salesperson (or Sales Team).
+2) In each Sales Order, as salesperson assigned, resulting Customer Invoice will have that salesperson / team in "Salesperson/Team and Commission" section of Other Info tab. This mark this invoices as eligible for commision for this salesperson.
+3) Create Commission Worksheet for Salesperson / Team vs Period of interest.
+4) Click "Calculate Commission" in the worksheet to list all eligible invoices of the period. System check for the commission readiness of each line.
+5) Confirm this worksheet to freeze the commission lines, and make it ready to Create Commission Invoice.
+6) For lines stated as "Ready", click "Create Commission Invoice" button will create Commission Invoices.
+7) Worksheet state will be "Done" as all lines stated as "Ready" has been created as Commission Invoices.
 
+Menus / Windows
+===============
+
+Module **Commission Calc** located under **Sales** Module
+
+Working Windows
+---------------
+
+* **Salesperson Worksheet:** The worksheet is the main window to work on. One worksheet can be created for a person in a period.
+
+  Following are the states of this worksheet.
+
+  * Draft -> As the worksheet is created. User can click "Calculate Commission" to create commission lines
+  * Confirmed -> As user reviewed the worksheet and approve as is. Once confirmed, no more lines can be added. But the status of each line can get updated as times goes. During this state, user can click "Create Commission Invoices" for which line with status "Ready" will be used, after that, status will change to "Done"
+  * Done -> As all commission with status "Ready" has been created as commission invoices, the status will be changed to "Done" automatically.
+  * Cancelled -> As user decide not to give any commission to this salesperson.
+
+  "Commission Invoices" Tab will show commission invoice created from this worksheet.
+
+* **Team Worksheet:** Work exactly the same as Salesperson. Each salesperson in team will get the same commission, meaning, when generate Commission Invoices, each person will get his/her copy of Commission Invoices. E.g., 3 person in a team. When click "Create Commission Invoices", 3 commission invoices will be created, each for each person.
+
+Setup Windows
+-------------
+
+Rules
+~~~~~
+
+* **Commission Rules:** Multiple Rules can be created. The amount of calculation will be based on Invoice Amount.
+  Currently, there are 5 commission calculation methods available.
+
+  * Fixed Commission Rate -> Commission = [Commission Rate] * [Base Amount]
+  * Product Category Commission Rate -> Commission = SUM([Category Rate] * [Product Line Base Amount])
+  * Product Commission Rate -> Commission = SUM([Product Rate] * [Product Line Base Amount])
+  * Product Commission Rate Step -> Commission = SUM([Product Rate] * [Product Line Base Amount]), where [Product Rate] is based on the Sales Unit Price.
+  * Commission Rate by Order Amount -> Commission = [Commission Rate] * [Base Amount], where [Commission Rate] depends on the amount of invoice.
+
+Rates
+~~~~~
+
+* **Product Rates:** product rate configuration window
+* **Product Rate Price Step:** product rate by sales unit price configuration window
+* **Product Category Rates:** product category rate configuration window
+
+Configuration
+~~~~~~~~~~~~~
+
+* **Salespersons:** define "Applied Commission Rule" and release conditions for each sales person.
+* **Sale Teams:** define "Applied Commission Rule" and release conditions for each team.
+
+**Note:** Condition consist of -> "Last Pay Due Date", "Require Paid Invoice", "Require Payment Detail Posted", "Allow Overdue" and "Buffer Days"
+
+* **Update Invoices:** this wizard help assign salesperson / sales team to the unassigned invoices, mainly for backward compatibility.
+* **Create Worksheet(s)** this wizard help create all uncreated draft worksheet for all salesperson / sales team in one go.
+
+Group / Securities
+==================
+
+1) Salesperson: see only their own worksheet in readonly mode.
+2) User: full access in all windows and operation, except can not confirm worksheet.
+3) Manager: full access in all windows, and can confirm worksheet.
 
 TODO:
-- Make sure that Refund Invoice will be used to deduct the commission (we may never pay back to cust?)
-- Commission Worksheet, not deletable if already paid.
-- Set to Draft, after confirmed. If not yet paid.
-- Invoice created from SO, should have the Team/Commission
-- Group Security
-- Template commission of all types
-- Consider Refund
-- Make it easy to manage and view and grouping in worksheet
-- Need to make method "check_commission_line_status()" a scheduled process, this is to ensure that wait_pay is working.
-BUG:
-- If still group by in worksheet, when generate invoice will have error.
-- Why Due Payment Date always True???
-MH:
-- Seperate VAT and No-VAT commission amount
-- Product Price < Come Benchmark Amount that won't get commission
-- Table for % by Product for easy update
-- Progressive Rate for Product Commission
-- Ability to edit commission amount
-SQP
-===
-* Allow salesperson to see their own worksheet, all readonly
-* Manager to be able to edit / every windows
-* User to see only worksheets, but can confirm and create invoice
 
-** In SO, will have a new field to says it is completed / amount -> Before Tax but after Discount
-** Payment Detail to tell that it due, use Last Payment Item
-** Add SO / Amount Overwrite in Worksheet Details
-* p'Som to send commission approval form
-** Add adjustment table (with checkbox) -> Commission Discount + Description in footer of worksheet.
-
-* SO window, to have adjusted amount that will be used to determine paid mode
-- Rule > Commission by margin, start from SO will have a new field "Cost"
-  - This field will be visible only for selected salesperson
+* For MH: the payment due date is, the end of month + 3 months.
+* For SQP: Approval Form
 
 """,
     'category': 'Sales',
@@ -105,14 +125,16 @@ SQP
           'product_data.xml',
     ],
     'data': [
-          'wizard/create_commission_invoice_view.xml',
-          'commission_calc_view.xml',
-          'commission_rule_view.xml',
-          'account_invoice_view.xml',
-          'commission_calc_sequence.xml',
-          #'product_view.xml',  # Not require, as we moved them to commission_calc_view.xml
-          'wizard/update_invoice_commission_view.xml',
-          'wizard/generate_commission_worksheet_view.xml',
+        'security/module_data.xml',
+        'security/sale_commission_calc_security.xml',
+        'security/ir.model.access.csv',
+        'wizard/create_commission_invoice_view.xml',
+        'commission_calc_view.xml',
+        'commission_rule_view.xml',
+        'account_invoice_view.xml',
+        'commission_calc_sequence.xml',
+        'wizard/update_invoice_commission_view.xml',
+        'wizard/generate_commission_worksheet_view.xml',
     ],
     'test': [
     ],

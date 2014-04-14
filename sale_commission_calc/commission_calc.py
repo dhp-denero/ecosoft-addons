@@ -539,7 +539,7 @@ class commission_worksheet_line(osv.osv):
             date_start = invoice.date_invoice
             return self._get_date_maturity(cr, uid, invoice, date_start) or invoice.date_due
         else:
-            return False
+            return None
 
     def _get_commission_params(self, cr, uid, ids, context=None):
         res = {
@@ -617,7 +617,7 @@ class commission_worksheet_line(osv.osv):
         invoice = line.invoice_id
         # Calculate each field,
         # 1) paid_date
-        paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or False)
+        paid_date = (invoice.state == 'paid' and invoice.payment_ids and invoice.payment_ids[-1].date or None)
         # 2) last_pay_date
         last_pay_date = self._calculate_last_pay_date(cr, uid, last_pay_date_rule, invoice, context=context)
         # Add buffer
