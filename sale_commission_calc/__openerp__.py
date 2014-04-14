@@ -25,6 +25,17 @@
     'summary': '',
     'description': """
 
+Commission is something seem easy, yet never easy. What make it difficult is not the calculation method itself,
+but more into how and when the readily calculated commission can be released too sales people. For example,
+some company may says, OK, we have SO we have Invoice, commission is calculated, but to release it,
+the invoice must has been paid first. Some says, not enough, the money must be in the bank too. Some says,
+need the be paid on time and the selling price must not too low, etc…and guess what, it could be more complex
+than this especially when deal with SMEs.
+
+Our commission module is very much focus on the release condition of commissions, which we think is very
+important for our customer requirement. For the commission calculation, though at the beginning we have 5 method
+(for most customers, should be enough), but we have make sure that our code is good enough for easy extension.
+
 Concept
 =======
 
@@ -71,8 +82,8 @@ Working Windows
 Setup Windows
 -------------
 
-Rules
-~~~~~
+Commission Rules
+~~~~~~~~~~~~~~~~
 
 * **Commission Rules:** Multiple Rules can be created. The amount of calculation will be based on Invoice Amount.
   Currently, there are 5 commission calculation methods available.
@@ -83,8 +94,8 @@ Rules
   * Product Commission Rate Step -> Commission = SUM([Product Rate] * [Product Line Base Amount]), where [Product Rate] is based on the Sales Unit Price.
   * Commission Rate by Order Amount -> Commission = [Commission Rate] * [Base Amount], where [Commission Rate] depends on the amount of invoice.
 
-Rates
-~~~~~
+Commission Rates
+~~~~~~~~~~~~~~~~
 
 * **Product Rates:** product rate configuration window
 * **Product Rate Price Step:** product rate by sales unit price configuration window
@@ -99,19 +110,14 @@ Configuration
 **Note:** Condition consist of -> "Last Pay Due Date", "Require Paid Invoice", "Require Payment Detail Posted", "Allow Overdue" and "Buffer Days"
 
 * **Update Invoices:** this wizard help assign salesperson / sales team to the unassigned invoices, mainly for backward compatibility.
-* **Create Worksheet(s)** this wizard help create all uncreated draft worksheet for all salesperson / sales team in one go.
+* **Create Worksheet(s):** this wizard help create all uncreated draft worksheet for all salesperson / sales team in one go.
 
 Group / Securities
 ==================
 
-1) Salesperson: see only their own worksheet in readonly mode.
+1) See Own Worksheet: see only their own worksheet in readonly mode.
 2) User: full access in all windows and operation, except can not confirm worksheet.
 3) Manager: full access in all windows, and can confirm worksheet.
-
-TODO:
-
-* For MH: the payment due date is, the end of month + 3 months.
-* For SQP: Approval Form
 
 """,
     'category': 'Sales',
