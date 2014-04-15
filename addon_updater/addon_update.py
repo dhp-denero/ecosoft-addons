@@ -153,8 +153,8 @@ class addon_update(osv.osv):
 
     def _compute_diff_files(self, dcmp, changed_files=[], added_files=[], removed_files=[], exclude=['pyc', 'jasper', '~1~', '~2~']):
         changed_files += filter(lambda a: a.split('.')[-1] not in exclude, dcmp.diff_files)
-        added_files += filter(lambda a: a.split('.')[-1] not in exclude, dcmp.right_only)
-        removed_files += filter(lambda a: a.split('.')[-1] not in exclude, dcmp.left_only)
+        added_files += filter(lambda a: a.split('.')[-1] not in exclude, dcmp.left_only)
+        removed_files += filter(lambda a: a.split('.')[-1] not in exclude, dcmp.right_only)
         for sub_dcmp in dcmp.subdirs.values():
             self._compute_diff_files(sub_dcmp, changed_files, added_files,
                                    removed_files, exclude=exclude)
@@ -345,7 +345,7 @@ class addon_update_line(osv.osv):
         ], string='Type', readonly=True),
         'changed_files': fields.text('Changed Files', readonly=True),
         'added_files': fields.text('Added Files', readonly=True),
-        'removed_fiels': fields.text('Removed Files', readonly=True),
+        'removed_files': fields.text('Removed Files', readonly=True),
         'state': fields.selection([
             ('new', 'New'),  # New state for package not available on production yet.
             ('uninstallable', 'Not Installable'),

@@ -83,7 +83,7 @@
 		                                <field name="type"/>
 		                                <field name="changed_files"/>
 		                                <field name="added_files"/>
-		                                <field name="removed_fiels"/>
+		                                <field name="removed_files"/>
 		                                <field name="state"/>
 		                            </tree>
 		                        </field>	
