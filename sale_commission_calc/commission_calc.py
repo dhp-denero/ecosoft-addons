@@ -424,11 +424,11 @@ class commission_worksheet(osv.osv):
             self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
         return True
 
-#     def update_line_status(self, cr, uid, ids, context=None):
-#         for worksheet in self.browse(cr, uid, ids):
-#             line_ids = [line.id for line in worksheet.worksheet_lines]
-#             self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
-#         return True
+    def update_line_status(self, cr, uid, ids, context=None):
+        for worksheet in self.browse(cr, uid, ids):
+            line_ids = [line.id for line in worksheet.worksheet_lines]
+            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+        return True
 
     def final_update_invoice(self, cr, uid, inv_rec, context=None):
         # Prepare for hook
