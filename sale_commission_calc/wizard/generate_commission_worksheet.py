@@ -36,12 +36,23 @@ class generate_commission_worksheet(osv.osv_memory):
         'state': 'init',
     }
 
+    def _create_worksheets(self, cr, uid, sales_worksheets, team_worksheets, context=None):
+        worksheet_obj = self.pool.get('commission.worksheet')
+        for worksheet in sales_worksheets:  # Sales
+            worksheet_obj.create(cr, uid, worksheet)
+        for worksheet in team_worksheets:  # Team
+            worksheet_obj.create(cr, uid, worksheet)
+        # Return Message
+        result_message = sales_worksheets and _('Number of Salesperson Commission Worksheet') + ' = ' + str(len(sales_worksheets)) or ''
+        result_message += sales_worksheets and "\n" or ''
+        result_message += team_worksheets and _('Number of Team Commission Worksheet') + ' = ' + str(len(team_worksheets)) or ''
+        return result_message
+
     def generate_worksheet(self, cr, uid, ids, context=None):
 
         # For each sales person with commission rule, find all period that worksheet has not been created for.
         sales_worksheets = []
         team_worksheets = []
-        worksheet_obj = self.pool.get('commission.worksheet')
         # Sales Person Worksheet
         cr.execute("""select salesperson_id, period_id from
                     (select distinct team.salesperson_id, ai.period_id from account_invoice_team team
@@ -63,15 +74,7 @@ class generate_commission_worksheet(osv.osv_memory):
             team_worksheets.append({'sale_team_id': res['sale_team_id'],
                                         'period_id': res['period_id']})
         # Create worksheet
-        for worksheet in sales_worksheets:  # Sales
-            worksheet_obj.create(cr, uid, worksheet)
-        for worksheet in team_worksheets:  # Team
-            worksheet_obj.create(cr, uid, worksheet)
-
-        # Message
-        result_message = _('Number of Salesperson Commission Worksheet') + ' = ' + str(len(sales_worksheets))
-        result_message += "\n"
-        result_message += _('Number of Team Commission Worksheet') + ' = ' + str(len(team_worksheets))
+        result_message = self._create_worksheets(cr, uid, sales_worksheets, team_worksheets, context=context)
 
         self.write(cr, uid, ids, {'result': result_message, 'state': 'done'}, context=context)
         res = {

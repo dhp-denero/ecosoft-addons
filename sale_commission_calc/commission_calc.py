@@ -387,6 +387,18 @@ class commission_worksheet(osv.osv):
         self.write(cr, uid, ids, {'state': 'done'})
         return True
 
+    def _get_matched_invoices_by_period(self, cr, uid, salesperson_id, sale_team_id, period, context=None):
+        res_id = salesperson_id or sale_team_id
+        condition = salesperson_id and 't.salesperson_id = %s' or 't.sale_team_id = %s'
+        cr.execute("select ai.id from account_invoice ai \
+                            join account_invoice_team t on ai.id = t.invoice_id \
+                            where ai.state in ('open','paid') \
+                            and date_invoice >= %s and date_invoice <= %s \
+                            and " + condition + " order by ai.id", \
+                            (period.date_start, period.date_stop, res_id))
+        invoice_ids = map(lambda x: x[0], cr.fetchall())
+        return invoice_ids
+
     def action_calculate(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -408,15 +420,7 @@ class commission_worksheet(osv.osv):
             line_ids = worksheet_line_obj.search(cr, uid, [('worksheet_id', '=', worksheet.id)])
             worksheet_line_obj.unlink(cr, uid, line_ids)
             # Search for matched Completed Invoice for this work sheet (either salesperson or sales team)
-            res_id = salesperson_id or sale_team_id
-            condition = salesperson_id and 't.salesperson_id = %s' or 't.sale_team_id = %s'
-            cr.execute("select ai.id from account_invoice ai \
-                                join account_invoice_team t on ai.id = t.invoice_id \
-                                where ai.state in ('open','paid') \
-                                and date_invoice >= %s and date_invoice <= %s \
-                                and " + condition + " order by ai.id", \
-                                (period.date_start, period.date_stop, res_id))
-            invoice_ids = map(lambda x: x[0], cr.fetchall())
+            invoice_ids = self._get_matched_invoices_by_period(cr, uid, salesperson_id, sale_team_id, period, context=context)
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
             self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
             # Update satus
