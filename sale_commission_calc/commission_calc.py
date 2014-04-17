@@ -70,7 +70,6 @@ class commission_worksheet(osv.osv):
 
     _name = 'commission.worksheet'
     _description = 'Commission Worksheet'
-    _inherit = ['mail.thread', 'ir.needaction_mixin']
 
     def _get_other_info(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -283,7 +282,6 @@ class commission_worksheet(osv.osv):
         'salesperson_id': fields.many2one('res.users', 'Salesperson', required=False, readonly=True, states={'draft': [('readonly', False)]}),
         'period_id': fields.many2one('account.period', 'Period', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'worksheet_lines': fields.one2many('commission.worksheet.line', 'worksheet_id', 'Calculation Lines', ondelete='cascade', readonly=False),
-#        'wait_pay': fields.function(_invoice_wait_pay, type='boolean', string='Ready to pay', fnct_search=_search_wait_pay, store=False),
         'state': fields.selection([('draft', 'Draft'),
                                    ('confirmed', 'Confirmed'),
                                    ('done', 'Done'),
@@ -351,11 +349,6 @@ class commission_worksheet(osv.osv):
         if vals.get('name', '/') == '/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'commission.worksheet') or '/'
         return super(commission_worksheet, self).create(cr, uid, vals, context=context)
-
-#     def write(self, cr, uid, ids, vals, context=None):
-#         res = super(commission_worksheet, self).write(cr, uid, ids, vals, context=context)
-#         self.update_line_status(cr, uid, ids, context=context)
-#         return res
 
     def action_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids, {'state': 'draft'})
