@@ -83,7 +83,7 @@ class account_invoice(AdditionalDiscountable, osv.Model):
                   'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
                   }, multi='all', help="The advance amount to be deducted according to original percentage"),
             # Deposit
-            'is_deposit': fields.boolean('Advance'),
+            'is_deposit': fields.boolean('Deposit'),
             'amount_deposit': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Deposit Amt',
               store={
                   'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line', 'add_disc'], 20),
