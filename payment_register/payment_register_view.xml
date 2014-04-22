@@ -85,10 +85,11 @@
                         </group>
                     </group>
                    	<group>
-                        <group string="Exchange Rate (Original -> Target)" invisible="1">
-                        	<field name="exchange_rate" invisible="1" on_change="onchange_rate(exchange_rate, amount, amount_payin, original_pay_amount, context)" />
+                        <group string="Exchange Rate (Original -> Target)" invisible="0">
+                        	<field name="exchange_rate" invisible="0" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
                         </group>
                         <group>
+                        	<field name="exchange_rate_payin" invisible="0" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
                         </group>
                     </group>
                     <group col="3">
@@ -98,23 +99,26 @@
 	                         <field name="type"/>
 	                         <field name="check_no"/>
 	                         <field name="date_due"/>
-	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    </group>
                         <group name="pay.register" string="Pay-in Detail">
-                        	 <field name="date" on_change="onchange_date(date, company_id, context)"/>
-	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context)" />
+                        	 <field name="date" on_change="onchange_journal_date(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context)"/>
+	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal_date(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context)" />
                            	 <field name="account_id" invisible="1" readonly="0"/>	                         
                              <field name="currency_id" invisible="1" readonly="0"/>
-                             <field name="amount_payin" required="1" on_change="onchange_amount(amount, amount_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>      
+                             <field name="amount_payin" required="1" on_change="onchange_amount(amount, amount_payin, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>      
 	                    </group>    
                         <group string="Difference">
                             <field name="writeoff_amount" widget="monetary"  options="{'currency_field': 'currency_id'}"/>
+                            <field name="writeoff_amount_local" widget="monetary"  options="{'currency_field': 'company_currency_id'}"/>
                             <field name="payment_option" required="1" attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
                             <field name="writeoff_acc_id"
                                    attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"
                                    domain="[('type','=','other')]"/>
                             <field name="comment"
 								   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
+                            <field name="gainloss_amount" widget="monetary"  attrs="{'invisible': [('gainloss_amount','=',0)]}" options="{'currency_field': 'company_currency_id'}"/>
+
 						</group>                   
                     </group>
                     

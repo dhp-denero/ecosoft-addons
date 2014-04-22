@@ -20,8 +20,6 @@
 ##############################################################################
 
 import time
-from lxml import etree
-
 from openerp import netsvc
 from openerp.osv import fields, osv
 import openerp.addons.decimal_precision as dp
@@ -86,7 +84,6 @@ class payment_register(osv.osv):
     _columns = {
         # Document
         'number': fields.char('Number', size=32, readonly=True,),
-
         # Header Information from Payment document
         'voucher_id': fields.many2one('account.voucher', 'Customer Payment', readonly=True, states={'draft': [('readonly', False)]}),
         'partner_id': fields.related('voucher_id', 'partner_id', type='many2one', relation='res.partner', string='Partner', store=True, readonly=True),
@@ -96,19 +93,16 @@ class payment_register(osv.osv):
         'original_pay_currency_id': fields.many2one('res.currency', 'Original Payment Currency', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_pay_total': fields.related('voucher_id', 'amount', type='float', relation='account.voucher', string='Payment Total', store=True, readonly=True),
         'original_pay_amount': fields.float('Original Pay Amount', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
-
         # Company Information
         'company_id': fields.related('voucher_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True),
         'company_currency_id': fields.related('company_id', 'currency_id', type='many2one', relation='res.currency', string='Company Currency', store=True, readonly=True),
         'paid_amount_in_company_currency': fields.function(_paid_amount_in_company_currency, string='Paid Amount in Company Currency', type='float', readonly=True),
         'memo': fields.char('Memo', size=256, readonly=True, states={'draft': [('readonly', False)]}),
         'reference': fields.char('Ref #', size=64, readonly=True, states={'draft': [('readonly', False)]}, help="Transaction reference number."),
-
         # Multi Currency from Original Currency to Target Currency
         'is_multi_currency': fields.boolean('Multi Currency Voucher', help='Fields with internal purpose only that depicts if the voucher is a multi currency one or not'),
-        'exchange_rate': fields.float('Exchange Rate', digits=(12, 6), required=True, readonly=True, states={'draft': [('readonly', False)]},
-            help='The specific rate that will be used, in this voucher, between the selected currency (in \'Payment Rate Currency\' field)  and the voucher currency.'),
-
+        'exchange_rate': fields.float('Exchange Rate', digits=(12, 6), required=True, readonly=True, states={'draft': [('readonly', False)]},),
+        'exchange_rate_payin': fields.float('Exchange Rate Payin', digits=(12, 6), required=True, readonly=True, states={'draft': [('readonly', False)]},),
         # Payment Detail
         'pay_detail_id': fields.many2one('account.voucher.pay.detail', 'Payment Detail Ref', ondelete='restrict', select=True),
         'name': fields.char('Bank/Branch', size=128, readonly=True, states={'draft': [('readonly', False)]}),
@@ -119,58 +113,47 @@ class payment_register(osv.osv):
             ], 'Type', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'check_no': fields.char('Check No.', size=64, readonly=True, states={'draft': [('readonly', False)]}),
         'date_due': fields.date('Date Due', readonly=True, states={'draft': [('readonly', False)]}),
-        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
-
+        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft': [('readonly', False)]}),
         # Payment Register
-        'date':fields.date('Pay-in Date', readonly=True, select=True, states={'draft':[('readonly',False)]}, help="Effective date for accounting entries"),
-        'period_id': fields.many2one('account.period', 'Period', readonly=True, states={'draft':[('readonly',False)]}),
-        'journal_id':fields.many2one('account.journal', 'Target Bank', required=False, readonly=True, states={'draft':[('readonly',False)]}),
-        'account_id':fields.many2one('account.account', 'Account', required=False, readonly=True, states={'draft':[('readonly',False)]}),
-        'currency_id': fields.many2one('res.currency', 'Currency', required=False, readonly=True, states={'draft':[('readonly',False)]}),
-        'amount_payin': fields.float('Pay-in Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
-
+        'date': fields.date('Pay-in Date', readonly=True, select=True, states={'draft': [('readonly', False)]}, help="Effective date for accounting entries"),
+        'period_id': fields.many2one('account.period', 'Period', readonly=True, states={'draft': [('readonly', False)]}),
+        'journal_id': fields.many2one('account.journal', 'Target Bank', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'account_id': fields.many2one('account.account', 'Account', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'currency_id': fields.many2one('res.currency', 'Currency', required=False, readonly=True, states={'draft': [('readonly', False)]}),
+        'amount_payin': fields.float('Pay-in Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft': [('readonly', False)]}),
         # Miscellenous
-        'narration':fields.text('Notes', readonly=False),
-        'state':fields.selection(
-            [('draft','Draft'),
-             ('cancel','Cancelled'),
-             ('posted','Posted'),
-             ('bounce_check','Bounced Check'),
+        'narration': fields.text('Notes', readonly=False),
+        'state': fields.selection(
+            [('draft', 'Draft'),
+             ('cancel', 'Cancelled'),
+             ('posted', 'Posted'),
+             ('bounce_check', 'Bounced Check'),
             ], 'Status', readonly=True, size=32,
             help=' * The \'Draft\' status is used when a user is encoding a new and unconfirmed payment register. \
                         \n* The \'Posted\' status is used when user create payment register,a Register number is generated and accounting entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel payment register.'),
-        'move_id':fields.many2one('account.move', 'Account Entry'),
-        'move_ids': fields.related('move_id','line_id', type='one2many', relation='account.move.line', string='Journal Items', readonly=True),
-        
+        'move_id': fields.many2one('account.move', 'Account Entry'),
+        'move_ids': fields.related('move_id', 'line_id', type='one2many', relation='account.move.line', string='Journal Items', readonly=True),
         # Diff
         #'writeoff_amount': fields.function(_get_writeoff_amount, string='Difference Amount', type='float', readonly=True, help="Computed as the difference between the amount stated in the voucher and the sum of allocation on the voucher lines."),
-        'writeoff_amount': fields.float('Pay-in Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}, help="Computed as the difference between the amount stated in the Payment Detail and the Payment Register."),
-        'payment_option':fields.selection([('with_writeoff', 'Reconcile Payment Balance'),
-                                           ], 'Payment Difference', required=True, readonly=True, states={'draft': [('readonly', False)]}, help="This field helps you to choose what you want to do with the eventual difference between the paid amount and the sum of allocated amounts. You can either choose to keep open this difference on the partner's account, or reconcile it with the payment(s)"),
+        'writeoff_amount': fields.float('Diff Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft': [('readonly', False)]}, help="Computed as the difference between the amount stated in the Payment Detail and the Payment Register."),
+        'writeoff_amount_local': fields.float('Diff Amount (local)', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft': [('readonly', False)]}, help="Computed as the difference between the amount stated in the Payment Detail and the Payment Register."),
+        'gainloss_amount': fields.float('Gain / Loss', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft': [('readonly', False)]}),
+        'payment_option': fields.selection([('with_writeoff', 'Reconcile Payment Balance')], 'Payment Difference', required=True, readonly=True, states={'draft': [('readonly', False)]}, help="This field helps you to choose what you want to do with the eventual difference between the paid amount and the sum of allocated amounts. You can either choose to keep open this difference on the partner's account, or reconcile it with the payment(s)"),
         'writeoff_acc_id': fields.many2one('account.account', 'Counterpart Account', required=False, readonly=True, states={'draft': [('readonly', False)]}),
         'comment': fields.char('Counterpart Comment', size=64, required=False, readonly=False),
-        
         'new_register_id': fields.many2one('payment.register', 'New Payment Detail', readonly=True, help='This new Payment Register is created to replace the one with bounced check.'),
-
     }
     _defaults = {
-        #'active': True,
-        #'period_id': _get_period,
-        #'partner_id': _get_partner,
-        #'journal_id':_get_journal,
-        #'currency_id':_get_currency,
         'reference': _get_reference,
-        'narration':_get_narration,
-        #'amount': _get_amount,
-        #'type':'receipt',
+        'narration': _get_narration,
         'state': 'draft',
         'date': lambda *a: time.strftime('%Y-%m-%d'),
-        #'amount_payin':lambda amount: amount,
-        'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'payment.register',context=c),
+        'company_id': lambda self, cr, uid, c: self.pool.get('res.company')._company_default_get(cr, uid, 'payment.register', context=c),
         'payment_option': 'with_writeoff',
         'comment': _('Write-Off'),
         'exchange_rate': 1.0,
+        'exchange_rate_payin': 1.0,
         'original_pay_currency_id': _get_exchange_rate_currency,
     }
 
@@ -205,9 +188,8 @@ class payment_register(osv.osv):
                 raise osv.except_osv(_('Warning!'), _('Pay-in Date and Target Bank is not selected.'))
         self.action_move_line_create(cr, uid, ids, context=context)
         return True
-    
-    def register_move_line_create(self, cr, uid, register_id, move_id, company_currency, current_currency, context=None):
 
+    def register_move_line_create(self, cr, uid, register_id, move_id, company_currency, current_currency, context=None):
         if context is None:
             context = {}
         move_line_obj = self.pool.get('account.move.line')
@@ -222,32 +204,25 @@ class payment_register(osv.osv):
             'account_id': register_brw.account_id.id,
             'move_id': move_id,
             'partner_id': register_brw.partner_id.id,
-            'currency_id': company_currency <> current_currency and current_currency or False,
+            'currency_id': company_currency != current_currency and current_currency or False,
             #'analytic_account_id': register_brw.account_analytic_id and register_brw.account_analytic_id.id or False,
-            'amount_currency':company_currency <> current_currency and register_brw.amount_payin or 0.0,
+            'amount_currency': company_currency != current_currency and register_brw.amount_payin or 0.0,
             'quantity': 1,
             'credit': amount < 0 and -amount or 0.0,
             'debit': amount > 0 and amount or 0.0,
             'date': register_brw.date
         }
-
         move_line_id = move_line_obj.create(cr, uid, move_line)
+        return move_line_id
 
-        return move_line_id    
-    
     def writeoff_move_line_create(self, cr, uid, register_id, move_id, company_currency, current_currency, context=None):
-
         if context is None:
             context = {}
         move_line_obj = self.pool.get('account.move.line')
         register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
-        
-        if not register_brw.writeoff_amount:
+        if not register_brw.writeoff_amount_local:
             return False
-        
-        ctx = context.copy()
-        ctx.update({'date': register_brw.date})
-        amount = self._convert_amount(cr, uid, register_brw.writeoff_amount, register_brw.id, context=ctx)
+        amount = register_brw.writeoff_amount_local
         move_line = {
             'journal_id': register_brw.journal_id.id,
             'period_id': register_brw.period_id.id,
@@ -255,18 +230,43 @@ class payment_register(osv.osv):
             'account_id': register_brw.writeoff_acc_id.id,
             'move_id': move_id,
             'partner_id': register_brw.partner_id.id,
-            'currency_id': company_currency <> current_currency and current_currency or False,
+            'currency_id': company_currency != current_currency and current_currency or False,
             #'analytic_account_id': register_brw.account_analytic_id and register_brw.account_analytic_id.id or False,
-            'amount_currency':company_currency <> current_currency and register_brw.writeoff_amount or 0.0,
+            'amount_currency': company_currency != current_currency and register_brw.writeoff_amount or 0.0,
             'quantity': 1,
             'credit': amount < 0 and -amount or 0.0,
             'debit': amount > 0 and amount or 0.0,
             'date': register_brw.date
         }
-
         move_line_id = move_line_obj.create(cr, uid, move_line)
+        return move_line_id
 
-        return move_line_id    
+    def gainloss_move_line_create(self, cr, uid, register_id, move_id, context=None):
+        if context is None:
+            context = {}
+        move_line_obj = self.pool.get('account.move.line')
+        register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
+        company = register_brw.company_id
+        if not register_brw.gainloss_amount:
+            return False
+        amount = register_brw.gainloss_amount
+        move_line = {
+            'journal_id': register_brw.journal_id.id,
+            'period_id': register_brw.period_id.id,
+            'name': register_brw.name or '/',
+            'account_id': amount > 0 and company.income_currency_exchange_account_id.id or company.expense_currency_exchange_account_id.id,
+            'move_id': move_id,
+            'partner_id': register_brw.partner_id.id,
+            'currency_id': False,
+            #'analytic_account_id': register_brw.account_analytic_id and register_brw.account_analytic_id.id or False,
+            'amount_currency': 0.0,
+            'quantity': 1,
+            'credit': amount > 0 and amount or 0.0,
+            'debit': amount < 0 and -amount or 0.0,
+            'date': register_brw.date
+        }
+        move_line_id = move_line_obj.create(cr, uid, move_line)
+        return move_line_id
 
     def action_move_line_create(self, cr, uid, ids, context=None):
         '''
@@ -291,12 +291,14 @@ class payment_register(osv.osv):
             # Get the name of the account_move just created
             name = move_pool.browse(cr, uid, move_id, context=context).name
             # Create the first line of the register
-            move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,register.id, move_id, company_currency, current_currency, context), context)
+            move_line_pool.create(cr, uid, self.first_move_line_get(cr, uid, register.id, move_id, company_currency, current_currency, context), context)
             # Create one move line per register line where amount is not 0.0
             self.register_move_line_create(cr, uid, register.id, move_id, company_currency, current_currency, context)
-            # Create the writeoff line if needed
-            if register.writeoff_amount:
+            # Create the writeoff/gainloss line if needed
+            if register.writeoff_amount_local:
                 self.writeoff_move_line_create(cr, uid, register.id, move_id, company_currency, current_currency, context)
+            if register.gainloss_amount:
+                self.gainloss_move_line_create(cr, uid, register.id, move_id, context)
 
             # We post the register.
             self.write(cr, uid, [register.id], {
@@ -308,37 +310,46 @@ class payment_register(osv.osv):
             if register.journal_id.entry_posted:
                 move_pool.post(cr, uid, [move_id], context={})
         return True
-    
-    def onchange_journal(self, cr, uid, ids, journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, context=None):
-        if not journal_id:
+
+    def onchange_journal_date(self, cr, uid, ids, journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context=None):
+        if context is None:
+            context = {}
+        if not ids or not journal_id:
             return False
-        
+        voucher = self.browse(cr, uid, ids[0])
         # Set Account and Currency
+        currency_obj = self.pool.get('res.currency')
         journal_pool = self.pool.get('account.journal')
         journal = journal_pool.browse(cr, uid, journal_id, context=context)
         account_id = journal.default_debit_account_id.id or journal.default_credit_account_id.id
-        currency_id = journal.currency.id or journal.company_id.currency_id.id
-        vals = {'value':{} }
+        currency = journal.currency or journal.company_id.currency_id
+        original_pay_currency = currency_obj.browse(cr, uid, original_pay_currency_id)
+        vals = {'value': {}}
         vals['value'].update({'account_id': account_id})
-        vals['value'].update({'currency_id': currency_id})
-        
+        vals['value'].update({'currency_id': currency.id})
         # Compute Payment Rate
-        currency_obj = self.pool.get('res.currency')
-        from_rate = currency_obj.browse(cr, uid, original_pay_currency_id, context=context).rate     
-        exchange_rate = from_rate / currency_obj.browse(cr, uid, currency_id, context=context).rate  
+        ctx = context.copy()
+        ctx.update({'date': voucher.date_payment})
+        exchange_rate = currency_obj._get_conversion_rate(cr, uid, currency, original_pay_currency, context=ctx)
+        ctx.update({'date': date})
+        exchange_rate_payin = currency_obj._get_conversion_rate(cr, uid, currency, original_pay_currency, context=ctx)
         vals['value'].update({'exchange_rate': exchange_rate})
-        
+        vals['value'].update({'exchange_rate_payin': exchange_rate_payin})
+        # Compute period
+        period_pool = self.pool.get('account.period')
+        ctx.update({'company_id': company_id})
+        pids = period_pool.find(cr, uid, date, context=ctx)
+        if pids:
+            vals['value'].update({'period_id': pids[0]})
         # Compute Amount
-        res = self.onchange_rate(cr, uid, ids, exchange_rate, amount, amount_payin, original_pay_amount, context=context)
+        res = self.onchange_rate(cr, uid, ids, exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context=context)
         for key in res.keys():
             vals[key].update(res[key])
-                    
         return vals
- 
-    def onchange_date(self, cr, uid, ids, date, company_id, context=None):
 
+    def onchange_date(self, cr, uid, ids, journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context=None):
         if context is None:
-            context ={}
+            context = {}
         res = {'value': {}}
         #set the period of the register
         period_pool = self.pool.get('account.period')
@@ -346,21 +357,25 @@ class payment_register(osv.osv):
         ctx.update({'company_id': company_id})
         pids = period_pool.find(cr, uid, date, context=ctx)
         if pids:
-            res['value'].update({'period_id':pids[0]})
+            res['value'].update({'period_id': pids[0]})
         return res
 
-    
-    def onchange_rate(self, cr, uid, ids, exchange_rate, amount, amount_payin, original_pay_amount, context=None):
-        res =  {'value': {'amount':amount, 'amount_payin': amount_payin}}
-        if exchange_rate:# and currency_id == original_pay_currency_id:
-            res['value']['amount_payin'] = original_pay_amount / exchange_rate
-            res['value']['amount'] = original_pay_amount / exchange_rate
+    def onchange_rate(self, cr, uid, ids, exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context=None):
+        res = {'value': {}}
+        amount = exchange_rate and float(original_pay_amount) / float(exchange_rate) or float(amount)
+        amount_payin = exchange_rate_payin and float(original_pay_amount) / float(exchange_rate_payin) or float(amount_payin)
+        res['value'].update({'amount': amount,
+                            'amount_payin': amount_payin,
+                            'gainloss_amount': (exchange_rate_payin - exchange_rate) * amount,
+                            })
         return res
-    
-    def onchange_amount(self, cr, uid, ids, amount, amount_payin, context=None):
+
+    def onchange_amount(self, cr, uid, ids, amount, amount_payin, exchange_rate_payin, context=None):
         diff = (amount or 0.0) - (amount_payin or 0.0)
-        return {'value': {'writeoff_amount':diff}}
-    
+        res = {'value': {'writeoff_amount': diff,
+                         'writeoff_amount_local': diff * exchange_rate_payin}}
+        return res
+
     def _unpost_register(self, cr, uid, ids, context=None):
         reconcile_pool = self.pool.get('account.move.reconcile')
         move_pool = self.pool.get('account.move')
@@ -378,34 +393,34 @@ class payment_register(osv.osv):
                 move_pool.button_cancel(cr, uid, [register.move_id.id])
                 move_pool.unlink(cr, uid, [register.move_id.id])
         return True
-    
+
     def cancel_register(self, cr, uid, ids, context=None):
         self._unpost_register(cr, uid, ids, context=context)
         message = "Payment Register <b>cancelled</b>."
-        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)     
+        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)
         res = {
-            'state':'cancel',
-            'move_id':False,
+            'state': 'cancel',
+            'move_id': False,
         }
         self.write(cr, uid, ids, res)
-        return True 
-    
+        return True
+
     # Case bounce check, same as cancel, but status to 'bounce_check' then create new one with reference to the old.
-    def bounce_check(self, cr, uid, ids, context=None):    
+    def bounce_check(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self._unpost_register(cr, uid, ids, context=context)
         message = "Payment Register <b>bounced check</b>."
-        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)     
+        self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)
         # Create a new document
-        new_register_id = self.copy(cr, uid, ids[0], {'date': False, 'journal_id': False, 'amount_payin': False})   
+        new_register_id = self.copy(cr, uid, ids[0], {'date': False, 'journal_id': False, 'amount_payin': False})
         res = {
-            'state':'bounce_check',
-            'move_id':False,
+            'state': 'bounce_check',
+            'move_id': False,
             'new_register_id': new_register_id,
         }
-        self.write(cr, uid, ids, res)           
+        self.write(cr, uid, ids, res)
         return True
-    
+
     def cancel_to_draft(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for register_id in ids:
@@ -413,30 +428,27 @@ class payment_register(osv.osv):
             self.message_post(cr, uid, [register_id], body=message, subtype="payment_register.mt_register", context=context)
             wf_service.trg_delete(uid, 'payment.register', register_id, cr)
             wf_service.trg_create(uid, 'payment.register', register_id, cr)
-        
-        self.write(cr, uid, ids, {'state':'draft'})
-        return True 
-    
+        self.write(cr, uid, ids, {'state': 'draft'})
+        return True
+
     def _get_company_currency(self, cr, uid, register_id, context=None):
-        return self.pool.get('payment.register').browse(cr,uid,register_id,context).journal_id.company_id.currency_id.id
+        return self.pool.get('payment.register').browse(cr, uid, register_id, context).journal_id.company_id.currency_id.id
 
     def _get_current_currency(self, cr, uid, register_id, context=None):
-        register = self.pool.get('payment.register').browse(cr,uid,register_id,context)
-        return register.currency_id.id or self._get_company_currency(cr,uid,register.id,context)
+        register = self.pool.get('payment.register').browse(cr, uid, register_id, context)
+        return register.currency_id.id or self._get_company_currency(cr, uid, register.id, context)
 
     def _sel_context(self, cr, uid, register_id, context=None):
-        
         company_currency = self._get_company_currency(cr, uid, register_id, context)
         current_currency = self._get_current_currency(cr, uid, register_id, context)
-        if current_currency <> company_currency:
+        if current_currency != company_currency:
             context_multi_currency = context.copy()
             register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
             context_multi_currency.update({'date': register_brw.date})
             return context_multi_currency
         return context
-    
+
     def _convert_amount(self, cr, uid, amount, register_id, context=None):
-        
         currency_obj = self.pool.get('res.currency')
         register = self.browse(cr, uid, register_id, context=context)
         res = amount
@@ -446,19 +458,23 @@ class payment_register(osv.osv):
         else:
             # the rate specified on the voucher is not relevant, we use all the rates in the system
             res = currency_obj.compute(cr, uid, register.currency_id.id, register.company_id.currency_id.id, amount, context=context)
-        return res    
+        return res
 
     def first_move_line_get(self, cr, uid, register_id, move_id, company_currency, current_currency, context=None):
 
-        register_brw = self.pool.get('payment.register').browse(cr,uid,register_id,context)
+        register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
         debit = credit = 0.0
         # TODO: is there any other alternative then the voucher type ??
         # ANSWER: We can have payment and receipt "In Advance".
         # TODO: Make this logic available.
         # -for sale, purchase we have but for the payment and receipt we do not have as based on the bank/cash journal we can not know its payment or receipt
         credit = register_brw.paid_amount_in_company_currency
-        if debit < 0: credit = -debit; debit = 0.0
-        if credit < 0: debit = -credit; credit = 0.0
+        if debit < 0:
+            credit = -debit
+            debit = 0.0
+        if credit < 0:
+            debit = -credit
+            credit = 0.0
         sign = debit - credit < 0 and -1 or 1
         #set the first line of the voucher
         move_line = {
@@ -470,8 +486,8 @@ class payment_register(osv.osv):
                 'journal_id': register_brw.journal_transit_id.id,
                 'period_id': register_brw.period_id.id,
                 'partner_id': register_brw.partner_id.id,
-                'currency_id': company_currency <> current_currency and current_currency or False,
-                'amount_currency': company_currency <> current_currency and sign * register_brw.amount or 0.0,
+                'currency_id': company_currency != current_currency and current_currency or False,
+                'amount_currency': company_currency != current_currency and sign * register_brw.amount or 0.0,
                 'date': register_brw.date,
                 'date_maturity': register_brw.date_due
             }
@@ -480,13 +496,12 @@ class payment_register(osv.osv):
     def account_move_get(self, cr, uid, register_id, context=None):
         '''
         This method prepare the creation of the account move related to the given register.
-
         :param register_id: Id of voucher for which we are creating account_move.
         :return: mapping between fieldname and value of account move to create
         :rtype: dict
         '''
         seq_obj = self.pool.get('ir.sequence')
-        register_brw = self.pool.get('payment.register').browse(cr,uid,register_id,context)
+        register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
         if register_brw.number:
             name = register_brw.number
         elif register_brw.journal_id.sequence_id:
@@ -498,7 +513,7 @@ class payment_register(osv.osv):
             raise osv.except_osv(_('Error!'),
                         _('Please define a sequence on the journal.'))
         if not register_brw.reference:
-            ref = name.replace('/','')
+            ref = name.replace('/', '')
         else:
             ref = register_brw.reference
 
