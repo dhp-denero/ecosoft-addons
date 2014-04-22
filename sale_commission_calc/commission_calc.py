@@ -699,7 +699,7 @@ class commission_worksheet_line(osv.osv):
     _columns = {
         'worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', ondelete='cascade'),
         'invoice_id': fields.many2one('account.invoice', 'Invoice', readonly=True),
-        'partner_id': fields.related('invoice_id', 'partner_id', type="many2one", relation="res.partner", string="Customer"),
+        'partner_id': fields.related('invoice_id', 'partner_id', type="many2one", relation="res.partner", string="Customer", readonly=True),
         'date_invoice': fields.date('Invoice Date', readonly=True),
         'invoice_amt': fields.float('Amount', readonly=True),
         'commission_amt': fields.float('Commission', readonly=True),
