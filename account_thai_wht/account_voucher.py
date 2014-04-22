@@ -277,10 +277,6 @@ class account_voucher(common_voucher, osv.osv):
             reconcile = False
             for rec_ids in rec_list_ids:
                 if len(rec_ids) >= 2:
-                    # kittiu, if wht, add it to the list when reconcile
-#                     for id in rec_wht_ids:
-#                             rec_ids.append(id)
-                    # --kittiu
                     reconcile = move_line_pool.reconcile_partial(cr, uid, rec_ids, writeoff_acc_id=voucher.writeoff_acc_id.id, writeoff_period_id=voucher.period_id.id, writeoff_journal_id=voucher.journal_id.id)
         return True
 
