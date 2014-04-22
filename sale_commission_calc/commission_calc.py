@@ -18,10 +18,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import time
-from openerp import netsvc
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
@@ -109,14 +108,15 @@ class commission_worksheet(osv.osv):
         # No matched rule return False as signal.
         return False
 
-    def _prepare_worksheet_line(self, worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=None):
+    def _prepare_worksheet_line(self, worksheet, invoice, base_amt, commission_amt, context=None):
+        # Invoice or Refund
+        sign = invoice.type == 'out_refund' and -1 or 1
         res = {
             'worksheet_id': worksheet.id,
             'invoice_id': invoice.id,
             'date_invoice': invoice.date_invoice,
-            'invoice_amt': base_amt,
-            'accumulated_amt': accumulated_amt,
-            'commission_amt': commission_amt,
+            'invoice_amt': base_amt * sign,
+            'commission_amt': commission_amt * sign,
         }
         return res
 
@@ -126,16 +126,14 @@ class commission_worksheet(osv.osv):
         if context is None:
             context = {}
         commission_rate = rule.fix_percent / 100
-        accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
             base_amt = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += base_amt
             # For each order, find its match rule line
             commission_amt = 0.0
             if commission_rate:
                 commission_amt = base_amt * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -143,11 +141,9 @@ class commission_worksheet(osv.osv):
         if context is None:
             context = {}
         commission_rate = 0.0
-        accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
             base_amt = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -155,7 +151,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -163,11 +159,9 @@ class commission_worksheet(osv.osv):
         if context is None:
             context = {}
         commission_rate = 0.0
-        accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
             base_amt = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -176,7 +170,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -184,12 +178,10 @@ class commission_worksheet(osv.osv):
         if context is None:
             context = {}
         commission_rate = 0.0
-        accumulated_amt = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         product_uom_obj = self.pool.get('product.uom')
         for invoice in invoices:
             base_amt = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += base_amt
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -212,7 +204,7 @@ class commission_worksheet(osv.osv):
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
-            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, accumulated_amt, commission_amt, context=context)
+            res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -220,10 +212,8 @@ class commission_worksheet(osv.osv):
         if context is None:
             context = {}
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
-        accumulated_amt = 0.0
         for invoice in invoices:
             amount_untaxed = (invoice.amount_total - invoice.amount_tax)
-            accumulated_amt += amount_untaxed
             # For each order, find its match rule line
             commission_amt = 0.0
             ranges = rule.rule_rates
@@ -232,7 +222,7 @@ class commission_worksheet(osv.osv):
                 if amount_untaxed <= range.amount_upto:
                     commission_amt = amount_untaxed * commission_rate
                     break
-            res = self._prepare_worksheet_line(worksheet, invoice, accumulated_amt, commission_amt, context=context)
+            res = self._prepare_worksheet_line(worksheet, invoice, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
         return True
 
@@ -261,6 +251,10 @@ class commission_worksheet(osv.osv):
                 'amount_total': 0.0,
             }
             total = 0.0
+            # Update line status first.
+            line_ids = [line.id for line in worksheet.worksheet_lines]
+            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+            # Start calculation.
             for line in worksheet.worksheet_lines:
                 if line.commission_state == 'draft':
                     res[worksheet.id]['amount_draft'] += line.amount_subtotal
@@ -293,33 +287,33 @@ class commission_worksheet(osv.osv):
         'invoice_ids': fields.one2many('account.invoice', 'worksheet_id', 'Invoices', readonly=True),
         'amount_draft': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Not Ready', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 10),
             },),
         'amount_valid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Ready', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 10),
             },),
         'amount_invalid': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Invalid', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 10),
             },),
         'amount_done': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Done', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 10),
             },),
         'amount_skip': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Skipped', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 10),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 10),
             },),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total Amount', multi='sums',
             store={
-                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_line'], 10),
-                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'commission_state'], 10),
+                #'commission.worksheet': (lambda self, cr, uid, ids, c={}: ids, ['worksheet_lines'], 20),
+                'commission.worksheet.line': (_get_worksheet, ['done', 'force', 'adjust_amt', 'commission_state'], 20),
             },),
         # Other Info
         'commission_rule_id': fields.function(_get_other_info, type='many2one', relation='commission.rule', string='Applied Commission',
@@ -344,6 +338,7 @@ class commission_worksheet(osv.osv):
         ('unique_sale_team_period', 'unique(sale_team_id, period_id)', 'Duplicate Sale Team / Period'),
         ('unique_salesperson_period', 'unique(salesperson_id, period_id)', 'Duplicate Salesperson / Period')
     ]
+    _order = 'id desc'
 
     def create(self, cr, uid, vals, context=None):
         if vals.get('name', '/') == '/':
@@ -386,6 +381,7 @@ class commission_worksheet(osv.osv):
         cr.execute("select ai.id from account_invoice ai \
                             join account_invoice_team t on ai.id = t.invoice_id \
                             where ai.state in ('open','paid') \
+                            and ai.type in ('out_invoice','out_refund') \
                             and date_invoice >= %s and date_invoice <= %s \
                             and " + condition + " order by ai.id", \
                             (period.date_start, period.date_stop, res_id))
@@ -417,15 +413,15 @@ class commission_worksheet(osv.osv):
             invoices = invoice_obj.browse(cr, uid, invoice_ids)
             self._calculate_commission(cr, uid, rule, worksheet, invoices, context=context)
             # Update satus
-            line_ids = [line.id for line in worksheet.worksheet_lines]
-            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+#             line_ids = [line.id for line in worksheet.worksheet_lines]
+#             self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
         return True
 
-    def update_line_status(self, cr, uid, ids, context=None):
-        for worksheet in self.browse(cr, uid, ids):
-            line_ids = [line.id for line in worksheet.worksheet_lines]
-            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
-        return True
+#     def update_line_status(self, cr, uid, ids, context=None):
+#         for worksheet in self.browse(cr, uid, ids):
+#             line_ids = [line.id for line in worksheet.worksheet_lines]
+#             self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+#         return True
 
     def final_update_invoice(self, cr, uid, inv_rec, context=None):
         # Prepare for hook
@@ -703,12 +699,15 @@ class commission_worksheet_line(osv.osv):
     _columns = {
         'worksheet_id': fields.many2one('commission.worksheet', 'Commission Worksheet', ondelete='cascade'),
         'invoice_id': fields.many2one('account.invoice', 'Invoice', readonly=True),
+        'partner_id': fields.related('invoice_id', 'partner_id', type="many2one", relation="res.partner", string="Customer"),
         'date_invoice': fields.date('Invoice Date', readonly=True),
         'invoice_amt': fields.float('Amount', readonly=True),
-        'accumulated_amt': fields.float('Accumulated', readonly=True),
         'commission_amt': fields.float('Commission', readonly=True),
         'adjust_amt': fields.float('Adjust', readonly=True, states={'confirmed': [('readonly', False)]}, help="Adjustment can be both positive or negative"),
-        'amount_subtotal': fields.function(_amount_subtotal, digits_compute=dp.get_precision('Account'), string='Total', store=True),
+        'amount_subtotal': fields.function(_amount_subtotal, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                   'commission.worksheet.line': (lambda self, cr, uid, ids, c={}: ids, ['commission_amt', 'adjust_amt'], 5),
+            }),
         'invoice_state': fields.related('invoice_id', 'state', type='selection', readonly=True, string="Status",
                                         selection=[('open', 'Open'),
                                                     ('paid', 'Paid'),
@@ -741,10 +740,10 @@ class commission_worksheet_line(osv.osv):
         else:
             return super(commission_worksheet_line, self).unlink(cr, uid, ids, context=context)
 
-    def write(self, cr, uid, ids, vals, context=None):
-        res = super(commission_worksheet_line, self).write(cr, uid, ids, vals, context=context)
-        self.update_commission_line_status(cr, uid, ids, context=context)
-        return res
+#     def write(self, cr, uid, ids, vals, context=None):
+#         res = super(commission_worksheet_line, self).write(cr, uid, ids, vals, context=context)
+#         self.update_commission_line_status(cr, uid, ids, context=context)
+#         return res
 
 commission_worksheet_line()
 

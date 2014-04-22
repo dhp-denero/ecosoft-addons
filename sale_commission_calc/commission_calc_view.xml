@@ -110,10 +110,10 @@
 							<field name="worksheet_lines" widget="one2many_list" colspan="4" nolabel="1" >
 	                            <tree string="Worksheet Lines" editable="bottom" colors="grey:commission_state in ('draft');blue:commission_state in ('valid');red:commission_state in ('invalid');">
 	                                <field name="invoice_id"/>
+	                                <field name="partner_id"/>
 	                                <field name="date_invoice"/>
 	                                <field name="invoice_state"/>
 	                                <field name="invoice_amt" sum="Total Amount"/>
-	                                <field name="accumulated_amt" invisible="1"/>
 	                                <field name="commission_amt" sum="Total Commission"/>
 	                                <field name="adjust_amt" sum="Adjust Amount"/>
 	                                <field name="amount_subtotal" sum="Adjusted Total"/>
