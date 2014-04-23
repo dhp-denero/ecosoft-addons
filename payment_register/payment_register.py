@@ -215,57 +215,64 @@ class payment_register(osv.osv):
         move_line_id = move_line_obj.create(cr, uid, move_line)
         return move_line_id
 
-    def writeoff_move_line_create(self, cr, uid, register_id, move_id, company_currency, current_currency, context=None):
+    def writeoff_move_line_create(self, cr, uid, register, move_id, company_currency, current_currency, context=None):
         if context is None:
             context = {}
-        move_line_obj = self.pool.get('account.move.line')
-        register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
-        if not register_brw.writeoff_amount_local:
+        if not register.writeoff_amount_local:
             return False
-        amount = register_brw.writeoff_amount_local
+        amount = register.writeoff_amount_local
         move_line = {
-            'journal_id': register_brw.journal_id.id,
-            'period_id': register_brw.period_id.id,
-            'name': register_brw.name or '/',
-            'account_id': register_brw.writeoff_acc_id.id,
+            'journal_id': register.journal_id.id,
+            'period_id': register.period_id.id,
+            'name': register.name or '/',
+            'account_id': register.writeoff_acc_id.id,
             'move_id': move_id,
-            'partner_id': register_brw.partner_id.id,
+            'partner_id': register.partner_id.id,
             'currency_id': company_currency != current_currency and current_currency or False,
             #'analytic_account_id': register_brw.account_analytic_id and register_brw.account_analytic_id.id or False,
-            'amount_currency': company_currency != current_currency and register_brw.writeoff_amount or 0.0,
+            'amount_currency': company_currency != current_currency and register.writeoff_amount or 0.0,
             'quantity': 1,
             'credit': amount < 0 and -amount or 0.0,
             'debit': amount > 0 and amount or 0.0,
-            'date': register_brw.date
+            'date': register.date
         }
-        move_line_id = move_line_obj.create(cr, uid, move_line)
+        move_line_id = self.pool.get('account.move.line').create(cr, uid, move_line)
         return move_line_id
 
-    def gainloss_move_line_create(self, cr, uid, register_id, move_id, context=None):
+    def gainloss_move_line_create(self, cr, uid, register, move_id, context=None):
         if context is None:
             context = {}
-        move_line_obj = self.pool.get('account.move.line')
-        register_brw = self.pool.get('payment.register').browse(cr, uid, register_id, context)
-        company = register_brw.company_id
-        if not register_brw.gainloss_amount:
+        company = register.company_id
+        ctx = context.copy()
+        ctx.update({'date': register.date})
+        amount_payin_company_currency = self._convert_amount(cr, uid, register.amount_payin, register.id, context=ctx)
+        # make the rounding as defined in company currency.
+        currency_obj = self.pool.get('res.currency')
+        amount_payin_company_currency = currency_obj.round(cr, uid, company.currency_id, amount_payin_company_currency)
+        paid_amount_in_company_currency = currency_obj.round(cr, uid, company.currency_id, register.paid_amount_in_company_currency)
+        writeoff_amount_local = currency_obj.round(cr, uid, company.currency_id, register.writeoff_amount_local)
+        # amount to post
+        amount = amount_payin_company_currency - paid_amount_in_company_currency + writeoff_amount_local
+        if not amount:
             return False
-        amount = register_brw.gainloss_amount
         move_line = {
-            'journal_id': register_brw.journal_id.id,
-            'period_id': register_brw.period_id.id,
-            'name': register_brw.name or '/',
+            'journal_id': register.journal_id.id,
+            'period_id': register.period_id.id,
+            'name': register.name or '/',
             'account_id': amount > 0 and company.income_currency_exchange_account_id.id or company.expense_currency_exchange_account_id.id,
             'move_id': move_id,
-            'partner_id': register_brw.partner_id.id,
+            'partner_id': register.partner_id.id,
             'currency_id': False,
             #'analytic_account_id': register_brw.account_analytic_id and register_brw.account_analytic_id.id or False,
             'amount_currency': 0.0,
             'quantity': 1,
             'credit': amount > 0 and amount or 0.0,
             'debit': amount < 0 and -amount or 0.0,
-            'date': register_brw.date
+            'date': register.date
         }
-        move_line_id = move_line_obj.create(cr, uid, move_line)
+        move_line_id = self.pool.get('account.move.line').create(cr, uid, move_line)
+        # Assign amount to gainloss_amount field
+        self.write(cr, uid, [register.id], {'gainloss_amount': amount})
         return move_line_id
 
     def action_move_line_create(self, cr, uid, ids, context=None):
@@ -295,11 +302,8 @@ class payment_register(osv.osv):
             # Create one move line per register line where amount is not 0.0
             self.register_move_line_create(cr, uid, register.id, move_id, company_currency, current_currency, context)
             # Create the writeoff/gainloss line if needed
-            if register.writeoff_amount_local:
-                self.writeoff_move_line_create(cr, uid, register.id, move_id, company_currency, current_currency, context)
-            if register.gainloss_amount:
-                self.gainloss_move_line_create(cr, uid, register.id, move_id, context)
-
+            self.writeoff_move_line_create(cr, uid, register, move_id, company_currency, current_currency, context)
+            self.gainloss_move_line_create(cr, uid, register, move_id, context)
             # We post the register.
             self.write(cr, uid, [register.id], {
                 'move_id': move_id,
@@ -366,7 +370,6 @@ class payment_register(osv.osv):
         amount_payin = exchange_rate_payin and float(original_pay_amount) / float(exchange_rate_payin) or float(amount_payin)
         res['value'].update({'amount': amount,
                             'amount_payin': amount_payin,
-                            'gainloss_amount': (exchange_rate_payin - exchange_rate) * amount,
                             })
         return res
 

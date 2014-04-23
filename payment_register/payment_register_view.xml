@@ -85,11 +85,9 @@
                         </group>
                     </group>
                    	<group>
-                        <group string="Exchange Rate (Original -> Target)" invisible="0">
-                        	<field name="exchange_rate" invisible="0" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
-                        </group>
-                        <group>
-                        	<field name="exchange_rate_payin" invisible="0" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
+                        <group string="Exchange Rate (Original -> Target)" invisible="1">
+                        	<field name="exchange_rate" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
+                        	<field name="exchange_rate_payin" on_change="onchange_rate(exchange_rate, exchange_rate_payin, amount, amount_payin, original_pay_amount, context)" />
                         </group>
                     </group>
                     <group col="3">
@@ -110,14 +108,14 @@
 	                    </group>    
                         <group string="Difference">
                             <field name="writeoff_amount" widget="monetary"  options="{'currency_field': 'currency_id'}"/>
-                            <field name="writeoff_amount_local" widget="monetary"  options="{'currency_field': 'company_currency_id'}"/>
+                            <field name="writeoff_amount_local" widget="monetary"  options="{'currency_field': 'company_currency_id'}" invisible="1"/>
                             <field name="payment_option" required="1" attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
                             <field name="writeoff_acc_id"
                                    attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"
                                    domain="[('type','=','other')]"/>
                             <field name="comment"
 								   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
-                            <field name="gainloss_amount" widget="monetary"  attrs="{'invisible': [('gainloss_amount','=',0)]}" options="{'currency_field': 'company_currency_id'}"/>
+                            <field name="gainloss_amount" widget="monetary"  attrs="{'invisible': ['|',('gainloss_amount','=',0),('state','=','draft')]}" options="{'currency_field': 'company_currency_id'}"/>
 
 						</group>                   
                     </group>
