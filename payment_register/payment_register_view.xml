@@ -111,10 +111,10 @@
                             <field name="writeoff_amount_local" widget="monetary"  options="{'currency_field': 'company_currency_id'}" invisible="1"/>
                             <field name="payment_option" required="1" attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
                             <field name="writeoff_acc_id"
-                                   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"
+                                   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&lt;&gt;',0)]}"
                                    domain="[('type','=','other')]"/>
                             <field name="comment"
-								   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
+								   attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&lt;&gt;',0)]}"/>
                             <field name="gainloss_amount" widget="monetary"  attrs="{'invisible': ['|',('gainloss_amount','=',0),('state','=','draft')]}" options="{'currency_field': 'company_currency_id'}"/>
 
 						</group>                   
