@@ -110,12 +110,10 @@ class hr_expense_expense(osv.osv):
                 'narration': expense.note,
                 'company_id': expense.company_id.id,
             }
-            period_id = False
             ctx.update(company_id=expense.company_id.id,
                        account_period_prefer_normal=True)
-            if not period_id:
-                period_ids = period_obj.find(cr, uid, date, context=ctx)
-                period_id = period_ids and period_ids[0] or False
+            period_ids = period_obj.find(cr, uid, date, context=ctx)
+            period_id = period_ids and period_ids[0] or False
             if period_id:
                 move['period_id'] = period_id
                 for i in line:

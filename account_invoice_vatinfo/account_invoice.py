@@ -103,12 +103,10 @@ class account_invoice(osv.osv):
                 'narration': inv.comment,
                 'company_id': inv.company_id.id,
             }
-            period_id = inv.period_id and inv.period_id.id or False
             ctx.update(company_id=inv.company_id.id,
                        account_period_prefer_normal=True)
-            if not period_id:
-                period_ids = period_obj.find(cr, uid, inv.date_invoice, context=ctx)
-                period_id = period_ids and period_ids[0] or False
+            period_ids = period_obj.find(cr, uid, date, context=ctx)
+            period_id = period_ids and period_ids[0] or False
             if period_id:
                 move['period_id'] = period_id
                 for i in line:
