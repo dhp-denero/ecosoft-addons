@@ -26,6 +26,7 @@
                         		</group>                                
                         		<group>
 	                        		<field name="vatinfo_move_id"/>
+	                        		<field name="vatinfo_move_date"/>
                         		</group>
                         	</group>
                         	<field name="invoice_vatinfo">

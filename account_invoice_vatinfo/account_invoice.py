@@ -48,6 +48,7 @@ class account_invoice(osv.osv):
 
     _columns = {
         'vatinfo_move_id': fields.many2one('account.move', 'Journal Entry (VAT Info)', readonly=True, select=1, ondelete='restrict', help="Link to the automatically generated Journal Items for Vat Info."),
+        'vatinfo_move_date': fields.related('vatinfo_move_id', 'date', type="date", string="Journal Date (VAT Info)", readonly=True, states={'draft': [('readonly', False)]}, store=True),
         'invoice_vatinfo': fields.one2many('account.invoice.line', 'invoice_id', 'Invoice Lines', readonly=True, states={'draft': [('readonly', False)]}),
         'is_vatinfo_tax': fields.function(_is_vatinfo_tax, type='boolean', string='Is VAT Info Tax',
                     store={
@@ -80,7 +81,7 @@ class account_invoice(osv.osv):
             # one move line per invoice line
             iml = self.pool.get('account.invoice.line').vatinfo_move_line_get(cr, uid, inv.id, context=ctx)
 
-            date = inv.date_invoice or time.strftime('%Y-%m-%d')
+            date = time.strftime('%Y-%m-%d')
             part = self.pool.get("res.partner")._find_accounting_partner(inv.partner_id)
             line = map(lambda x: (0, 0, self.line_get_convert(cr, uid, x, part.id, date, context=ctx)), iml)
             line = self.group_lines(cr, uid, iml, line, inv)
@@ -94,7 +95,8 @@ class account_invoice(osv.osv):
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
 
             move = {
-                'ref': inv.reference and inv.reference or inv.name,
+                'name': inv.number + '-A',
+                'ref': inv.name,
                 'line_id': line,
                 'journal_id': journal_id,
                 'date': date,
