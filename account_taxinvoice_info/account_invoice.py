@@ -50,7 +50,7 @@ class account_invoice(osv.osv):
     _columns = {
         'is_tax_adjustable': fields.function(_is_tax_adjustable, string='Is Tax Adjustable?', type='boolean',),
         'adjust_taxinvoice_info': fields.boolean('Adjust Tax Invoice for VAT Report'),
-        'taxinvoice_info_line': fields.one2many('account.taxinvoice.info.line', 'invoice_id', 'Tax Invoice Info Lines', readonly=False),
+        'taxinvoice_info_line': fields.one2many('account.invoice.taxinfo.line', 'invoice_id', 'Tax Invoice Info Lines', readonly=False),
         'rpt_period_id': fields.many2one('account.period', 'Report Period', required=False),
         'is_period_diff': fields.function(_is_period_diff, string='Is Period Diff?', type='boolean',),
     }
@@ -91,8 +91,8 @@ class account_invoice(osv.osv):
             res['value']['taxinvoice_info_line'] = taxinvoice_info
         else:
             # Remove preiod and tax info table
-            res_ids = self.pool.get('account.taxinvoice.info.line').search(cr, uid, [('invoice_id', '=', ids[0])], context=context)
-            self.pool.get('account.taxinvoice.info.line').unlink(cr, uid, res_ids, context=context)
+            res_ids = self.pool.get('account.invoice.taxinfo.line').search(cr, uid, [('invoice_id', '=', ids[0])], context=context)
+            self.pool.get('account.invoice.taxinfo.line').unlink(cr, uid, res_ids, context=context)
         return res
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -109,9 +109,9 @@ class account_invoice(osv.osv):
 account_invoice()
 
 
-class account_taxinvoice_info_line(osv.osv):
+class account_invoice_taxinfo_line(osv.osv):
 
-    _name = 'account.taxinvoice.info.line'
+    _name = 'account.invoice.taxinfo.line'
     _description = "Tax Invoice Info Line"
     _columns = {
         'invoice_id': fields.many2one('account.invoice', 'Invoice', required=True),
@@ -124,5 +124,5 @@ class account_taxinvoice_info_line(osv.osv):
         'taxinvoice_amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), required=True),
     }
 
-account_taxinvoice_info_line()
+account_invoice_taxinfo_line()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

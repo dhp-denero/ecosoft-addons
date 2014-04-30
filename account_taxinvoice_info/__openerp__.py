@@ -42,6 +42,7 @@ Note: Anything from this module will merely relate to reporting purposes (report
     'demo': [],
     'data': [
         'account_invoice_view.xml',
+        'voucher_payment_receipt_view.xml',
     ],
     'test': [
     ],
