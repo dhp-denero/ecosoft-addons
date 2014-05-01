@@ -22,9 +22,11 @@
 			                    </group>
 			                </group>
 	                    </div>
-	                     <p attrs="{'invisible':[('is_period_diff','=', False)]}" class="oe_grey">
+                    	<div style="width: 70%%" >	               
+	                     <p attrs="{'invisible':[('is_period_diff','=', False)]}" class="oe_highlight">
 	                         <b>Note:</b> The selected tax reporting period is different from the period of this document.
-	                     </p>                   
+	                     </p>     
+	                    </div>             
                         <div style="width: 70%%" attrs="{'invisible':[('adjust_taxinvoice_info', '=', False)]}" >
                             <field name="taxinvoice_info_line">
                                 <tree editable="bottom" string="Taxes">

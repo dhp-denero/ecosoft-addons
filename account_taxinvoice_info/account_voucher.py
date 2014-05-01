@@ -81,6 +81,8 @@ class account_voucher(osv.osv):
             return False
 
     def onchange_adjust_taxinvoice_info(self, cr, uid, ids, adjust_taxinvoice_info, context=None):
+        if not ids:
+            return True
         res = {'value': {'rpt_period_id': False, 'taxinvoice_info_line': False}}
         taxinvoice_info = []
         if adjust_taxinvoice_info:

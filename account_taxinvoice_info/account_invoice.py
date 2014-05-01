@@ -81,7 +81,7 @@ class account_invoice(osv.osv):
                     and not tax_line.is_wht:
                     taxinvoice_info.append({'invoice_id': invoice.id,
                                             'taxinvoice_date': invoice.date_invoice,
-                                            'taxinvoice_number': invoice.number,
+                                            'taxinvoice_number': invoice.supplier_invoice_number,
                                             'taxinvoice_partner_id': invoice.partner_id.id,
                                             'taxinvoice_tin': invoice.partner_id.vat,
                                             'taxinvoice_branch': invoice.partner_id.branch,
