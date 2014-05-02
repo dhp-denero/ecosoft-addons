@@ -195,7 +195,7 @@ class commission_worksheet(osv.osv):
                 q = product_uom_obj._compute_qty(cr, uid, line.uos_id.id, 1, default_uom)
                 uom_price_unit = line.price_unit / (q or 1.0)
                 for rate_step in product.rate_step_ids:
-                    if uom_price_unit > rate_step.amount_over:
+                    if uom_price_unit >= rate_step.amount_over:
                         percent_commission = rate_step.percent_commission
                         break
                     else:

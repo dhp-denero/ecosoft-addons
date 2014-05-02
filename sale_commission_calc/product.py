@@ -40,7 +40,7 @@ class commission_rate_step(osv.osv):
     _name = "commission.rate.step"
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', readonly=True, ondelete='cascade', select=True),
-        'amount_over': fields.float('Amount Over', digits=(16, 2), readonly=False),
+        'amount_over': fields.float('From Unit Price', digits=(16, 2), readonly=False),
         'percent_commission': fields.float('Commission (%)', digits=(16, 2), readonly=False),
     }
     _order = 'amount_over'
