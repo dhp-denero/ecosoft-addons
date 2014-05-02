@@ -135,6 +135,7 @@ Group / Securities
         'security/sale_commission_calc_security.xml',
         'security/ir.model.access.csv',
         'wizard/create_commission_invoice_view.xml',
+        'wizard/invoice_info_view.xml',
         'commission_calc_view.xml',
         'commission_rule_view.xml',
         'account_invoice_view.xml',
