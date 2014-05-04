@@ -26,13 +26,22 @@ from dateutil.relativedelta import relativedelta
 
 
 class product_stock_card_location(osv.osv_memory):
+
     _name = "product_stock.card.location"
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', domain=[('type', '!=', 'service')]),
         'location_id': fields.many2one('stock.location', 'Location', required=False, domain=[('usage', '=', 'internal')]),
         'from_date': fields.datetime('From Date'),
         'to_date': fields.datetime('To Date'),
-        }
+    }
+
+    def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
+        if context is None:
+            context = {}
+        res = super(product_stock_card_location, self).fields_view_get(cr, uid, view_id=view_id, view_type=view_type, context=context, toolbar=toolbar, submenu=submenu)
+        if len(context.get('active_ids', [])) > 1:
+            res['arch'] = res['arch'].replace('<button string="View Stock Card" name="open_stock_card" type="object" default_focus="1" class="oe_highlight"/>', '')
+        return res
 
     def open_stock_card(self, cr, uid, ids, context=None):
         stock_card_location = self.read(cr, uid, ids, ['product_id', 'location_id', 'from_date', 'to_date'], context=context)
