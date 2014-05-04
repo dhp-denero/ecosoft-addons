@@ -27,16 +27,28 @@
 
 Normally, when user want to see the movement of a product, they will use Inventory Move.
 Although it give full information about the movement of the product, it is not easy for user to understand quickly.
-Stock Card will give the movement view of a product for a location is a simpler way.
+Stock Card will give the movement view of a product for a location is a much simpler way.
 
-For a given location, it gives,
+The main purpose of Stock Card module is to show a report view of item movement for a given product for a given locaton.
+It gives following information,
   * In Qty
   * Out Qty
   * Balance
 
-2 ways to use stock card,
-  * Open a product, click More > Stock Card, then choose Location and Date Range.
-  * New Stock Card menu in Warehouse > Inventory Control > Stock Card, then choose Product, Location and Date Range.
+Different ways to access Stock Card
+===================================
+
+1) Overall quantity in different locations in product's new tab, "Stock Location"
+
+2) View Stock Card from selected product
+  * Given a product is opened, click menu More > Stock Card
+  * In product list view, select one or multiple product, then click menu More > Stock Card
+
+  In either way, you have ability to view Stock Card in OpenERP on print it out.
+
+3) View Stock Card from menu Warehouse > Inventory Control > Stock Card
+
+  This way is the same as previous, except you will select product right here.
 
     """,
     'author': 'Ecosoft',
