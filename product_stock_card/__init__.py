@@ -21,8 +21,6 @@
 
 import product_stock_card
 import stock_product_location
-import JasperDataParser
-# import report
 import wizard
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

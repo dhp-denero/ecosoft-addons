@@ -21,7 +21,6 @@
 
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
-import time
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -36,9 +35,6 @@ class product_stock_card_location(osv.osv_memory):
         }
 
     def open_stock_card(self, cr, uid, ids, context=None):
-#         view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'product_stock_card', 'view_product_stock_card_tree')
-#         view_id = view_ref and view_ref[1] or False,
-
         stock_card_location = self.read(cr, uid, ids, ['product_id', 'location_id', 'from_date', 'to_date'], context=context)
         domain = []
         if stock_card_location:
@@ -62,15 +58,16 @@ class product_stock_card_location(osv.osv_memory):
                 stop = datetime.strptime(stock_card_location[0]['to_date'], "%Y-%m-%d %H:%M:%S")
                 stop = stop + relativedelta(days=1)
                 domain += [('date', '<=', stop.strftime('%Y-%m-%d'))]
+
         return {
-                'name': _('Stock Card By Location'),
-                'view_type': 'form',
-                'view_mode': 'tree,form',
-                'res_model': 'product.stock.card',
-                'type': 'ir.actions.act_window',
-                'context': ctx,
-                'domain': domain,
-                }
+            'name': _('Stock Card By Location'),
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'product.stock.card',
+            'type': 'ir.actions.act_window',
+            'context': ctx,
+            'domain': domain,
+        }
 
     def print_stock_card(self, cr, uid, ids, context=None):
         stock_card_location = self.read(cr, uid, ids, ['product_id', 'location_id', 'from_date', 'to_date'], context=context)
@@ -79,13 +76,12 @@ class product_stock_card_location(osv.osv_memory):
         start = None
         stop = None
         parameters = {}
+        product_id = False
         if stock_card_location:
             if stock_card_location[0]['product_id']:
-                product = stock_card_location[0]['product_id'][0]
-                ctx = {'search_default_product_id': product, 'default_product_id': product, 'active_id': product}
+                product_id = stock_card_location[0]['product_id'][0]
             else:
-                product = context.get('active_id', False)
-                ctx = {'search_default_product_id': product, 'default_product_id': product, }
+                product_id = context.get('active_id', False)
 
             if stock_card_location[0]['location_id']:
                 location_id = stock_card_location[0]['location_id'][0]
@@ -108,19 +104,20 @@ class product_stock_card_location(osv.osv_memory):
 
         data = self.read(cr, uid, ids, )[-1]
         return {
-                'type': 'ir.actions.report.xml',
-                'report_name': 'report.product.stock.card',
-                'report_type': 'pdf',
-                'context': ctx,
-                'domain': domain,
-                'datas': {
-                          'model': 'product.product',
-                          'id': product or False,
-                          'ids': [product] or [],
-                          'form': data,
-                          'parameters': parameters,
-            },
+            'type': 'ir.actions.report.xml',
+            'report_name': 'report.product.stock.card',
+            'report_type': 'pdf',
+            'context': ctx,
+            'domain': domain,
+            'datas': {
+                'model': 'product.product',
+                'id': product_id,
+                'ids': context.get('active_ids', []),
+                'form': data,
+                'parameters': parameters
+            }
         }
+
 product_stock_card_location()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
