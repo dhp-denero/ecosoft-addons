@@ -251,7 +251,7 @@ msgstr "ข้ามไป"
 #: model:ir.actions.act_window,name:sale_commission_calc.action_user_commission_worksheet_form
 #: model:ir.ui.menu,name:sale_commission_calc.menu_user_commission_worksheet
 msgid "Salesperson Worksheet"
-msgstr "เอกสารการคำนวณของพนักงานขาย"
+msgstr "เอกสารคอมมิชชั่นพนักงานขาย"
 
 #. module: sale_commission_calc
 #: help:commission.worksheet.line,note:0
@@ -502,7 +502,7 @@ msgstr "พนักงานขาย / ทีมงานและคอมม
 #: code:addons/sale_commission_calc/wizard/generate_commission_worksheet.py:48
 #, python-format
 msgid "Number of Team Commission Worksheet"
-msgstr "จำนวนเอกสารคอมมิขชั่นสำหรับทีมขาย"
+msgstr "จำนวนเอกสารคอมมิขชั่นทีมขาย"
 
 #. module: sale_commission_calc
 #: model:ir.ui.menu,name:sale_commission_calc.menu_commission_calc_rule
