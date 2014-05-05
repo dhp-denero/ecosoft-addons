@@ -657,7 +657,7 @@ class commission_worksheet_line(osv.osv):
                         else:
                             state = 'invalid'  # otherwise invalid
                 else:
-                    state = 'invalid'  # Paid + Not posted
+                    state = 'draft'  # Paid + Not posted
         # Updates
         res = {
             'paid_date': paid_date,
