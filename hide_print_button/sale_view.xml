@@ -10,7 +10,7 @@
                     <button name="print_quotation" states="draft" position="attributes">
                     	<attribute name="invisible">True</attribute>
                     </button>
-                    <button name="print_quotation" states="sent" position="attributes">
+                    <button name="print_quotation" states="sent,progress,manual" position="attributes">
                     	<attribute name="invisible">True</attribute>
                     </button>
 				</data>
