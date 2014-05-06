@@ -33,7 +33,7 @@ This module will ignore the Account Posting for Product Tax, but use the VAT and
     'sequence': 4,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['web_m2o_enhanced','invoice_expense','config_expense_tax'],
+    'depends' : ['web_m2x_options', 'invoice_expense', 'config_expense_tax'],
     'demo' : [],
     'data' : ['invoice_expense_view.xml',
               'invoice_expense_report.xml',

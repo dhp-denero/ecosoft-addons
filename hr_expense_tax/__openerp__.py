@@ -34,7 +34,7 @@
     'sequence': 4,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['web_m2o_enhanced','hr_expense','config_expense_tax'],
+    'depends' : ['web_m2x_options', 'hr_expense', 'config_expense_tax'],
     'demo' : [],
     'data' : ['hr_expense_view.xml',
               'hr_expense_report.xml',

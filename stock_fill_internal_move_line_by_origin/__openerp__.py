@@ -33,7 +33,9 @@ The filled line will be based on available products at origin.
     'category': 'Warehouse Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['web_m2o_enhanced','stock','sale_stock'],
+    'depends' : ['web_m2x_options',
+                 'stock',
+                 'sale_stock'],
     'demo' : [],
     'data' : [
         'wizard/stock_fill_move_view.xml',

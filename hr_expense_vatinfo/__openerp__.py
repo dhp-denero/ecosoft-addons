@@ -34,7 +34,7 @@ This is useful when we pay VAT through other supplier, e.g., Expense to an emplo
     'category': 'Human Resources',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['hr_expense','web_m2o_enhanced'],
+    'depends' : ['hr_expense', 'web_m2x_options'],
     'demo' : [],
     'data' : ['wizard/expense_vatinfo_view.xml',
               'hr_expense_view.xml',

@@ -41,7 +41,7 @@ To-Be:
     'category': 'Accounting',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account','picking_invoice_rel'],
+    'depends' : ['account', 'picking_invoice_relation'],
     'demo' : [],
     'data' : [
         'wizard/invoice_cancel_return_picking_view.xml',

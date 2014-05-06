@@ -35,7 +35,7 @@ Make sure the new Journal has been created for them (manually).
     'category': 'Accounting',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['account','picking_invoice_rel'],
+    'depends' : ['account', 'picking_invoice_relation'],
     'demo' : [],
     'data' : ['wizard/account_debitnote_view.xml',
               'account_invoice_view.xml',

@@ -39,7 +39,7 @@ This module add new shipper information,
     'sequence': 8,
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['base','web_m2o_enhanced','account','sale','stock','sale_stock'],
+    'depends' : ['base', 'web_m2x_options', 'account', 'sale', 'stock', 'sale_stock'],
     'demo' : [],
     'data' : [
         'partner_shipper_view.xml',

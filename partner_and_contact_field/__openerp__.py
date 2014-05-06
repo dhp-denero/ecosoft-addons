@@ -32,7 +32,7 @@ Features
     'category': 'Sales Management',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['web_m2o_enhanced','purchase','sale'],
+    'depends' : ['web_m2x_options', 'purchase', 'sale'],
     'demo' : [],
     'data' : [
         'purchase_view.xml',

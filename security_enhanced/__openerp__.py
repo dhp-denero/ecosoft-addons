@@ -50,7 +50,7 @@ M2O fields Restriction
     'category': 'Technical',
     'website' : 'http://www.ecosoft.co.th',
     'images' : [],
-    'depends' : ['web_m2o_enhanced',
+    'depends' : ['web_m2x_options',
                  'product',
                  'sale',
                  'purchase',

@@ -1,8 +1,8 @@
 {
     "name": "Advance and Additional discount",
     "version": "1.0",
-    "depends": ["base","sale","purchase","account",
-                "stock","picking_invoice_rel",
+    "depends": ["base", "sale", "purchase", "account",
+                "stock", "picking_invoice_relation",
                 "account_thai_wht",
                 ],
     "author": "Ecosoft",

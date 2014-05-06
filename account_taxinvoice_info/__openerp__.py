@@ -38,7 +38,7 @@ Note: Anything from this module will merely relate to reporting purposes (report
     'category': 'Accounting',
     'website': 'http://www.ecosoft.co.th',
     'images': [],
-    'depends': ['account', 'account_thai_wht', 'web_m2o_enhanced'],
+    'depends': ['account', 'account_thai_wht', 'web_m2x_options'],
     'demo': [],
     'data': [
         'account_invoice_view.xml',
