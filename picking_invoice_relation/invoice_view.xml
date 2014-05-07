@@ -12,13 +12,13 @@
       		<field name="invoice_id_ref" attrs="{'invisible': [('invoice_id_ref','=',False)]}"/> 
 		</field>
         <page string="Other Info" position="after">
-          <page string="Pickings" groups="picking_invoice_rel.group">
+          <page string="Pickings" groups="picking_invoice_relation.group">
             <field name="picking_ids" colspan="4" nolabel="1"/>
           </page>
-          <page string="Sale Orders" groups="picking_invoice_rel.group">
+          <page string="Sale Orders" groups="picking_invoice_relation.group">
             <field name="sale_order_ids" colspan="4" nolabel="1"/>
           </page>  
-          <page string="Refunded Invoices" groups="picking_invoice_rel.group"  attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}">
+          <page string="Refunded Invoices" groups="picking_invoice_relation.group"  attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}">
             <field name="invoice_refund_refs" colspan="4" nolabel="1" attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}"/>
           </page>         
 		</page>
@@ -35,13 +35,13 @@
       		<field name="invoice_id_ref" attrs="{'invisible': [('invoice_id_ref','=',False)]}"/> 
 		</field>        
 		<page string="Other Info" position="after">
-          <page string="Pickings" groups="picking_invoice_rel.group">
+          <page string="Pickings" groups="picking_invoice_relation.group">
             <field name="picking_ids" colspan="4" nolabel="1"/>
           </page>
-          <page string="Purchase Orders" groups="picking_invoice_rel.group">
+          <page string="Purchase Orders" groups="picking_invoice_relation.group">
             <field name="purchase_order_ids" colspan="4" nolabel="1"/>
           </page>
-          <page string="Refunded Invoices" groups="picking_invoice_rel.group" attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}">
+          <page string="Refunded Invoices" groups="picking_invoice_relation.group" attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}">
             <field name="invoice_refund_refs" colspan="4" nolabel="1" attrs="{'invisible': ['|', ('invoice_id_ref','=',False), ('type','not in',('in_invoice','out_invoice'))]}"/>
           </page>
         </page>

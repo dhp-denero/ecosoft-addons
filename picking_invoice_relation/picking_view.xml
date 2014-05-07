@@ -11,7 +11,7 @@
          <field name="picking_id_ref" attrs="{'invisible': [('picking_id_ref','=',False)]}"/>       
         </field>        
 		<page string="Additional Info" position="after">
-          <page string="Invoices" groups="picking_invoice_rel.group">
+          <page string="Invoices" groups="picking_invoice_relation.group">
             <field name="invoice_ids" colspan="4" nolabel="1"/>
           </page>
         </page>
@@ -28,7 +28,7 @@
          <field name="picking_id_ref" attrs="{'invisible': [('picking_id_ref','=',False)]}"/>       
         </field>   
         <page string="Additional Info" position="after">
-          <page string="Invoices" groups="picking_invoice_rel.group">
+          <page string="Invoices" groups="picking_invoice_relation.group">
             <field name="invoice_ids" colspan="4" nolabel="1"/>
           </page>
         </page>
@@ -45,7 +45,7 @@
          <field name="picking_id_ref" attrs="{'invisible': [('picking_id_ref','=',False)]}"/>       
         </field>
         <page string="Additional Info" position="after" >
-          <page string="Invoices" groups="picking_invoice_rel.group">
+          <page string="Invoices" groups="picking_invoice_relation.group">
             <field name="invoice_ids" colspan="4" nolabel="1"/>
           </page>
         </page>
