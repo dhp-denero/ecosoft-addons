@@ -40,7 +40,6 @@ This module is based on picking_invoice_rel module from camptocamp, but has been
         'invoice_view.xml',
         'picking_view.xml',
         'stock_view.xml',
-        'sale_view.xml',
         'security/group.xml',
         'security/ir.model.access.csv'
     ],
