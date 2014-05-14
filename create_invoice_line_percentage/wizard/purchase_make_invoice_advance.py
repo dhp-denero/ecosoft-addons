@@ -17,21 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import ast
-
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 
+
 class purchase_advance_payment_inv(osv.osv_memory):
-    
+
     _inherit = "purchase.advance.payment.inv"
-    
     _columns = {
-        'line_percent':fields.float('Installment', digits_compute= dp.get_precision('Account'),
+        'line_percent': fields.float('Installment', digits_compute=dp.get_precision('Account'),
             help="The % of installment to be used to calculate the quantity to invoice"),
     }
-    
+
     def create_invoices(self, cr, uid, ids, context=None):
         wizard = self.browse(cr, uid, ids[0], context)
         # Additional case, Line Percentage
@@ -41,7 +39,7 @@ class purchase_advance_payment_inv(osv.osv_memory):
             purchase_ids = context.get('active_ids', [])
             order = purchase_obj.browse(cr, uid, purchase_ids[0])
             order_line_ids = []
-            # For Deposit, check the deposit percent must either 
+            # For Deposit, check the deposit percent must either
             #  1) Make whole amount 100%
             #  2) Make whole amount left off equal to deposit amount (for the next invoice not become negative)
             if order.advance_type == 'deposit':
@@ -61,9 +59,9 @@ class purchase_advance_payment_inv(osv.osv_memory):
             if not context.get('open_invoices', False):
                 return {'type': 'ir.actions.act_window_close'}
             return res
-            
+
         return super(purchase_advance_payment_inv, self).create_invoices(cr, uid, ids, context=context)
-        
+
 purchase_advance_payment_inv()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -21,7 +21,6 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
-from openerp.tools import float_compare, DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class sale_advance_payment_inv(osv.osv_memory):
@@ -33,14 +32,17 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_id = context.get('active_id', False)
             if sale_id:
                 sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
-                total_advance = sale.advance_percentage + sale.amount_deposit
-                digits_compute = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
-                if (sale.order_policy == 'manual' and ((float_compare(total_advance, 0, precision_rounding=digits_compute)) == 1 or  (not context.get('advance_type', False)))):
+                # Advance option not available when, There are at least 1 non-cancelled invoice created
+                num_valid_invoice = 0
+                for i in sale.invoice_ids:
+                    if i.state not in ['cancel']:
+                        num_valid_invoice += 1
+                if sale.order_policy == 'manual' and (num_valid_invoice or not context.get('advance_type', False)):
                     res.append(('line_percentage', 'Line Percentage'))
         return res
 
     _columns = {
-        'line_percent': fields.float('Installment', digits_compute= dp.get_precision('Account'),
+        'line_percent': fields.float('Installment', digits_compute=dp.get_precision('Account'),
             help="The % of installment to be used to calculate the quantity to invoice"),
         'advance_payment_method': fields.selection(_get_advance_payment_method,
             'What do you want to invoice?', required=True,
@@ -60,7 +62,7 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_ids = context.get('active_ids', [])
             order = sale_obj.browse(cr, uid, sale_ids[0])
             order_line_ids = []
-            # For Deposit, check the deposit percent must either 
+            # For Deposit, check the deposit percent must either
             #  1) Make whole amount 100%
             #  2) Make whole amount left off equal to deposit amount (for the next invoice not become negative)
             if order.advance_type == 'deposit':
