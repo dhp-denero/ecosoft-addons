@@ -22,24 +22,25 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 
+
 class purchase_advance_payment_inv(osv.osv_memory):
     _name = "purchase.advance.payment.inv"
     _description = "Purchase Advance Payment Invoice"
 
     _columns = {
-        'advance_payment_method':fields.selection(
-            [('percentage','Percentage'), ('fixed','Fixed price (deposit)')],
+        'advance_payment_method': fields.selection(
+            [('percentage', 'Percentage'), ('fixed', 'Fixed price (deposit)')],
             'What do you want to invoice?', required=False,
             help="""Use Percentage to invoice a percentage of the total amount.
                 Use Fixed Price to invoice a specific amount in advance."""),
-        'amount': fields.float('Amount', digits_compute= dp.get_precision('Account'),
+        'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'),
             help="The amount to be invoiced in advance."),
     }
-    
+
     _defaults = {
         'amount': 0.0,
     }
-    
+
     def _prepare_advance_invoice_vals(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -93,7 +94,7 @@ class purchase_advance_payment_inv(osv.osv_memory):
                         res['name'] = _("%s of %s %s") % (advance_label, inv_amount, symbol)
                     else:
                         res['name'] = _("%s of %s %s") % (advance_label, symbol, inv_amount)
-                                            
+
             # create the invoice
             inv_line_values = {
                 'name': res.get('name'),
@@ -126,7 +127,6 @@ class purchase_advance_payment_inv(osv.osv_memory):
             }
             result.append((purchase.id, inv_values))
         return result
-
 
     def _create_invoices(self, cr, uid, inv_values, purchase_id, context=None):
         context['type'] = 'in_invoice'

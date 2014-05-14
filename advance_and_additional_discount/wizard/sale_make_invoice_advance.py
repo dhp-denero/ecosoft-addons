@@ -34,18 +34,17 @@ class sale_advance_payment_inv(osv.osv_memory):
             sale_id = context.get('active_id', False)
             if sale_id:
                 sale = self.pool.get('sale.order').browse(cr, uid, sale_id)
-                #DRB Modification remove condition
-                #if sale.order_policy == 'manual' and (len(sale.invoice_ids) or not context.get('advance_type', False)):
-                digits_compute = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
-                total_advance = sale.advance_percentage + sale.amount_deposit
-                if (sale.order_policy == 'manual' and ((float_compare(total_advance, 0, precision_rounding=digits_compute)) == 1 or  (not context.get('advance_type', False)))):
+                # Advance option not available when, There are at least 1 non-cancelled invoice created
+                num_valid_invoice = 0
+                for i in sale.invoice_ids:
+                    if i.state not in ['cancel']:
+                        num_valid_invoice += 1
+                if sale.order_policy == 'manual' and (num_valid_invoice or not context.get('advance_type', False)):
                     res.append(('all', 'Invoice the whole sales order'))
                     res.append(('lines', 'Some order lines'))
-                #DRB Modification remove condition
-                if not ((sale.advance_percentage) or (sale.amount_deposit)) and context.get('advance_type', False) != False:
+                if not num_valid_invoice and context.get('advance_type', False):
                     res.append(('percentage', 'Percentage'))
                     res.append(('fixed', 'Fixed price (deposit)'))
-
         return res
 
     _columns = {
