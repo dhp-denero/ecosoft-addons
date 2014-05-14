@@ -79,6 +79,6 @@ class invoice_info_line(osv.osv_memory):
         'price_subtotal': fields.float('Subtotal', digits_compute=dp.get_precision('Account')),
     }
 
-invoice_info()
+invoice_info_line()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
