@@ -19,8 +19,6 @@
 #
 ##############################################################################
 
-
-import openerp.netsvc
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 
@@ -32,8 +30,6 @@ class purchase_requisition_line(osv.osv):
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         res = dict.fromkeys(ids, 'draft')
         for line in self.browse(cr, uid, ids, context=context):
-#             if  not (line.po_line_ids or (line.selected_flag and line.partner_ids)):
-#                 res[line.id] = 'cancel'
             for  po in line.po_line_ids:
                 if po.state == 'draft' and res[line.id] != 'done':
                     res[line.id] = 'in_purchase'
@@ -62,9 +58,9 @@ class purchase_requisition_line(osv.osv):
                                         ('cancel', 'Cancelled')]),
     }
     _default = {
-               'selected_flag': True,
-               'po_line_ids': False,
-               }
+       'selected_flag': True,
+       'po_line_ids': False,
+    }
 
     def copy(self, cr, uid, ids, default=None, context=None):
         if not default:
@@ -81,11 +77,10 @@ class purchase_requisition_line(osv.osv):
         return res
 
     def create(self, cr, uid, vals, context=None):
-        #Remove po_line_ids if duplicate data
+        # Remove po_line_ids if duplicate data
         if context.get('__copy_data_seen', False):
             vals.update({'po_line_ids': False})
-        res_id = super(purchase_requisition_line,
-                        self).create(cr, uid, vals, context=context)
+        res_id = super(purchase_requisition_line, self).create(cr, uid, vals, context=context)
         return res_id
 
     def selected_flag_onchange(self, cr, uid, ids, selected_flag, context=None):
@@ -106,13 +101,11 @@ class purchase_requisition(osv.osv):
         'all_selected': fields.boolean("All Select(s)"),
     }
     _default = {
-               'all_selected': True,
-               }
+        'all_selected': True,
+    }
 
-    def all_selected_onchange(self, cr, uid, ids,
-                               all_selected, line_ids, context=None):
+    def all_selected_onchange(self, cr, uid, ids, all_selected, line_ids, context=None):
         res = {'value': {'line_ids': False}}
-
         for index in range(len(line_ids)):
             if line_ids[index][0] in (0, 1, 4):
                 if line_ids[index][2]:
@@ -121,23 +114,18 @@ class purchase_requisition(osv.osv):
                     if line_ids[index][0] == 4:
                         line_ids[index][0] = 1
                     line_ids[index][2] = {'selected_flag': all_selected}
-
         res['value']['line_ids'] = line_ids
-
         return res
 
     def update_done(self, cr, uid, ids, context=None):
         pr_recs = self.browse(cr, uid, ids, context=context)
         prs_done = []
-
         for rec in pr_recs:
             is_done = True
             for line in rec.line_ids:
                 is_done = is_done and line.state in ('done', 'cancel')
-
             if is_done:
                 prs_done.append(rec.id)
-
         self.tender_done(cr, uid, prs_done, context=None)
         return True
 
@@ -148,23 +136,20 @@ class purchase_requisition(osv.osv):
                       self).copy(cr, uid, ids, default, context)
 
     def action_createPO(self, cr, uid, ids, context=None):
-
         selected = False
         for pr in self.browse(cr, uid, ids, context):
             for line_id in pr.line_ids:
                 if line_id.selected_flag:
                     selected = True
-
         if not selected:
             raise osv.except_osv(_('Warning!'), _('Please select the PR Line(s) at least one line'))
-
         mod_obj = self.pool.get('ir.model.data')
         act_obj = self.pool.get('ir.actions.act_window')
-
         result = mod_obj.get_object_reference(cr, uid, 'purchase_requisition', 'action_purchase_requisition_partner')
         id = result and result[1] or False
         result = act_obj.read(cr, uid, [id], context=context)[0]
-
         return result
+
 purchase_requisition()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

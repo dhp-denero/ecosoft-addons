@@ -36,6 +36,7 @@ Multi-Supplier Purchase Requisitions.
     """,
     'website': 'http://www.ecosoft.co.th',
     'data': [
+        'wizard/purchase_order_info_view.xml',
         'purchase_workflow.xml',
         'purchase_requisition_view.xml',
         'wizard/purchase_requisition_partner_view.xml',
