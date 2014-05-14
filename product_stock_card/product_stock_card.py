@@ -22,8 +22,6 @@
 from openerp.osv import fields, osv
 from openerp.tools.sql import drop_view_if_exists
 import openerp.addons.decimal_precision as dp
-import time
-from datetime import datetime
 
 
 class product_stock_card(osv.osv):
@@ -78,23 +76,19 @@ class product_stock_card(osv.osv):
         'invoice_id': fields.many2one('account.invoice', 'Invoice', readonly=True),
         'price_unit': fields.float('Unit Price', digits_compute=dp.get_precision('Product Price'), readonly=True),
         'amount': fields.float('Amount', digits_compute=dp.get_precision('Account'), readonly=True),
-        'location_id': fields.many2one('stock.location', 'Source Location',
-                                       readonly=True, select=True),
-        'location_dest_id': fields.many2one('stock.location', 'Dest. Location',
-                                            readonly=True, select=True),
+        'location_id': fields.many2one('stock.location', 'Source Location', readonly=True, select=True),
+        'location_dest_id': fields.many2one('stock.location', 'Dest. Location', readonly=True, select=True),
         'picking_qty': fields.float('Picking quantity', readonly=True),
-        'default_uom': fields.many2one('product.uom', 'Unit of Measure',
-                                      readonly=True, select=True),
-        'move_uom': fields.many2one('product.uom', 'Unit of Move',
-                                      readonly=True, select=True),
+        'default_uom': fields.many2one('product.uom', 'Unit of Measure', readonly=True, select=True),
+        'move_uom': fields.many2one('product.uom', 'Unit of Move', readonly=True, select=True),
         'in_qty': fields.function(_get_stock_tacking, method=True,
                                        type='float', multi='qty_balance',
                                        string='In',
                                        digits_compute=dp.get_precision('Account')),
         'out_qty': fields.function(_get_stock_tacking, method=True,
-                               type='float', multi='qty_balance',
-                               string='Out',
-                               digits_compute=dp.get_precision('Account')),
+                                       type='float', multi='qty_balance',
+                                       string='Out',
+                                       digits_compute=dp.get_precision('Account')),
         'balance': fields.function(_get_stock_tacking, method=True,
                                        type='float', multi='qty_balance',
                                        string='Balance',
@@ -157,10 +151,10 @@ class product_product(osv.osv):
         'stock_card_ids': fields.one2many('product.stock.card', 'product_id', 'Stock Card'),
     }
 
-    #copy must not copy stock_product_by_location_ids
+    # copy must not copy stock_product_by_location_ids
     def copy(self, cr, uid, id, default={}, context=None):
         default = default.copy()
         default['stock_card_ids'] = []
         return super(product_product, self).copy(cr, uid, id, default, context)
-    # end def copy
+
 product_product()
