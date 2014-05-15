@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
      <data>
-         <record id="account_partner_ledger_view_ext" model="ir.ui.view">
-            <field name="name">Partner Ledger</field>
-            <field name="model">account.partner.ledger</field>
-            <field name="inherit_id" ref="account.account_partner_ledger_view" />
+         <record id="account_aged_balance_view_ext" model="ir.ui.view">
+            <field name="name">account.aged.balance.view</field>
+            <field name="model">account.aged.trial.balance</field>
+            <field name="inherit_id" ref="account.account_aged_balance_view" />
             <field name="arch" type="xml">
 	            <data>
 			        <xpath expr="//field[@name='chart_account_id']" position="after">
@@ -15,5 +15,5 @@
 	            </data>
             </field>
         </record>
-      </data>
- </openerp>
+    </data>
+</openerp>

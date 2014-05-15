@@ -20,32 +20,41 @@
 ##############################################################################
 
 {
-    'name' : "Extensions for Account Reports",
-    'author' : 'Ecosoft',
+    'name': "Extensions for Account Reports",
+    'author': 'Ecosoft',
     'summary': '',
     'description': """
 Features
 ========
-    1. Allowing Search by Partners
-    
+
+Allowing Search by Partners for following reports,
+
+* Generic Reporting / Partners
+
+  * Partner Balance
+  * Aged Partner Balance
+  * Partner Ledger
+
 
 """,
     'category': 'account',
     'sequence': 8,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['account'],
-    'demo' : [],
-    'data' : [
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': ['web_m2x_options', 'account'],
+    'demo': [],
+    'data': [
               'account_financial_report_data.xml',
               'wizard/account_report_partner_ledger_view.xml',
               'wizard/account_report_general_ledger_view.xml',
               'wizard/account_report_account_balance_view.xml',
+              'wizard/account_report_partner_balance_view.xml',
+              'wizard/account_report_aged_partner_balance_view.xml',
               'wizard/account_financial_report_view.xml',
               'wizard/account_report_common_view.xml',
               'account_report.xml',
     ],
-    'test' : [
+    'test': [
     ],
     'auto_install': False,
     'application': True,

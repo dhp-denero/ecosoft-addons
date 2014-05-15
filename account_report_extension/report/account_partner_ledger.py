@@ -19,7 +19,7 @@
 #
 ######################################s########################################
 
-from account.report.account_partner_ledger  import third_party_ledger
+from account.report.account_partner_ledger import third_party_ledger
 from openerp.report import report_sxw
 
 

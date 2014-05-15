@@ -18,13 +18,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import account_report_common_partner
-import account_report_common_account
-import account_report_general_ledger
-import account_report_partner_ledger
-import account_report_partner_balance
-import account_report_account_balance
-import account_report_aged_partner_balance
-import account_financial_report
-import account_report_common
+
+from openerp.osv import osv
+
+
+class account_aged_trial_balance(osv.osv_memory):
+
+    _inherit = ['account.aged.trial.balance', 'account.common.partner.report']
+    _name = 'account.aged.trial.balance'
+
+    def _print_report(self, cr, uid, ids, data, context=None):
+        res = super(account_aged_trial_balance, self)._print_report(cr, uid, ids, data, context)
+        data['form'].update(self.read(cr, uid, ids, ['partner_ids'], context=context)[0])
+        data['model'] = 'res.partner'
+        res.update({'report_name': 'account.aged_trial_balance_ext'}),
+        return res
+
+account_aged_trial_balance()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

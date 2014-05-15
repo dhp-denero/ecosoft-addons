@@ -3,7 +3,7 @@
     <data>
         <report auto="False" id="account_3rdparty_ledger" menu="False" model="res.partner" 
         	name="account.third_party_ledger_ext" rml="account/report/account_partner_ledger.rml" string="Partner Ledger"/>
-        	
+        		
         <report auto="False" id="account_3rdparty_ledger_other" menu="False" model="res.partner" 
         	name="account.third_party_ledger_other_ext" rml="account/report/account_partner_ledger_other.rml" string="Partner Ledger"/>
         	
@@ -19,5 +19,6 @@
          	
         <report auto="False" id="account_financial_report_ext" menu="False" model="account.financial.report" 
         	name="account.financial.report_ext" rml="account/report/account_financial_report.rml" string="Balance Sheet"/>
-    </data>
+              		
+	</data>
 </openerp>

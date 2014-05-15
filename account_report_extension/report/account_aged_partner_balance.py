@@ -18,13 +18,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import account_report_common_partner
-import account_report_common_account
-import account_report_general_ledger
-import account_report_partner_ledger
-import account_report_partner_balance
-import account_report_account_balance
-import account_report_aged_partner_balance
-import account_financial_report
-import account_report_common
+
+from openerp.report import report_sxw
+from account.report.account_aged_partner_balance import aged_trial_report
+
+
+class aged_trial_report_ext(aged_trial_report):
+
+    def set_context(self, objects, data, ids, report_type=None):
+        partner_ids = data['form'].get('partner_ids', False)
+        if partner_ids:
+            res = super(aged_trial_report_ext, self).set_context(objects, data, partner_ids, report_type)
+            self.query += ' AND l.partner_id in (%s) ' % ','.join(str(x) for x in partner_ids)
+        else:
+            res = super(aged_trial_report_ext, self).set_context(objects, data, ids, report_type)
+        return res
+
+report_sxw.report_sxw('report.account.aged_trial_balance_ext', 'res.partner',
+        'addons/account/report/account_aged_partner_balance.rml', parser=aged_trial_report_ext,
+        header='internal landscape')
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
