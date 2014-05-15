@@ -19,10 +19,8 @@
 #
 ##############################################################################
 
-from operator import itemgetter
-import time
-
 from openerp.osv import fields, osv
+
 
 class res_partner(osv.osv):
     _inherit = 'res.partner'
@@ -48,7 +46,6 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the additional discount account for the current partner",
             required=True,
             readonly=True),
-                
         'property_account_advance_customer': fields.property(
             'account.account',
             type='many2one',
@@ -90,7 +87,6 @@ class res_partner(osv.osv):
             help="This account will be used instead of the default one as the deposit account for the current partner",
             required=True,
             readonly=True),
-                
         'property_account_retention_customer': fields.property(
             'account.account',
             type='many2one',
@@ -110,7 +106,8 @@ class res_partner(osv.osv):
             domain="[('type', '=', 'receivable')]",
             help="This account will be used instead of the default one as the retention account for the current partner",
             required=True,
-            readonly=True),        }
+            readonly=True),
+    }
 
 res_partner()
 

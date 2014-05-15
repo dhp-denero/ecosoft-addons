@@ -21,7 +21,6 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
-from openerp.tools import float_compare, DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class sale_advance_payment_inv(osv.osv_memory):
@@ -132,7 +131,7 @@ class sale_advance_payment_inv(osv.osv_memory):
         inv_line_obj = self.pool.get('account.invoice.line')
         wizard = self.browse(cr, uid, ids[0], context)
         sale_ids = context.get('active_ids', [])
-        # kittiu          
+        # kittiu
         advance_type = context.get('advance_type', False)
         advance_label = advance_type == 'deposit' and 'Deposit' or 'Advance'
         # -- kittiu
@@ -202,7 +201,7 @@ class sale_advance_payment_inv(osv.osv_memory):
                 # kittiu
                 'is_advance': advance_type == 'advance' and True or False,
                 'is_deposit': advance_type == 'deposit' and True or False
-                # -- kittiu            
+                # -- kittiu
             }
             inv_values = {
                 'name': sale.client_order_ref or sale.name,

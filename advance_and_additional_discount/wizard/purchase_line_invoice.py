@@ -18,10 +18,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import ast
 
+import ast
 from openerp.osv import osv
-from openerp.tools.translate import _
+
 
 class purchase_line_invoice(osv.osv_memory):
 
@@ -39,15 +39,13 @@ class purchase_line_invoice(osv.osv_memory):
         if context.get('active_model', False) == 'purchase.order':
             purchase = purchase_obj.browse(cr, uid, context.get('active_id', False))
             invoice_obj.write(cr, uid, invoice_ids, {'add_disc': purchase.add_disc or 0.0}, context)
-        else: # try getting it from purchase_line
+        else:  # try getting it from purchase_line
             purchase_line = purchase_line_obj.browse(cr, uid, context.get('active_ids')[0])
             invoice_obj.write(cr, uid, invoice_ids, {'add_disc': purchase_line.order_id.add_disc or 0.0}, context)
         invoice_obj.button_compute(cr, uid, invoice_ids, context=context)
         invoice_obj.button_reset_taxes(cr, uid, invoice_ids, context)
         return res
-    
+
 purchase_line_invoice()
 
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

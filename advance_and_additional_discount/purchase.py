@@ -18,6 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+
 from openerp.osv import fields, osv
 import openerp.addons.decimal_precision as dp
 from openerp.tools.translate import _
@@ -40,7 +41,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
             for invoice in purchase.invoice_ids:
                 if invoice.state not in ('draft', 'cancel'):
                     # Do not add amount, it this is a deposit/advance
-                    tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
+                    tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net  # kittiu: we use amount_net instead of amount_untaxed
             if purchase.amount_net:
                 res[purchase.id] = tot * 100.0 / purchase.amount_net
             else:
@@ -92,43 +93,41 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         return self._amount_all_generic(purchase_order, *args, **kwargs)
 
     _columns = {
-            'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced', type='float'),
-            'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
-
-            'add_disc': fields.float('Additional Discount(%)', digits_compute=dp.get_precision('Additional Discount'),
-                                     states={'confirmed': [('readonly', True)],
-                                             'approved': [('readonly', True)],
-                                             'done': [('readonly', True)]}),
-            'add_disc_amt': fields.function(_amount_all, method=True, store=True, multi='sums',
-                                            digits_compute=dp.get_precision('Account'),
-                                            string='Additional Disc Amt',
-                                            help="The additional discount on untaxed amount."),
-            'amount_net': fields.function(_amount_all, method=True, store=True, multi='sums',
-                                          digits_compute=dp.get_precision('Account'),
-                                          string='Net Amount',
-                                          help="The amount after additional discount."),
-            'amount_untaxed': fields.function(_amount_all, method=True, store=True, multi="sums",
-                                              digits_compute=dp.get_precision('Purchase Price'),
-                                              string='Untaxed Amount',
-                                              help="The amount without tax"),
-            'amount_tax': fields.function(_amount_all, method=True, store=True, multi="sums",
+        'invoiced_rate': fields.function(_invoiced_rate, string='Invoiced', type='float'),
+        'invoiced': fields.function(_invoiced, string='Invoice Received', type='boolean', help="It indicates that an invoice has been paid"),
+        'add_disc': fields.float('Additional Discount(%)', digits_compute=dp.get_precision('Additional Discount'),
+                                 states={'confirmed': [('readonly', True)],
+                                         'approved': [('readonly', True)],
+                                         'done': [('readonly', True)]}),
+        'add_disc_amt': fields.function(_amount_all, method=True, store=True, multi='sums',
+                                        digits_compute=dp.get_precision('Account'),
+                                        string='Additional Disc Amt',
+                                        help="The additional discount on untaxed amount."),
+        'amount_net': fields.function(_amount_all, method=True, store=True, multi='sums',
+                                      digits_compute=dp.get_precision('Account'),
+                                      string='Net Amount',
+                                      help="The amount after additional discount."),
+        'amount_untaxed': fields.function(_amount_all, method=True, store=True, multi="sums",
                                           digits_compute=dp.get_precision('Purchase Price'),
-                                          string='Taxes',
-                                          help="The tax amount"),
-            'amount_total': fields.function(_amount_all, method=True, store=True, multi="sums",
-                                         digits_compute=dp.get_precision('Purchase Price'),
-                                         string='Total',
-                                         help="The total amount"),
-            # Advance Feature
-            'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
-            'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type', 
-                                             required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
-            'advance_percentage': fields.float('Advance (%)', digits=(16, 6), required=False, readonly=True),
-            'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
-            }
-
-    _defaults={
-            'add_disc': 0.0,
+                                          string='Untaxed Amount',
+                                          help="The amount without tax"),
+        'amount_tax': fields.function(_amount_all, method=True, store=True, multi="sums",
+                                      digits_compute=dp.get_precision('Purchase Price'),
+                                      string='Taxes',
+                                      help="The tax amount"),
+        'amount_total': fields.function(_amount_all, method=True, store=True, multi="sums",
+                                     digits_compute=dp.get_precision('Purchase Price'),
+                                     string='Total',
+                                     help="The total amount"),
+        # Advance Feature
+        'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=True),
+        'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type',
+                                         required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
+        'advance_percentage': fields.float('Advance (%)', digits=(16, 6), required=False, readonly=True),
+        'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
+    }
+    _defaults = {
+        'add_disc': 0.0,
     }
 
     def action_invoice_create(self, cr, uid, ids, context=None):
@@ -156,7 +155,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
 
     def _check_tax(self, cr, uid, ids, context=None):
         # loop through each lines, check if tax different.
-        if not isinstance(ids, types.ListType): # Make it a list
+        if not isinstance(ids, types.ListType):  # Make it a list
             ids = [ids]
         orders = self.browse(cr, uid, ids, context=context)
         for order in orders:
@@ -177,7 +176,7 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         res = super(purchase_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)
         return res
-    
+
 purchase_order()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

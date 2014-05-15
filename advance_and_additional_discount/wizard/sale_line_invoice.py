@@ -19,17 +19,16 @@
 #
 ##############################################################################
 
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-from openerp import netsvc
+from openerp.osv import osv
+
 
 class sale_order_line_make_invoice(osv.osv_memory):
     _inherit = "sale.order.line.make.invoice"
-    
+
     def open_invoices(self, cr, uid, ids, invoice_ids, context=None):
-        res = super(sale_order_line_make_invoice,self).open_invoices(cr, uid, ids, invoice_ids, context=context)
+        res = super(sale_order_line_make_invoice, self).open_invoices(cr, uid, ids, invoice_ids, context=context)
         invoice_obj = self.pool.get('account.invoice')
-        if not isinstance(invoice_ids, list) :
+        if not isinstance(invoice_ids, list):
             invoice_ids = [invoice_ids]
         for invoice_id in invoice_ids:
             invoice = invoice_obj.browse(cr, uid, invoice_id)

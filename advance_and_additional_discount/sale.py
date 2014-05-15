@@ -1,8 +1,30 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    OpenERP, Open Source Management Solution
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
 from openerp.osv import fields, osv
 import openerp.addons.decimal_precision as dp
 from openerp.tools.translate import _
 from common import AdditionalDiscountable
 import types
+
 
 class sale_order(AdditionalDiscountable, osv.osv):
 
@@ -21,7 +43,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
                 if invoice.state not in ('cancel'):
                 #if invoice.state not in ('draft', 'cancel'):
                     # Do not add amount, it this is a deposit/advance
-                    tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net # kittiu: we use amount_net instead of amount_untaxed
+                    tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net  # kittiu: we use amount_net instead of amount_untaxed
             if tot:
                 res[sale.id] = min(100.0, tot * 100.0 / (sale.amount_net or 1.00))
             else:
@@ -68,7 +90,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                 from account_move_line l
                                 inner join
                                 (select order_id, move_id from account_invoice inv
-                                inner join sale_order_invoice_rel rel 
+                                inner join sale_order_invoice_rel rel
                                 on inv.id = rel.invoice_id and order_id = %s) inv
                                 on inv.move_id = l.move_id
                                 where state = 'valid'
@@ -91,13 +113,13 @@ class sale_order(AdditionalDiscountable, osv.osv):
                                               store=True, multi='sums', help="The amount without tax."),
             'amount_net': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Net Amount',
                                               store=True, multi='sums', help="The amount after additional discount."),
-            'amount_tax': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Taxes',
+            'amount_tax': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Taxes',
                                           store=True, multi='sums', help="The tax amount."),
-            'amount_total': fields.function(_amount_all, method=True, digits_compute= dp.get_precision('Account'), string='Total',
+            'amount_total': fields.function(_amount_all, method=True, digits_compute=dp.get_precision('Account'), string='Total',
                                             store=True, multi='sums', help="The total amount."),
             # Advance Feature
             'num_invoice': fields.function(_num_invoice, string="Number invoices created", store=False),
-            'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type', 
+            'advance_type': fields.selection([('advance', 'Advance on 1st Invoice'), ('deposit', 'Deposit on 1st Invoice')], 'Advance Type',
                                              required=False, help="Deposit: Deducted full amount on the next invoice. Advance: Deducted in percentage on all following invoices."),
             'advance_percentage': fields.float('Advance (%)', digits=(16, 6), required=False, readonly=True),
             'amount_deposit': fields.float('Deposit Amount', readonly=True, digits_compute=dp.get_precision('Account')),
@@ -112,11 +134,6 @@ class sale_order(AdditionalDiscountable, osv.osv):
             'add_disc': 0.0,
     }
 
-#     def action_view_invoice(self, cr, uid, ids, context=None):
-#         result = super(sale_order, self).action_view_invoice(cr, uid, ids, context=context)
-#         result['domain'] = str(ast.literal_eval(result['domain']) + [('state', '!=', 'cancel')])
-#         return result
-
     def copy(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
@@ -128,7 +145,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
         })
         return super(sale_order, self).copy(cr, uid, id, default, context=context)
 
-    def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice = False, context=None):
+    def action_invoice_create(self, cr, uid, ids, grouped=False, states=None, date_invoice=False, context=None):
         """Add a discount in the invoice after creation, and recompute the total
         """
         order = self.browse(cr, uid, ids[0], context=context)
@@ -137,7 +154,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
         inv_id = super(sale_order, self).action_invoice_create(cr, uid, ids, grouped, states, date_invoice, context=context)
         # modify the invoice
         inv_obj.write(cr, uid, [inv_id], {'add_disc': order.add_disc or 0.0,
-                                          'name': order.client_order_ref or ''}, 
+                                          'name': order.client_order_ref or ''},
                                           context)
         inv_obj.button_compute(cr, uid, [inv_id])
         return inv_id
@@ -146,9 +163,9 @@ class sale_order(AdditionalDiscountable, osv.osv):
         invoice_line_obj = self.pool.get('account.invoice.line')
         results = invoice_line_obj.read(cr, uid, lines, ['id', 'is_advance', 'is_deposit'])
         for result in results:
-            if result['is_advance']: # If created for advance, remove it.
+            if result['is_advance']:  # If created for advance, remove it.
                 lines.remove(result['id'])
-            if result['is_deposit']: # If created for deposit, remove it.
+            if result['is_deposit']:  # If created for deposit, remove it.
                 lines.remove(result['id'])
 
         res = super(sale_order, self)._prepare_invoice(cr, uid, order, lines, context=context)
@@ -156,7 +173,7 @@ class sale_order(AdditionalDiscountable, osv.osv):
 
     def _check_tax(self, cr, uid, ids, context=None):
         # For Advance or Deposit case, loop through each lines, check if tax different.
-        if not isinstance(ids, types.ListType): # Make it a list
+        if not isinstance(ids, types.ListType):  # Make it a list
             ids = [ids]
         orders = self.browse(cr, uid, ids, context=context)
         for order in orders:
@@ -179,3 +196,5 @@ class sale_order(AdditionalDiscountable, osv.osv):
         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
         self._check_tax(cr, uid, ids, context=context)
         return res
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

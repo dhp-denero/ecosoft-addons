@@ -1,5 +1,6 @@
 from openerp.osv import fields, osv
 
+
 class AdditionalDiscountable(object):
 
     _line_column = 'order_line'
@@ -36,6 +37,7 @@ class AdditionalDiscountable(object):
             o_res = res[record.id]
 
             cur = self.record_currency(record)
+
             def cur_round(value):
                 """Round value according to currency."""
                 return cur_obj.round(cr, uid, cur, value)
@@ -129,3 +131,4 @@ class AdditionalDiscountable(object):
 
         return res
 
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -20,12 +20,9 @@
 ##############################################################################
 
 import logging
-
 from openerp.osv import fields, osv
-from openerp import pooler
-from openerp.tools.translate import _
-
 _logger = logging.getLogger(__name__)
+
 
 class account_config_settings(osv.osv_memory):
     _inherit = 'account.config.settings'
@@ -35,9 +32,9 @@ class account_config_settings(osv.osv_memory):
         'property_account_advance_customer': fields.many2one('account.account', 'Account Advance Customer'),
         'property_account_advance_supplier': fields.many2one('account.account', 'Account Advance Supplier'),
         'property_account_deposit_customer': fields.many2one('account.account', 'Account Deposit Customer'),
-        'property_account_deposit_supplier': fields.many2one('account.account', 'Account Deposit Supplier'),    
+        'property_account_deposit_supplier': fields.many2one('account.account', 'Account Deposit Supplier'),
         'property_account_retention_customer': fields.many2one('account.account', 'Account Retention Customer'),
-        'property_account_retention_supplier': fields.many2one('account.account', 'Account Retention Supplier'),    
+        'property_account_retention_supplier': fields.many2one('account.account', 'Account Retention Supplier'),
     }
 
     def set_default_account_advance(self, cr, uid, ids, context=None):
@@ -46,47 +43,47 @@ class account_config_settings(osv.osv_memory):
         property_obj = self.pool.get('ir.property')
         field_obj = self.pool.get('ir.model.fields')
         todo_list = [
-            ('property_account_add_disc_customer','res.partner','account.account'),
-            ('property_account_add_disc_supplier','res.partner','account.account'),
-            ('property_account_advance_customer','res.partner','account.account'),
-            ('property_account_advance_supplier','res.partner','account.account'),
-            ('property_account_deposit_customer','res.partner','account.account'),
-            ('property_account_deposit_supplier','res.partner','account.account'),
-            ('property_account_retention_customer','res.partner','account.account'),
-            ('property_account_retention_supplier','res.partner','account.account'),
+            ('property_account_add_disc_customer', 'res.partner', 'account.account'),
+            ('property_account_add_disc_supplier', 'res.partner', 'account.account'),
+            ('property_account_advance_customer', 'res.partner', 'account.account'),
+            ('property_account_advance_supplier', 'res.partner', 'account.account'),
+            ('property_account_deposit_customer', 'res.partner', 'account.account'),
+            ('property_account_deposit_supplier', 'res.partner', 'account.account'),
+            ('property_account_retention_customer', 'res.partner', 'account.account'),
+            ('property_account_retention_supplier', 'res.partner', 'account.account'),
         ]
         for record in todo_list:
             account = getattr(wizard, record[0])
             value = account and 'account.account,' + str(account.id) or False
             if value:
-                field = field_obj.search(cr, uid, [('name', '=', record[0]),('model', '=', record[1]),('relation', '=', record[2])], context=context)
+                field = field_obj.search(cr, uid, [('name', '=', record[0]), ('model', '=', record[1]), ('relation', '=', record[2])], context=context)
                 vals = {
                     'name': record[0],
                     'company_id': False,
                     'fields_id': field[0],
                     'value': value,
-                }            
-                property_ids = property_obj.search(cr, uid, [('name','=', record[0])], context=context)
+                }
+                property_ids = property_obj.search(cr, uid, [('name', '=', record[0])], context=context)
                 if property_ids:
                     #the property exist: modify it
                     property_obj.write(cr, uid, property_ids, vals, context=context)
                 else:
                     #create the property
                     property_obj.create(cr, uid, vals, context=context)
-        return True        
-        
+        return True
+
     def get_default_account_advance(self, cr, uid, fields, context=None):
         ir_property_obj = self.pool.get('ir.property')
         fiscal_obj = self.pool.get('account.fiscal.position')
         todo_list = [
-            ('property_account_add_disc_customer','res.partner'),
-            ('property_account_add_disc_supplier','res.partner'),
-            ('property_account_advance_customer','res.partner'),
-            ('property_account_advance_supplier','res.partner'),
-            ('property_account_deposit_customer','res.partner'),
-            ('property_account_deposit_supplier','res.partner'),
-            ('property_account_retention_customer','res.partner'),
-            ('property_account_retention_supplier','res.partner'),        
+            ('property_account_add_disc_customer', 'res.partner'),
+            ('property_account_add_disc_supplier', 'res.partner'),
+            ('property_account_advance_customer', 'res.partner'),
+            ('property_account_advance_supplier', 'res.partner'),
+            ('property_account_deposit_customer', 'res.partner'),
+            ('property_account_deposit_supplier', 'res.partner'),
+            ('property_account_retention_customer', 'res.partner'),
+            ('property_account_retention_supplier', 'res.partner'),
         ]
         res = {}
         for record in todo_list:
@@ -95,6 +92,6 @@ class account_config_settings(osv.osv_memory):
             prop_id = prop and prop.id or False
             account_id = fiscal_obj.map_account(cr, uid, False, prop_id)
             res.update({record[0]: account_id})
-        return res   
-    
+        return res
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
