@@ -169,8 +169,23 @@ class payment_register(osv.osv):
         return super(payment_register, self).unlink(cr, uid, ids, context=context)
 
     def copy(self, cr, uid, id, default=None, context=None):
-        # No longer allow copying
-        raise osv.except_osv(_('Error!'), _('Duplication of Payment Detail not allowed. If this payment detail is cancelled, and you want to renew, use "Set to Draft" instead.'))
+        if context is None:
+            context = {}
+        if context.get('bounce_check', False):
+            if default is None:
+                default = {}
+            default.update({
+                'state': 'draft',
+                'number': False,
+                'move_id': False,
+                'line_cr_ids': False,
+                'line_dr_ids': False,
+            })
+            if 'date' not in default:
+                default['date'] = time.strftime('%Y-%m-%d')
+            return super(payment_register, self).copy(cr, uid, id, default, context)
+        else:
+            raise osv.except_osv(_('Error!'), _('Duplication of Payment Detail not allowed. If this payment detail is cancelled, and you want to renew, use "Set to Draft" instead.'))
 
     def create_send_note(self, cr, uid, ids, context=None):
         for obj in self.browse(cr, uid, ids, context=context):
@@ -414,8 +429,10 @@ class payment_register(osv.osv):
         self._unpost_register(cr, uid, ids, context=context)
         message = "Payment Register <b>bounced check</b>."
         self.message_post(cr, uid, ids, body=message, subtype="payment_register.mt_register", context=context)
+        ctx = context.copy()
+        ctx.update({'bounce_check': True})
         # Create a new document
-        new_register_id = self.copy(cr, uid, ids[0], {'date': False, 'journal_id': False, 'amount_payin': False})
+        new_register_id = self.copy(cr, uid, ids[0], {'date': False, 'journal_id': False, 'amount_payin': False}, context=ctx)
         res = {
             'state': 'bounce_check',
             'move_id': False,
