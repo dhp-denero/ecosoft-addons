@@ -45,6 +45,16 @@ class account_invoice(osv.osv):
             v['add_disc_amt_ex'] = 0.0
         return {'value': v}
 
+    def write(self, cr, uid, ids, vals, context=None):
+        add_disc = vals.get('add_disc', False)
+        if add_disc:  # Only if there is additional discount
+            for invoice in self.browse(cr, uid, ids, context=context):
+                if invoice.amount_untaxed:
+                    add_disc_amt_ex = invoice.amount_untaxed * float(add_disc) / 100.0
+                    self.write(cr, uid, [invoice.id], {'add_disc_amt_ex': add_disc_amt_ex})
+        res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
+        return res
+
 account_invoice()
 
 
