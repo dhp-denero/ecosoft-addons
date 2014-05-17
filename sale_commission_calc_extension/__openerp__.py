@@ -34,6 +34,11 @@ This feature give extra deduction to the commission when commission is being cre
 On Create Commission Invoice wizard, user can add extra deduction amount (< commission amount).
 The deduction amount will be placed in Commission Invoice as Additional Discount (%)
 
+Comply with Additional Discount (%)
+-----------------------------------
+
+Making sure that when do Commission Calculation, the commission will be deducted by the factor of additional discount.
+
 
 Note:
 -----

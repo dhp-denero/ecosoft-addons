@@ -31,6 +31,19 @@ class commission_worksheet(osv.osv):
         inv_rec.update({'add_disc': context.get('percent_deduction_amt', False)})
         return inv_rec
 
+    #  This part deal with the calculation of commission
+    def _prepare_worksheet_line(self, worksheet, invoice, base_amt, commission_amt, context=None):
+        res = super(commission_worksheet, self)._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
+        commission_amt = res.get('commission_amt', 0.0) * (100.0 - invoice.add_disc) / 100
+        res.update({'commission_amt': commission_amt})
+        return res
+
+    def _get_base_amount(self, invoice):
+        # Case with Additional Discount
+        base_amt = invoice.amount_net
+        return base_amt
+    # --- This sections provide logics for each rules ---
+
 commission_worksheet()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
