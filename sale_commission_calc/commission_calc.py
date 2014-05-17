@@ -120,6 +120,10 @@ class commission_worksheet(osv.osv):
         }
         return res
 
+    def _get_base_amount(self, invoice):
+        # Generic case
+        base_amt = invoice.amount_untaxed
+        return base_amt
     # --- This sections provide logics for each rules ---
 
     def _calculate_percent_fixed(self, cr, uid, rule, worksheet, invoices, context=None):
@@ -128,7 +132,7 @@ class commission_worksheet(osv.osv):
         commission_rate = rule.fix_percent / 100
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            base_amt = (invoice.amount_total - invoice.amount_tax)
+            base_amt = self._get_base_amount(invoice)
             # For each order, find its match rule line
             commission_amt = 0.0
             if commission_rate:
@@ -143,7 +147,7 @@ class commission_worksheet(osv.osv):
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            base_amt = (invoice.amount_total - invoice.amount_tax)
+            base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -161,7 +165,7 @@ class commission_worksheet(osv.osv):
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            base_amt = (invoice.amount_total - invoice.amount_tax)
+            base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -181,7 +185,7 @@ class commission_worksheet(osv.osv):
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         product_uom_obj = self.pool.get('product.uom')
         for invoice in invoices:
-            base_amt = (invoice.amount_total - invoice.amount_tax)
+            base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
@@ -213,14 +217,14 @@ class commission_worksheet(osv.osv):
             context = {}
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         for invoice in invoices:
-            amount_untaxed = (invoice.amount_total - invoice.amount_tax)
+            base_amt = self._get_base_amount(invoice)
             # For each order, find its match rule line
             commission_amt = 0.0
             ranges = rule.rule_rates
             for range in ranges:
                 commission_rate = range.percent_commission / 100
-                if amount_untaxed <= range.amount_upto:
-                    commission_amt = amount_untaxed * commission_rate
+                if base_amt <= range.amount_upto:
+                    commission_amt = base_amt * commission_rate
                     break
             res = self._prepare_worksheet_line(worksheet, invoice, commission_amt, context=context)
             worksheet_line_obj.create(cr, uid, res)
