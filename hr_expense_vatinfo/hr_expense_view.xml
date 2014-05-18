@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
-    <data>
+    <data>    	
         <record id="view_expenses_form_ext" model="ir.ui.view">
 		    <field name="name">view.expenses.form.ext</field>
 		    <field name="model">hr.expense.expense</field>
@@ -8,6 +8,11 @@
 		    <field name="inherit_id" ref="hr_expense.view_expenses_form"/>
 		    <field name="arch" type="xml">
                 <data>
+                    <xpath expr="/form/sheet/group" position="before">
+                        <h1>
+                        	<field name="number" readonly="1" class="oe_inline"/>
+                        </h1>
+                    </xpath>                	
                     <button name="done" position="after">
                     	<button name="post_vatinfo" type="object" string="Post VAT Info" attrs="{'invisible': ['|', '|', ('vatinfo_move_id','&lt;&gt;',False), ('is_vatinfo_tax','=',False), ('state','not in',('done'))]}" class="oe_highlight" groups="account.group_account_invoice"/>
                         <button name="unpost_vatinfo" type="object" string="Unpost VAT Info" attrs="{'invisible': ['|', ('vatinfo_move_id','=',False), ('state','not in',('done','cancelled'))]}"  groups="account.group_account_invoice"/>

@@ -47,6 +47,7 @@ class hr_expense_expense(osv.osv):
     _inherit = 'hr.expense.expense'
 
     _columns = {
+        'number': fields.char('Expense Number', size=128, required=False, readonly=True),
         'vatinfo_move_id': fields.many2one('account.move', 'Journal Entry (VAT Info)', readonly=True, select=1, ondelete='restrict', help="Link to the automatically generated Journal Items for Vat Info."),
         'vatinfo_move_date': fields.related('vatinfo_move_id', 'date', type="date", string="Journal Date (VAT Info)", readonly=True, states={'draft': [('readonly', False)]}, store=True),
         'expense_vatinfo': fields.one2many('hr.expense.line', 'expense_id', 'Expense Lines', readonly=False),
@@ -56,6 +57,10 @@ class hr_expense_expense(osv.osv):
                            'hr.expense.line': (_get_expense, ['vatinfo_tax_amount'], 10)
                            }),
     }
+
+    def create(self, cr, uid, vals, context=None):
+        vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'hr.expense.invoice') or '/'
+        return super(hr_expense_expense, self).create(cr, uid, vals, context=context)
 
     def line_get_convert(self, cr, uid, x, part, date, context=None):
         res = super(hr_expense_expense, self).line_get_convert(cr, uid, x, part, date, context=context)
@@ -210,14 +215,16 @@ class hr_expense_line(osv.osv):
             sign = 1
             account_id = line.vatinfo_tax_id.account_collected_id.id
             # Account Post, deduct from the Expense Line.
+            if line.product_id and not line.product_id.property_account_expense:
+                raise osv.except_osv(_('Error!'), _('Expense Account for this product %s is not defined!') % (line.product_id.name, ))
             res.append({
                 'type': 'src',
                 'name': line.name.split('\n')[0][:64],
                 'price_unit': -sign * line.vatinfo_tax_amount,
                 'quantity': 1.0,
                 'price': -sign * line.vatinfo_tax_amount,
-                'account_id': line.product_id.property_account_expense.id,
-                'product_id': line.product_id.id,
+                'account_id': line.product_id and line.product_id.property_account_expense.id or False,
+                'product_id': line.product_id and line.product_id.id or False,
                 'uos_id': False,
                 'account_analytic_id': False,
                 'taxes': False,
