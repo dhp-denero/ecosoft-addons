@@ -37,11 +37,11 @@ This module is based on picking_invoice_rel module from camptocamp, but has been
                  'sale'],
     'demo': [],
     'data': [
+        'security/group.xml',
+        'security/ir.model.access.csv',
         'invoice_view.xml',
         'picking_view.xml',
         'stock_view.xml',
-        'security/group.xml',
-        'security/ir.model.access.csv'
     ],
     'test': [],
     'auto_install': False,
