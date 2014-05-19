@@ -19,18 +19,13 @@
 #
 ##############################################################################
 import logging
-import time
-
-from openerp import netsvc
-from openerp import pooler
-from openerp.osv import fields, osv, orm
-from openerp.tools.translate import _
+from openerp.osv import osv
 
 _logger = logging.getLogger(__name__)
 
 
 class account_move(osv.osv):
-    
+
     _inherit = 'account.move'
 
     def process_account_post(self, cr, uid, journal_ids=None, context=None):
@@ -46,6 +41,6 @@ class account_move(osv.osv):
                 self.button_validate(cr, uid, ids_move, context=context)
         except Exception:
             _logger.exception("Failed processing account posting")
-        
+
 account_move()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
