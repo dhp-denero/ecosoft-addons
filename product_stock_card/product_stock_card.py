@@ -94,8 +94,6 @@ class product_stock_card(osv.osv):
                                        string='Balance',
                                        digits_compute=dp.get_precision('Account')),
         'type': fields.char('Type', readonly=True),
-        'sale_order_id': fields.many2one('sale.order', 'Sales Order', readonly=True),
-        'purchase_order_id': fields.many2one('purchase.order', 'Purchase Order', readonly=True),
     }
 
     def init(self, cr):
@@ -126,16 +124,12 @@ class product_stock_card(osv.osv):
                               END as type,
                               sm.product_qty as picking_qty,
                               pt.uom_id as default_uom,
-                              sm.product_uom as move_uom,
-                              sol.order_id as sale_order_id,
-                              pol.order_id as purchase_order_id
+                              sm.product_uom as move_uom
                          FROM stock_move AS sm
                               LEFT OUTER JOIN res_partner AS pa ON pa.id = sm.partner_id
                               LEFT OUTER JOIN stock_picking AS sp ON sp.id = sm.picking_id
                               LEFT OUTER JOIN sale_order_line_invoice_rel AS solir ON solir.order_line_id = sm.sale_line_id
                               LEFT OUTER JOIN purchase_order_line_invoice_rel AS polir ON polir.order_line_id = sm.purchase_line_id
-                              LEFT OUTER JOIN sale_order_line AS sol ON sm.sale_line_id = sol.id
-                              LEFT OUTER JOIN purchase_order_line AS pol ON sm.purchase_line_id = pol.id
                               LEFT OUTER JOIN account_invoice_line AS sail ON sail.id = solir.invoice_id
                               LEFT OUTER JOIN account_invoice AS sai ON sai.id = sail.invoice_id
                               LEFT OUTER JOIN account_invoice_line AS pail ON pail.id = polir.invoice_id
