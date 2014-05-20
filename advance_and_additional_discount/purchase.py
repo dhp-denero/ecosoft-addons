@@ -39,7 +39,8 @@ class purchase_order(AdditionalDiscountable, osv.osv):
         for purchase in self.browse(cursor, user, ids, context=context):
             tot = 0.0
             for invoice in purchase.invoice_ids:
-                if invoice.state not in ('draft', 'cancel'):
+                if invoice.state not in ('cancel'):
+                #if invoice.state not in ('draft', 'cancel'):
                     # Do not add amount, it this is a deposit/advance
                     tot += not invoice.is_deposit and not invoice.is_advance and invoice.amount_net  # kittiu: we use amount_net instead of amount_untaxed
             if purchase.amount_net:
