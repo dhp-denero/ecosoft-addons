@@ -25,7 +25,7 @@ import time
 class account_voucher_line(osv.osv):
     
     def _supplier_invoice_number(self, cursor, user, ids, name, arg, context=None):
-        res = {}
+        res = dict.fromkeys(ids, False)
         cursor.execute("""SELECT vl.id, i.supplier_invoice_number
                             FROM account_voucher_line vl
                             inner join account_move_line ml on vl.move_line_id = ml.id
