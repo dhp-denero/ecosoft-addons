@@ -73,8 +73,14 @@ def main(argv):
         if fileName and os.path.exists(fileName):
             
             
-            #Restart PostgesSQL
+            #Restart PostgesSQL (new version use pid, do both)
+            # < 9.2
             command = "psql -U postgres -d postgres --pset=format=unaligned -c \"SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '%s';\"" % (oDBName)
+            print command
+            subprocess.call([command],shell=True)
+            process.wait()            
+            # > 9.2
+            command = "psql -U postgres -d postgres --pset=format=unaligned -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '%s';\"" % (oDBName)
             print command
             subprocess.call([command],shell=True)
             process.wait()
