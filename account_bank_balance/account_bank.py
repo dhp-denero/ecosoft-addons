@@ -22,10 +22,20 @@
 from openerp.tools.translate import _
 from openerp.osv import fields, osv
 
+
 class bank(osv.osv):
+
     _inherit = "res.partner.bank"
+
+    def _get_journal_currency(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        for bank in self.browse(cr, uid, ids, context=context):
+            res[bank.id] = bank.journal_id.default_debit_account_id.balance or 0.0
+        return res
+
     _columns = {
-        'balance': fields.related('journal_id', 'default_debit_account_id', 'balance', type="float", readonly=True, string="Balance in Company's Currency"),
+        'balance': fields.function(_get_journal_currency, type="float", readonly=True, string="Balance in Company's Currency"),
     }
+
 bank()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
