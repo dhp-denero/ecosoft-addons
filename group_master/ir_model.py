@@ -50,16 +50,21 @@ class ir_model(osv.osv):
             'res.partner.title',
             'res.bank'
         ]
+        except_groups = [  # Group that won't be readonly
+            'Manage Master Products',
+            'Manage Master Partners',
+            'Accountant',
+        ]
         # Update all models to be readonly first
         query = """
             update ir_model_access
             set  perm_read = True, perm_write = False, perm_unlink = False, perm_create = False
             where
             group_id not in (select id from res_groups where name in
-            ('Manage Master Products','Manage Master Partners'))
+            %s)
             and model_id in (select id from ir_model where model in %s)
         """
-        cr.execute(query, (tuple(models),))
+        cr.execute(query, (tuple(models), tuple(except_groups)))
 
 ir_model()
 
