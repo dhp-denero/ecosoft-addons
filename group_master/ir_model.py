@@ -64,7 +64,7 @@ class ir_model(osv.osv):
             %s)
             and model_id in (select id from ir_model where model in %s)
         """
-        cr.execute(query, (tuple(models), tuple(except_groups)))
+        cr.execute(query, (tuple(except_groups), tuple(models)))
 
 ir_model()
 
