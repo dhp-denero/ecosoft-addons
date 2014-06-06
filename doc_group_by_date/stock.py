@@ -58,6 +58,20 @@ class stock_picking_out(osv.osv):
 stock_picking_out()
 
 
+class stock_picking_in(osv.osv):
+
+    _inherit = "stock.picking.in"
+
+    def _get_date_string(self, cr, uid, ids, name, args, context=None):
+        return self.pool.get('stock.picking')._get_date_string(cr, uid, ids, name, args, context=context)
+
+    _columns = {
+        'date_str': fields.function(_get_date_string, type='char', size=10, string="Date String", store=True),
+    }
+
+stock_picking_out()
+
+
 class stock_move(osv.osv):
 
     _inherit = "stock.move"
