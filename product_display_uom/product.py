@@ -37,8 +37,13 @@ class product_product(osv.osv):
         if context.get('display_uom', False):
             product_ids = res.keys()
             for product in self.browse(cr, uid, product_ids, context=context):  # 'id': 'display_uom'
-                res[product.id] = product.display_uom and uom_obj._compute_qty_obj(cr, uid, product.uom_id, res[product.id], product.display_uom, context=context) or False
+                res[product.id] = product.display_uom and uom_obj._compute_qty_obj(cr, uid, product.uom_id, res[product.id], product.display_uom, context=context) or 0.0
         return res
+
+#     def init(self, cr):
+#         # This is a helper to guess "old" Relations between pickings and invoices
+#         cr.execute('update product_product p set display_uom = 14 \
+#                     where product_tmpl_id in (select id from product_template where uom_id =12)')
 
 product_product()
 
