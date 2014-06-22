@@ -62,6 +62,14 @@ class hr_expense_expense(osv.osv):
         vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'hr.expense.invoice') or '/'
         return super(hr_expense_expense, self).create(cr, uid, vals, context=context)
 
+    def expense_confirm(self, cr, uid, ids, context=None):
+        res = super(hr_expense_expense, self).expense_confirm(cr, uid, ids, context=context)
+        for expense in self.browse(cr, uid, ids):
+            if not expense.number:
+                number = self.pool.get('ir.sequence').get(cr, uid, 'hr.expense.invoice') or '/'
+                self.write(cr, uid, expense.id, {'number': number})
+        return res
+
     def line_get_convert(self, cr, uid, x, part, date, context=None):
         res = super(hr_expense_expense, self).line_get_convert(cr, uid, x, part, date, context=context)
         res.update({'vatinfo_supplier_name': x.get('vatinfo_supplier_name', False)})
