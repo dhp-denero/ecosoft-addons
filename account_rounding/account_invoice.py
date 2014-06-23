@@ -54,7 +54,6 @@ class account_invoice_line(osv.osv):
     def move_line_get(self, cr, uid, invoice_id, context=None):
         inv = self.pool.get('account.invoice').browse(cr, uid, invoice_id, context=context)
         res = super(account_invoice_line, self).move_line_get(cr, uid, invoice_id, context=context)
-        print res
         res = self._add_account_rounding(cr, uid, inv, res, context=context)
         return res
 

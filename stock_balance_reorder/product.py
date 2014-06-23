@@ -229,7 +229,6 @@ class product_product(osv.osv):
             context={}
             
         doc = etree.XML(result['arch'])
-        print result['arch']
         for node in doc.xpath("//tree"):            
             if context.get('is_safety',False) : #Set red color if QTY of product less than reorder point
                 node.set('colors', "red:qty_reorder and qty_reorder<0;blue:virtual_available>=0 and state in ('draft', 'end', 'obsolete');black:virtual_available>=0 and state not in ('draft', 'end', 'obsolete')")
