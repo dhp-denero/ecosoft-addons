@@ -64,6 +64,7 @@ class stock_product_location(osv.osv):
                   AND i.location_dest_id = l.id
                   AND state != 'cancel'
                   AND i.company_id = l.company_id
+                  AND l.active = True
                   And l.location_id <> %s
                 UNION
                 SELECT
@@ -75,6 +76,7 @@ class stock_product_location(osv.osv):
                   AND o.location_id = l.id
                   AND state != 'cancel'
                   AND o.company_id = l.company_id
+                  AND l.active = True
                   And l.location_id <> %s
                   ) AS product_stock_location
                 ORDER BY location_id, product_id DESC
