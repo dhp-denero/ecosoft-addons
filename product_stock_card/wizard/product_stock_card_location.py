@@ -121,7 +121,7 @@ class product_stock_card_location(osv.osv_memory):
             'datas': {
                 'model': 'product.product',
                 'id': product_id,
-                'ids': context.get('active_ids', []),
+                'ids': [product_id],
                 'form': data,
                 'parameters': parameters
             }
