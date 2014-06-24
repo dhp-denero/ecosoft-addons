@@ -56,20 +56,21 @@ class purchase_requisition_line(osv.osv):
                                         ('in_purchase', 'In Progress'),
                                         ('done', 'Purchase Done'),
                                         ('cancel', 'Cancelled')]),
+        'name': fields.text('Description', required=True),
     }
     _default = {
        'selected_flag': True,
        'po_line_ids': False,
     }
 
-    def copy(self, cr, uid, ids, default=None, context=None):
+    def copy(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
         default.update({
             'po_line_ids': False,
         })
         return super(purchase_requisition_line,
-                      self).copy(cr, uid, ids, default, context)
+                      self).copy(cr, uid, id, default=default, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
         res = super(purchase_requisition_line,
@@ -78,7 +79,7 @@ class purchase_requisition_line(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         # Remove po_line_ids if duplicate data
-        if context.get('__copy_data_seen', False):
+        if context.get('copying', False):
             vals.update({'po_line_ids': False})
         res_id = super(purchase_requisition_line, self).create(cr, uid, vals, context=context)
         return res_id
@@ -92,6 +93,17 @@ class purchase_requisition_line(osv.osv):
     def default_get(self, cr, uid, fields, context=None):
         return super(purchase_requisition_line,
                         self).default_get(cr, uid, fields, context=context)
+
+    def onchange_product_id(self, cr, uid, ids, product_id, product_uom_id, context=None):
+        res = super(purchase_requisition_line, self).onchange_product_id(cr, uid, ids, product_id, product_uom_id, context=context)
+        product_product = self.pool.get('product.product')
+        product = product_product.browse(cr, uid, product_id, context=context)
+        dummy, name = product_product.name_get(cr, uid, product_id, context=context)[0]
+        if product.description_purchase:
+            name += '\n' + product.description_purchase
+        res['value'].update({'name': name})
+        return res
+
 purchase_requisition_line()
 
 
@@ -129,11 +141,12 @@ class purchase_requisition(osv.osv):
         self.tender_done(cr, uid, prs_done, context=None)
         return True
 
-    def copy(self, cr, uid, ids, default=None, context=None):
+    def copy(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
+        context.update({'copying': True})
         return super(purchase_requisition,
-                      self).copy(cr, uid, ids, default, context)
+                      self).copy(cr, uid, id, default=default, context=context)
 
     def action_createPO(self, cr, uid, ids, context=None):
         selected = False
