@@ -95,7 +95,7 @@ class account_invoice(osv.osv):
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
 
             move = {
-                'name': inv.number + '-A',
+                'name': inv.number + '-VAT',
                 'ref': inv.name,
                 'line_id': line,
                 'journal_id': journal_id,
