@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <data>
                 	<field name="currency_id" position="after" >
-                		<field name="ref_sale_order_id"/>
+                		<field name="ref_sale_order_id" options="{'limit': 10, 'create': false, 'create_edit': false}"/>
                     </field>	
 				</data>
             </field>
