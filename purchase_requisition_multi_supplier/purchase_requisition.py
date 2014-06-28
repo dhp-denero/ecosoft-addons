@@ -101,6 +101,8 @@ class purchase_requisition_line(osv.osv):
         dummy, name = product_product.name_get(cr, uid, product_id, context=context)[0]
         if product.description_purchase:
             name += '\n' + product.description_purchase
+        elif product.description:
+            name += '\n' + product.description
         res['value'].update({'name': name})
         return res
 
