@@ -151,7 +151,7 @@ class account_invoice_landedcost_alloc(osv.osv):
 
     _columns = {
         'invoice_id': fields.many2one('account.invoice', 'Invoice', ondelete="cascade"),
-        'supplier_invoice_id': fields.many2one('account.invoice', 'Supplier Invoice', domain="[('type', '=', 'in_invoice'), ('id', '!=', parent.id)]", ondelete="restrict", required=True, help="Supplier Invoice, in which this invoice is paying for its landed cost"),
+        'supplier_invoice_id': fields.many2one('account.invoice', 'Supplier Invoice', domain="[('type', '=', 'in_invoice'), ('id', '!=', parent.id), ('state', 'not in', ['draft', 'cancel'])]", ondelete="restrict", required=True, help="Supplier Invoice, in which this invoice is paying for its landed cost"),
         'landedcost_account_id': fields.many2one('account.account', 'Landed Cost Account', required=True, domain=[('type', '!=', 'view')]),
         'landedcost_amount_alloc': fields.float('Allocation', required=True, digits_compute=dp.get_precision('Account')),
     }
@@ -159,7 +159,7 @@ class account_invoice_landedcost_alloc(osv.osv):
     def onchange_supplier_invoice_id(self, cr, uid, ids, invoice_id, supplier_invoice_id, context=None):
         res = {'value': {'landedcost_account_id': False}}
         invoice_obj = self.pool.get('account.invoice')
-        invoice = invoice_obj.browse(cr, uid, supplier_invoice_id, context=context)
+        invoice = invoice_obj.browse(cr, uid, invoice_id, context=context)
         # Only if all Account of this invoice lines is the same, use this account code, otherwise, user will manually select
         account_ids = list(set([x.account_id.id for x in invoice.invoice_line]))  # Get unique value
         if len(account_ids) == 1:
@@ -189,7 +189,7 @@ class account_invoice_landedcost_alloc(osv.osv):
             # Dr
             res.append({
                 'type': 'src',
-                'name': line.supplier_invoice_id.number,
+                'name': line.supplier_invoice_id.internal_number,
                 'price_unit': -sign * line.landedcost_amount_alloc,
                 'quantity': 1.0,
                 'price': -sign * line.landedcost_amount_alloc,
@@ -203,7 +203,7 @@ class account_invoice_landedcost_alloc(osv.osv):
             # Account Post, Tax
             res.append({
                 'type': 'dest',
-                'name': line.invoice_id.number,
+                'name': line.invoice_id.internal_number,
                 'price_unit': sign * line.landedcost_amount_alloc,
                 'quantity': 1,
                 'price': sign * line.landedcost_amount_alloc,
