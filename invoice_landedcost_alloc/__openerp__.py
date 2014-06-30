@@ -32,6 +32,7 @@
     'depends': ['account', 'web_m2x_options'],
     'demo': [],
     'data': [
+        'security/ir.model.access.csv',
         'account_invoice_view.xml',
     ],
     'test': [

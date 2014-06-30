@@ -159,11 +159,12 @@ class account_invoice_landedcost_alloc(osv.osv):
     def onchange_supplier_invoice_id(self, cr, uid, ids, invoice_id, supplier_invoice_id, context=None):
         res = {'value': {'landedcost_account_id': False}}
         invoice_obj = self.pool.get('account.invoice')
-        invoice = invoice_obj.browse(cr, uid, invoice_id, context=context)
-        # Only if all Account of this invoice lines is the same, use this account code, otherwise, user will manually select
-        account_ids = list(set([x.account_id.id for x in invoice.invoice_line]))  # Get unique value
-        if len(account_ids) == 1:
-            res['value']['landedcost_account_id'] = account_ids[0]
+        if invoice_id:
+            invoice = invoice_obj.browse(cr, uid, invoice_id, context=context)
+            # Only if all Account of this invoice lines is the same, use this account code, otherwise, user will manually select
+            account_ids = list(set([x.account_id.id for x in invoice.invoice_line]))  # Get unique value
+            if len(account_ids) == 1:
+                res['value']['landedcost_account_id'] = account_ids[0]
         return res
 
     def landedcost_move_line_get(self, cr, uid, invoice_id, context=None):
