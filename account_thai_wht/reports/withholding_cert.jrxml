@@ -65,6 +65,9 @@ where $X{IN, av.id, PIDS}]]>
 	<field name="wht_base" class="java.lang.Number"/>
 	<field name="wht_amount" class="java.lang.Number"/>
 	<field name="partner_type" class="java.lang.String"/>
+	<variable name="wht_amount" class="java.lang.Number" calculation="Sum">
+		<variableExpression><![CDATA[$F{wht_amount}]]></variableExpression>
+	</variable>
 	<background>
 		<band height="802">
 			<image>
@@ -340,18 +343,11 @@ $F{partner_type} == "partnership"]]></printWhenExpression>
 	<lastPageFooter>
 		<band height="190">
 			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement mode="Transparent" x="386" y="11" width="74" height="20"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
-					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
-				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_base}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
 				<reportElement mode="Transparent" x="439" y="11" width="90" height="20"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{wht_amount}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$V{wht_amount}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="64" y="74" width="17" height="13"/>
