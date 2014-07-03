@@ -268,8 +268,11 @@ class payment_register(osv.osv):
         writeoff_amount_local = currency_obj.round(cr, uid, company.currency_id, register.writeoff_amount_local)
         # amount to post
         amount = amount_payin_company_currency - paid_amount_in_company_currency + writeoff_amount_local
-        if not amount:
+        if abs(amount) < 10 ** -4:            
             return False
+        if not company.income_currency_exchange_account_id or not company.expense_currency_exchange_account_id:
+            raise osv.except_osv(_('Accounting Error !'),
+                _('Gain/Loss Exchange Rate Account is not setup properly! Please see Settings > Configuration > Accounting.'))            
         move_line = {
             'journal_id': register.journal_id.id,
             'period_id': register.period_id.id,
