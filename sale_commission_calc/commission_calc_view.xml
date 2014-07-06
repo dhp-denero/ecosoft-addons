@@ -139,7 +139,9 @@
                                 </div>
                                 <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" />
                             </group>
+                            <!--
                             <button name="update_line_status" states="confirmed" string="(Update Line Status)" type="object" class="oe_link"/>
+                            --> 
                             <div class="oe_clear"/>  
                         </page>
 	                    <page string="Commission Invoices">

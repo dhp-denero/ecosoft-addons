@@ -109,8 +109,8 @@ class account_cash_projection_balance(osv.osv_memory):
         elif data['form']['result_selection'] == 'customer': 
             res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'])
         else:
-             res_receivable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['receivable'])
-             res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'])
+            res_receivable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['receivable'])
+            res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'])
              
             
         workbook = xlwt.Workbook()

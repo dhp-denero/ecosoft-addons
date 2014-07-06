@@ -158,7 +158,7 @@ class purchase_requisition_partner(osv.osv_memory):
         seller_price, qty, default_uom_po_id, date_planned = purchase_requisition._seller_details(cr, uid, line, supplier, context=context)
         val = {
             'order_id': purchase_id,
-            'name': pr_line['partner_ref'],
+            'name': pr_line['name'],
             'product_qty': pr_line['product_qty'],
             'product_id': pr_line['product_id'],
             'product_uom': pr_line['product_uom'],
@@ -173,7 +173,7 @@ class purchase_requisition_partner(osv.osv_memory):
     def _create_grouping_po(self, cr, uid, pr_grouping, context=None):
 
         purchase_requisition = self.pool.get('purchase.requisition')
-        purchase_ids =[]
+        purchase_ids = []
         for pr_id in pr_grouping:
             requisition = purchase_requisition.browse(cr, uid, pr_id, context=context)
             for partner_itm in pr_grouping[pr_id]:
@@ -233,8 +233,9 @@ class purchase_requisition_partner(osv.osv_memory):
                                      'pr_line_ids': [line.id],
                                      'pr_names': rec.name,
                                      'product_qty': qty,
-                                     'taxes_id': fiscal_position.map_tax(cr, uid, partner_id.property_account_position, line.product_id.supplier_taxes_id) ,
-                                     'partner_ref': line.product_id.partner_ref
+                                     'taxes_id': fiscal_position.map_tax(cr, uid, partner_id.property_account_position, line.product_id.supplier_taxes_id),
+                                     'partner_ref': line.product_id.partner_ref,
+                                     'name': line.name,
                                      }
                         res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id] = po_line
         if res == {}:
@@ -245,7 +246,6 @@ class purchase_requisition_partner(osv.osv_memory):
         active_ids = context and context.get('active_ids', [])
         data = self.browse(cr, uid, ids, context=context)[0]
 
-        po_ids = False
         if data.overwrite:
             res = self._pr_grouping(cr, uid, active_ids, data.partner_id.id, context)
             if data.group_flag:

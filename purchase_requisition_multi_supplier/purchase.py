@@ -83,5 +83,7 @@ class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
 
     _columns = {
-         'pr_line_ids': fields.many2many('purchase.requisition.line', 'pr_rel_po', 'po_id', 'pr_id', 'Purchase requisition Lines', ondelete='cascade' ),
+         'pr_line_ids': fields.many2many('purchase.requisition.line', 'pr_rel_po', 'po_id', 'pr_id', 'Purchase requisition Lines', ondelete='cascade')
     }
+
+purchase_order_line()
