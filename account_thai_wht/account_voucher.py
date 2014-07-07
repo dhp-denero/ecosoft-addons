@@ -205,10 +205,17 @@ class account_voucher(common_voucher, osv.osv):
         #self.pool.get('account.voucher').write(cr, uid, ids, {'line_ids':[]}, context=ctx)
         return True
 
-    #automatic compute tax then save 
+    #  automatic compute tax then save
     def write(self, cr, uid, ids, vals, context=None):
         res = super(account_voucher, self).write(cr, uid, ids, vals, context=context)
-        self.button_reset_taxes(cr, uid, ids)
+        # When editing only tax amount, do not reset tax
+        to_update = True
+        if vals.get('tax_line', False):
+            for tax_line in vals.get('tax_line'):
+                if tax_line[0] == 1 and 'amount' in tax_line[2]:  # 1 = update
+                    to_update = False
+        if to_update:
+            self.button_reset_taxes(cr, uid, ids)
         return res
 
     # A complete overwrite method
