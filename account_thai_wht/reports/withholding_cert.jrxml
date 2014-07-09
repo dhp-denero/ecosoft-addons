@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="withholding_cert" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
 	<property name="ireport.zoom" value="1.2100000000000077"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="344"/>
+	<property name="ireport.y" value="536"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String">
 		<defaultValueExpression><![CDATA["/home/kittiu/workspace/openerp_ecosoft/ecosoft_addons/jrxml_reports/custom_reports/"]]></defaultValueExpression>
 	</parameter>
@@ -67,6 +67,9 @@ where $X{IN, av.id, PIDS}]]>
 	<field name="partner_type" class="java.lang.String"/>
 	<variable name="wht_amount" class="java.lang.Number" calculation="Sum">
 		<variableExpression><![CDATA[$F{wht_amount}]]></variableExpression>
+	</variable>
+	<variable name="wht_base" class="java.lang.Number" calculation="Sum">
+		<variableExpression><![CDATA[$F{wht_base}]]></variableExpression>
 	</variable>
 	<background>
 		<band height="802">
@@ -343,7 +346,7 @@ $F{partner_type} == "partnership"]]></printWhenExpression>
 	<lastPageFooter>
 		<band height="190">
 			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement mode="Transparent" x="439" y="11" width="90" height="20"/>
+				<reportElement mode="Transparent" x="441" y="11" width="90" height="20"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
@@ -360,6 +363,13 @@ $F{partner_type} == "partnership"]]></printWhenExpression>
 					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[(new Scriptlet()).getAmtInWords((new BigDecimal($F{wht_amount}.toString()==""?0:$F{wht_amount}.toString())).setScale(2).toString(),"THB")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="360" y="11" width="102" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" lineSpacing="Single">
+					<font fontName="Monospaced" size="10" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$V{wht_base}]]></textFieldExpression>
 			</textField>
 		</band>
 	</lastPageFooter>
