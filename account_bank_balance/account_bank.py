@@ -30,11 +30,18 @@ class bank(osv.osv):
     def _get_journal_currency(self, cr, uid, ids, name, args, context=None):
         res = {}
         for bank in self.browse(cr, uid, ids, context=context):
-            res[bank.id] = bank.journal_id.default_debit_account_id.balance or 0.0
+            res[bank.id] = bank.journal_id and bank.journal_id.default_debit_account_id.balance or 0.0
         return res
+
+    def _default_company(self, cr, uid, context=None):
+        user = self.pool.get('res.users').browse(cr, uid, uid, context=context)
+        return user.company_id.id
 
     _columns = {
         'balance': fields.function(_get_journal_currency, type="float", readonly=True, string="Balance in Company's Currency"),
+    }
+    _defaults = {
+        'company_id': _default_company
     }
 
 bank()
