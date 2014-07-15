@@ -9,17 +9,37 @@
             <field name="arch" type="xml">
                 <form string="Report Options" version="7.0">
                     <separator string="Account Cash Projection"/>
-                    <label string="Excel report to show cash projection based on receivable and payable activities along with financial activities."/>
+                    <label string="Excel report to give cash projection based on operating activities, financial activities and Investing Activities"/>
                     <group col="4">
                         <field name="chart_account_id" widget='selection' on_change="onchange_chart_id(chart_account_id, context)"/>
                         <field name="fiscalyear_id" invisible="1"/>
                         <newline/>
                         <field name="date_from"/>
                         <field name="period_length"/>
+                        <field name="no_columns"/>
                         <newline/>
-                        <field name="result_selection"/>
-                        <field name="direction_selection"/>
+                        <field name="result_selection"  invisible="1"/>
+                        <field name="direction_selection"  invisible="1"/>
+                        
+                        
                     </group>
+                    <notebook tabpos="up" colspan="4">
+                        <page string="Cash Inflow Operating Accounts">
+                            <field name="cash_in_op" colspan="4"  nolable="1"/>
+                        </page>
+                        <page string="Cash Outflow Operating Accounts">
+                            <field name="cash_out_op" colspan="4" nolable="1"/>
+                        </page>
+                        <page string="Cash Financing Accounts">
+                            <field name="cash_in_finance" colspan="4"  nolable="1"/>
+                        </page>
+                        <page string="Cash Investing Accounts">
+                            <field name="cash_in_invest" colspan="4"  nolable="1"/>
+                        </page>
+                        <page string="Bank Accounts">
+                            <field name="cash_in_bank" colspan="4"  nolable="1"/>
+                        </page>
+                    </notebook>
                     <field name="journal_ids" required="0" invisible="1"/>
                     <footer>
                         <button name="check_report" string="Print" type="object" default_focus="1" class="oe_highlight"/>
