@@ -68,9 +68,9 @@
                 </field>
                 <xpath expr="/form/sheet/notebook/page[@string='Incoming Shipments &amp; Invoices']/group" position="inside">
                     <group>
-						<field name="advance_type" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
-						<field name="amount_deposit" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
-						<field name="advance_percentage" readonly="True" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual'))]}"/>
+						<field name="advance_type" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual','line_percentage'))]}"/>
+						<field name="amount_deposit" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual','line_percentage'))]}"/>
+						<field name="advance_percentage" readonly="True" attrs="{'invisible': [('invoice_method', 'not in', ('picking','manual','line_percentage'))]}"/>
 							
                         <field name="num_invoice" invisible="1"/>                   
 					</group>
