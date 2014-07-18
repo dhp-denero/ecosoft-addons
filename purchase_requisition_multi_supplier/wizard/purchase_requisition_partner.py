@@ -179,10 +179,11 @@ class purchase_requisition_partner(osv.osv_memory):
             for partner_itm in pr_grouping[pr_id]:
                 purchase_id = self._create_po(cr, uid, requisition, partner_itm, context)
                 for product_itm in pr_grouping[pr_id][partner_itm]:
-                    for uom_itm in pr_grouping[pr_id][partner_itm][product_itm]:
-                        pr_line = pr_grouping[pr_id][partner_itm][product_itm][uom_itm]
-                        pr_line.update({'product_id': product_itm, 'product_uom': uom_itm})
-                        self._create_po_line(cr, uid, purchase_id, partner_itm, pr_line, context=None)
+                    for product_desc in pr_grouping[pr_id][partner_itm][product_itm]:
+                        for uom_itm in pr_grouping[pr_id][partner_itm][product_itm][product_desc]:
+                            pr_line = pr_grouping[pr_id][partner_itm][product_itm][product_desc][uom_itm]
+                            pr_line.update({'product_id': product_itm, 'product_uom': uom_itm})
+                            self._create_po_line(cr, uid, purchase_id, partner_itm, pr_line, context=None)
                 purchase_ids.append(purchase_id)
 
         return purchase_ids
@@ -194,11 +195,12 @@ class purchase_requisition_partner(osv.osv_memory):
             requisition = purchase_requisition.browse(cr, uid, pr_id, context=context)
             for partner_itm in pr_grouping[pr_id]:
                 for product_itm in pr_grouping[pr_id][partner_itm]:
-                    for uom_itm in pr_grouping[pr_id][partner_itm][product_itm]:
-                        pr_line = pr_grouping[pr_id][partner_itm][product_itm][uom_itm]
-                        pr_line.update({'product_id': product_itm, 'product_uom': uom_itm})
-                        purchase_id = self._create_po(cr, uid, requisition, partner_itm, context)
-                        self._create_po_line(cr, uid, purchase_id, partner_itm, pr_line, context=None)
+                    for product_desc in pr_grouping[pr_id][partner_itm][product_itm]:
+                        for uom_itm in pr_grouping[pr_id][partner_itm][product_itm][product_desc]:
+                            pr_line = pr_grouping[pr_id][partner_itm][product_itm][product_desc][uom_itm]
+                            pr_line.update({'product_id': product_itm, 'product_uom': uom_itm})
+                            purchase_id = self._create_po(cr, uid, requisition, partner_itm, context)
+                            self._create_po_line(cr, uid, purchase_id, partner_itm, pr_line, context=None)
                 purchase_ids.append(purchase_id)
         return purchase_ids
 
@@ -224,8 +226,8 @@ class purchase_requisition_partner(osv.osv_memory):
 
                         default_uom_po_id = line.product_id.uom_po_id.id
                         qty = product_uom._compute_qty(cr, uid, line.product_uom_id.id, line.product_qty, default_uom_po_id)
-                        if res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id]:
-                            po_line = res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id]
+                        if res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id]:
+                            po_line = res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id]
                             po_line['product_qty'] = po_line['product_qty'] + qty
                             po_line['pr_line_ids'].append(line.id)
                         else:
@@ -237,7 +239,7 @@ class purchase_requisition_partner(osv.osv_memory):
                                      'partner_ref': line.product_id.partner_ref,
                                      'name': line.name,
                                      }
-                        res[rec.id][partner_id.id][line.product_id.id][default_uom_po_id] = po_line
+                        res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id] = po_line
         if res == {}:
             raise osv.except_osv(_('Warning!'), _('Please select Product(s)'))
         return res
