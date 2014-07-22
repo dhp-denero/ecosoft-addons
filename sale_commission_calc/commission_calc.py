@@ -131,14 +131,18 @@ class commission_worksheet(osv.osv):
             context = {}
         commission_rate = rule.fix_percent / 100
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        length, i = len(invoices), 0
         for invoice in invoices:
+            i += 1  # Mark last loop and updat context (to be passed to _amount_all
+            if i == length:
+                context.update({'last_loop': True})
             base_amt = self._get_base_amount(invoice)
             # For each order, find its match rule line
             commission_amt = 0.0
             if commission_rate:
                 commission_amt = base_amt * commission_rate
             res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
-            worksheet_line_obj.create(cr, uid, res)
+            worksheet_line_obj.create(cr, uid, res, context=context)
         return True
 
     def _calculate_percent_product_category(self, cr, uid, rule, worksheet, invoices, context=None):
@@ -146,7 +150,11 @@ class commission_worksheet(osv.osv):
             context = {}
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        length, i = len(invoices), 0
         for invoice in invoices:
+            i += 1  # Mark last loop and updat context (to be passed to _amount_all
+            if i == length:
+                context.update({'last_loop': True})
             base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
@@ -156,7 +164,7 @@ class commission_worksheet(osv.osv):
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
             res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
-            worksheet_line_obj.create(cr, uid, res)
+            worksheet_line_obj.create(cr, uid, res, context=context)
         return True
 
     def _calculate_percent_product(self, cr, uid, rule, worksheet, invoices, context=None):
@@ -164,7 +172,11 @@ class commission_worksheet(osv.osv):
             context = {}
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        length, i = len(invoices), 0
         for invoice in invoices:
+            i += 1  # Mark last loop and updat context (to be passed to _amount_all
+            if i == length:
+                context.update({'last_loop': True})
             base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
@@ -175,7 +187,7 @@ class commission_worksheet(osv.osv):
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
             res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
-            worksheet_line_obj.create(cr, uid, res)
+            worksheet_line_obj.create(cr, uid, res, context=context)
         return True
 
     def _calculate_percent_product_step(self, cr, uid, rule, worksheet, invoices, context=None):
@@ -184,7 +196,11 @@ class commission_worksheet(osv.osv):
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         product_uom_obj = self.pool.get('product.uom')
+        length, i = len(invoices), 0
         for invoice in invoices:
+            i += 1  # Mark last loop and updat context (to be passed to _amount_all
+            if i == length:
+                context.update({'last_loop': True})
             base_amt = self._get_base_amount(invoice)
             # For each product line
             commission_amt = 0.0
@@ -209,14 +225,18 @@ class commission_worksheet(osv.osv):
                 if commission_rate:
                     commission_amt += line.price_subtotal * commission_rate
             res = self._prepare_worksheet_line(worksheet, invoice, base_amt, commission_amt, context=context)
-            worksheet_line_obj.create(cr, uid, res)
+            worksheet_line_obj.create(cr, uid, res, context=context)
         return True
 
     def _calculate_percent_amount(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
+        length, i = len(invoices), 0
         for invoice in invoices:
+            i += 1  # Mark last loop and updat context (to be passed to _amount_all
+            if i == length:
+                context.update({'last_loop': True})
             base_amt = self._get_base_amount(invoice)
             # For each order, find its match rule line
             commission_amt = 0.0
@@ -227,7 +247,7 @@ class commission_worksheet(osv.osv):
                     commission_amt = base_amt * commission_rate
                     break
             res = self._prepare_worksheet_line(worksheet, invoice, commission_amt, context=context)
-            worksheet_line_obj.create(cr, uid, res)
+            worksheet_line_obj.create(cr, uid, res, context=context)
         return True
 
     # --- END ---
@@ -245,6 +265,10 @@ class commission_worksheet(osv.osv):
 
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
+        if context is None:
+            context = {}
+        if not context.get('last_loop', False):
+            return res
         for worksheet in self.browse(cr, uid, ids, context=context):
             res[worksheet.id] = {
                 'amount_draft': 0.0,
