@@ -267,35 +267,34 @@ class commission_worksheet(osv.osv):
         res = {}
         if context is None:
             context = {}
-        if not context.get('last_loop', False):
-            return res
-        for worksheet in self.browse(cr, uid, ids, context=context):
-            res[worksheet.id] = {
-                'amount_draft': 0.0,
-                'amount_valid': 0.0,
-                'amount_invalid': 0.0,
-                'amount_done': 0.0,
-                'amount_skip': 0.0,
-                'amount_total': 0.0,
-            }
-            total = 0.0
-            # Update line status first.
-            line_ids = [line.id for line in worksheet.worksheet_lines]
-            self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
-            # Start calculation.
-            for line in worksheet.worksheet_lines:
-                if line.commission_state == 'draft':
-                    res[worksheet.id]['amount_draft'] += line.amount_subtotal
-                if line.commission_state == 'valid':
-                    res[worksheet.id]['amount_valid'] += line.amount_subtotal
-                if line.commission_state == 'invalid':
-                    res[worksheet.id]['amount_invalid'] += line.amount_subtotal
-                if line.commission_state == 'done':
-                    res[worksheet.id]['amount_done'] += line.amount_subtotal
-                if line.commission_state == 'skip':
-                    res[worksheet.id]['amount_skip'] += line.amount_subtotal
-                total += line.amount_subtotal
-            res[worksheet.id]['amount_total'] = total
+        if context.get('last_loop', False):
+            for worksheet in self.browse(cr, uid, ids, context=context):
+                res[worksheet.id] = {
+                    'amount_draft': 0.0,
+                    'amount_valid': 0.0,
+                    'amount_invalid': 0.0,
+                    'amount_done': 0.0,
+                    'amount_skip': 0.0,
+                    'amount_total': 0.0,
+                }
+                total = 0.0
+                # Update line status first.
+                line_ids = [line.id for line in worksheet.worksheet_lines]
+                self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+                # Start calculation.
+                for line in worksheet.worksheet_lines:
+                    if line.commission_state == 'draft':
+                        res[worksheet.id]['amount_draft'] += line.amount_subtotal
+                    if line.commission_state == 'valid':
+                        res[worksheet.id]['amount_valid'] += line.amount_subtotal
+                    if line.commission_state == 'invalid':
+                        res[worksheet.id]['amount_invalid'] += line.amount_subtotal
+                    if line.commission_state == 'done':
+                        res[worksheet.id]['amount_done'] += line.amount_subtotal
+                    if line.commission_state == 'skip':
+                        res[worksheet.id]['amount_skip'] += line.amount_subtotal
+                    total += line.amount_subtotal
+                res[worksheet.id]['amount_total'] = total
         return res
 
     _columns = {
