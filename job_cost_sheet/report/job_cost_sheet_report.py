@@ -67,7 +67,6 @@ class job_cost_sheet_report(osv.osv):
                 from account_move_line aml
                 join account_account aa on aa.id = aml.account_id and aa.job_cost_sheet = true
                 join sale_order so on so.id = aml.ref_sale_order_id
-                where aml.account_id = 137
                 group by aml.id,
                         aml.ref_sale_order_id,
                         aml.move_id,
