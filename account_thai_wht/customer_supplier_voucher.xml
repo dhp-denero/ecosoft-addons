@@ -9,10 +9,10 @@
 		    <field name="arch" type="xml">
                 <data>				
 					<xpath expr="/form/sheet/notebook/page/field[@name='line_cr_ids']/tree/field[@name='amount']" position="after">
-						<field sum="Total WHT" name="amount_wht"/>
+						<field sum="Total WHT" name="amount_wht" on_change="onchange_amount(parent.partner_id, move_line_id, amount_original, amount, amount_unreconciled, context)"/>
 					</xpath>
 					<xpath expr="/form/sheet/notebook/page/field[@name='line_dr_ids']/tree/field[@name='amount']" position="after">
-						<field sum="Total WHT" name="amount_wht"/>
+						<field sum="Total WHT" name="amount_wht" on_change="onchange_amount(parent.partner_id, move_line_id, amount_original, amount, amount_unreconciled, context)"/>
 					</xpath>					
 					<xpath expr="/form/sheet/notebook/page/field[@name='line_cr_ids']/tree/field[@name='amount']" position="attributes">
 						<attribute name="on_change">onchange_amount(parent.partner_id, move_line_id, amount_original, amount, amount_unreconciled, context)</attribute>
