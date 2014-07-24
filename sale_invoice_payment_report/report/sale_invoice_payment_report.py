@@ -58,7 +58,7 @@ class sale_invoice_payment_report(osv.osv):
                 select *, (case when coalesce(amount_total, 0) = 0 then 0 else ((invoiced_amount / amount_total) * residual) end)::decimal(16,2) as unpaid_amount,
                     (case when coalesce(amount_total, 0) = 0 then 0 else invoiced_amount - ((invoiced_amount / amount_total) * residual) end)::decimal(16,2) as paid_amount
                     from (
-                                select ai.id as id,
+                                select so.id as id,
                                     so.user_id,
                                     so.partner_id,
                                     so.id as order_id,
@@ -73,8 +73,9 @@ class sale_invoice_payment_report(osv.osv):
                                     ai.amount_total,
                                     ai.residual
                                 from sale_order so
-                                join sale_order_invoice_rel sir on so.id = sir.order_id
-                                join account_invoice ai on ai.id = sir.invoice_id and ai.state not in ('draft','cancel')
+                                left outer join sale_order_invoice_rel sir on so.id = sir.order_id
+                                left outer join account_invoice ai on ai.id = sir.invoice_id and ai.state not in ('draft','cancel')
+                                where so.state not in ('draft', 'cancel')
                     ) a
                 ) b
         )""")
