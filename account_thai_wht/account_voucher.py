@@ -38,13 +38,14 @@ class common_voucher(object):
         return amount
 
     def _to_voucher_currency(self, cr, uid, invoice, journal, amount, context=None):
-        if context == None:
+        if context is None:
             context = {}
         ctx = context.copy()
         currency_obj = self.pool.get('res.currency')
         inv_currency_id = invoice.currency_id.id
         cur_currency_id = journal.currency and journal.currency.id or journal.company_id.currency_id.id
-        amount = currency_obj.compute(cr, uid, inv_currency_id, cur_currency_id, float(amount), context=ctx)
+        if inv_currency_id != cur_currency_id:
+            amount = currency_obj.compute(cr, uid, inv_currency_id, cur_currency_id, float(amount), context=ctx)
         return amount
 
 common_voucher()
@@ -199,8 +200,8 @@ class account_voucher(common_voucher, osv.osv):
             partner = voucher.partner_id
             if partner.lang:
                 ctx.update({'lang': partner.lang})
-            for taxe in avt_obj.compute(cr, uid, id, context=ctx).values():
-                avt_obj.create(cr, uid, taxe)
+            for tax in avt_obj.compute(cr, uid, id, context=ctx).values():
+                avt_obj.create(cr, uid, tax)
         # Update the stored value (fields.function), so we write to trigger recompute
         #self.pool.get('account.voucher').write(cr, uid, ids, {'line_ids':[]}, context=ctx)
         return True
