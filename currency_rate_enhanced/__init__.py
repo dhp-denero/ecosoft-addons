@@ -23,3 +23,4 @@
 
 import res_currency
 import pricelist
+import affected_reports
