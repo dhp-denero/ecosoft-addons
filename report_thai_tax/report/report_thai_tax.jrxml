@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="1.3310000000000055"/>
-	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.zoom" value="2.3579476910000112"/>
+	<property name="ireport.x" value="69"/>
+	<property name="ireport.y" value="188"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -542,6 +542,55 @@ order by date_invoice, doc_number, supplier_doc_number]]>
 					<font fontName="Monospaced" size="7" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H"/>
 				</textElement>
 			</textField>
+			<staticText>
+				<reportElement x="57" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="112" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="321" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="385" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="492" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="17" y="0" width="6" height="15"/>
+				<textElement textAlignment="Center" lineSpacing="Single" markup="none">
+					<font fontName="SansSerif" size="10" isBold="false" pdfFontName="Garuda.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[|]]></text>
+			</staticText>
 		</band>
 	</detail>
 	<summary>
