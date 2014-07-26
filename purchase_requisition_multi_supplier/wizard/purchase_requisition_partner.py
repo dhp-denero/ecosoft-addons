@@ -136,16 +136,17 @@ class purchase_requisition_partner(osv.osv_memory):
         supplier_pricelist = supplier.property_product_pricelist_purchase or False
         location_id = requisition.warehouse_id.lot_input_id.id
         purchase_id = purchase_order.create(cr, uid, {
-                    'origin': requisition.name,
-                    'partner_id': supplier.id,
-                    'pricelist_id': supplier_pricelist.id,
-                    'location_id': location_id,
-                    'company_id': requisition.company_id.id,
-                    'fiscal_position': supplier.property_account_position and supplier.property_account_position.id or False,
-                    'requisition_id': requisition.id,
-                    'notes': requisition.description,
-                    'warehouse_id': requisition.warehouse_id.id,
-                    }, context=context)
+            'origin': requisition.name,
+            'partner_id': supplier.id,
+            'pricelist_id': supplier_pricelist.id,
+            'location_id': location_id,
+            'company_id': requisition.company_id.id,
+            'fiscal_position': supplier.property_account_position and supplier.property_account_position.id or False,
+            'requisition_id': requisition.id,
+            'notes': requisition.description,
+            'warehouse_id': requisition.warehouse_id.id,
+            'payment_term_id': supplier.property_supplier_payment_term and supplier.property_supplier_payment_term.id,
+        }, context=context)
         return purchase_id
 
     def _create_po_line(self, cr, uid, purchase_id, supplier_id, pr_line, context=None):
