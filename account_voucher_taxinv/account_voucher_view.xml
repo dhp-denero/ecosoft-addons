@@ -9,7 +9,7 @@
 		    <field name="arch" type="xml">
                 <data>
                     <xpath expr="/form/sheet/notebook/page[@string='Journal Items']" position="after">
-                        <page string="Suspended Tax Info" attrs="{'invisible': [('is_taxinv', '=', False)]}" >
+                        <page string="Tax Invoice Info" attrs="{'invisible': [('is_taxinv', '=', False)]}" >
                             <group>
                                 <group>
 	                                <field name="is_taxinv" invisible="1"/>
@@ -26,12 +26,11 @@
                         		</group>
                         	</group>
                         	<field name="voucher_taxinv">
-                                <tree string="Suspended Tax Invoice" attrs="{'readonly': [('is_taxinv_publish', '=', True)]}"  editable="bottom">
+                                <tree string="Tax Invoice Info" attrs="{'readonly': [('is_taxinv_publish', '=', True)]}"  editable="bottom">
                                     <field name="invoice_id" readonly="1" />
                                     <field name="date" />
                                     <field name="number" />
                                     <field name="partner_id" />
-                                    <field name="account_id" />
                                     <field name="base_amount"/>
                                     <field name="tax_id" />
                                     <field name="tax_amount" />
