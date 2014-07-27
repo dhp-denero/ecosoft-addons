@@ -29,6 +29,7 @@ class account_tax(osv.osv):
         'threshold_wht': fields.float("Threshold Amount", help="Withholding Tax will be applied only if base amount more or equal to threshold amount"),
         'account_suspend_collected_id': fields.many2one('account.account', 'Invoice Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Invoice Tax Account"),
         'account_suspend_paid_id': fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
+        'is_suspend_tax': fields.boolean('Suspend Tax', help='This is a suspended tax account. The tax point will be deferred to the time of payment'),
     }
 
     # This is a complete overwrite method
@@ -180,6 +181,16 @@ class account_tax(osv.osv):
             r['price_unit'] -= total
             r['todo'] = 0
         return res
+
+    def onchange_is_wht(self, cr, uid, ids, is_wht, context=None):
+        if is_wht:
+            return {'value': {'is_suspend_tax': False}}
+        return True
+
+    def onchange_is_suspend_tax(self, cr, uid, ids, is_suspend_tax, context=None):
+        if is_suspend_tax:
+            return {'value': {'is_wht': False}}
+        return True
 
 account_tax()
 

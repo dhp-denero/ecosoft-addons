@@ -129,7 +129,7 @@ class account_invoice_tax(osv.osv):
                     if abs(base) and abs(base) < tax_obj.read(cr, uid, tax['id'], ['threshold_wht'])['threshold_wht']:
                         continue
 
-                use_suspend_acct = line.product_id.use_suspend_account
+                use_suspend_acct = tax_obj.browse(cr, uid, tax['id']).is_suspend_tax
 
                 if inv.type in ('out_invoice', 'in_invoice'):
                     val['base_code_id'] = tax['base_code_id']

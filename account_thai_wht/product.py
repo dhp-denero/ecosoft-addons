@@ -21,12 +21,12 @@
 
 from openerp.osv import fields, osv
 
-class product_product(osv.osv):
-    _inherit = "product.product"
-
-    _columns = {
-        'use_suspend_account': fields.boolean('Use Suspend Tax Account', help='By default, product of type service will use suspend tax account. This can be overwritten for special case.'),
-    }
+# class product_product(osv.osv):
+#     _inherit = "product.product"
+# 
+#     _columns = {
+#         'use_suspend_account': fields.boolean('Use Suspend Tax Account', help='By default, product of type service will use suspend tax account. This can be overwritten for special case.'),
+#     }
     
 #     Lek think we do not need to link Suspend with Service. So just comment out, jut in case.
 #     def onchange_type(self, cr, uid, ids, type, context=None):
@@ -37,6 +37,6 @@ class product_product(osv.osv):
 #             res['use_suspend_account'] = False
 #         return {'value': res}
     
-product_product()
+# product_product()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

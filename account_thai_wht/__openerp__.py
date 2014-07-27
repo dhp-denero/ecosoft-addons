@@ -20,37 +20,44 @@
 ##############################################################################
 
 {
-    'name' : "Thai Withholding Tax",
-    'version' : '1.0',
-    'author' : 'Ecosoft',
+    'name': "Thai Withholding Tax",
+    'version': '1.0',
+    'author': 'Ecosoft',
     'summary': 'Thai Withholding Tax Extension for Accounting Mod',
     'description': """
-    
+
     * Supplier/Customer Withholding Tax
     * Supplier/Customer Undue Tax
     * Correct Account Posting According to withholding rules.
-    
-Note: 
+
+Note:
 * This module also require Ecosoft's addon, customer_supplier_voucher
 
 """,
     'category': 'Accounting & Finance',
     'sequence': 8,
-    'website' : 'http://www.ecosoft.co.th',
-    'images' : [],
-    'depends' : ['product','sale','purchase','purchase_discount',
-                 'account','account_voucher','customer_supplier_voucher',
-                 ],
-    'demo' : [],
-    'data' : ['account_invoice_view.xml',
-              'account_view.xml','partner_view.xml',
-              'voucher_payment_receipt_view.xml',
-              'customer_supplier_voucher.xml',
-              'security/ir.model.access.csv',
-              'reports/custom_reports.xml',
-              'product_view.xml'
+    'website': 'http://www.ecosoft.co.th',
+    'images': [],
+    'depends': [
+        'product',
+        'sale',
+        'purchase',
+        'purchase_discount',
+        'account',
+        'account_voucher',
+        'customer_supplier_voucher',
     ],
-    'test' : [
+    'demo': [],
+    'data': [
+        'account_invoice_view.xml',
+        'account_view.xml',
+        'partner_view.xml',
+        'voucher_payment_receipt_view.xml',
+        'customer_supplier_voucher.xml',
+        'security/ir.model.access.csv',
+        'reports/custom_reports.xml',
+    ],
+    'test': [
     ],
     'auto_install': False,
     'application': True,

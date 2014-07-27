@@ -511,6 +511,9 @@ class account_voucher_tax(common_voucher, osv.osv):
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=context)
         cur = voucher.currency_id or voucher.journal_id.company_id.currency_id
         company_currency = voucher.company_id.currency_id.id
+        # Special case for account_voucher_taxinv, get only suspended tax, based on inovice
+        is_taxinv = 'is_taxinv' in context and context.get('is_taxinv', False) or False
+        # --
         for voucher_line in voucher.line_ids:
             line_sign = 1
             if voucher.type in ('sale', 'receipt'):
@@ -564,10 +567,11 @@ class account_voucher_tax(common_voucher, osv.osv):
                         vals['tax_currency_gain'] = 0.0
 
                         # Check the product are services, which has been using suspend account. This time, it needs to cr: non-suspend acct and dr: suspend acct
-                        use_suspend_acct = line.product_id.use_suspend_account
-                        is_wht = tax_obj.browse(cr, uid, tax['id']).is_wht
+                        tax1 = tax_obj.browse(cr, uid, tax['id'])
+                        use_suspend_acct = tax1.is_suspend_tax
+                        is_wht = tax1.is_wht
                         # -------------------> Adding Tax for Posting
-                        if is_wht:
+                        if is_wht and not is_taxinv:
                             # Check Threshold first
                             base = cur_obj.compute(cr, uid, invoice.currency_id.id, company_currency, (revised_price * line.quantity), context={'date': invoice.date_invoice or time.strftime('%Y-%m-%d')}, round=False)
                             if abs(base) and abs(base) < tax_obj.read(cr, uid, val['tax_id'], ['threshold_wht'])['threshold_wht']:
@@ -589,7 +593,7 @@ class account_voucher_tax(common_voucher, osv.osv):
                                 val['account_analytic_id'] = tax['account_analytic_paid_id']
 
                             key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
-                            if not key in tax_grouped:
+                            if not (key in tax_grouped):
                                 tax_grouped[key] = val
                                 tax_grouped[key]['amount'] = -tax_grouped[key]['amount']
                                 tax_grouped[key]['base'] = -tax_grouped[key]['base']
@@ -607,6 +611,7 @@ class account_voucher_tax(common_voucher, osv.osv):
                         elif use_suspend_acct:
                             # First: Do the Cr: with Non-Suspend Account
                             if voucher.type in ('receipt', 'payment'):
+                                val['invoice_id'] = invoice.id
                                 val['base_code_id'] = tax['base_code_id']
                                 val['tax_code_id'] = tax['tax_code_id']
                                 val['base_amount'] = cur_obj.compute(cr, uid, voucher.currency_id.id, company_currency, val['base'] * tax['base_sign'], context={'date': voucher.date or time.strftime('%Y-%m-%d')}, round=False) * payment_ratio
@@ -614,6 +619,7 @@ class account_voucher_tax(common_voucher, osv.osv):
                                 val['account_id'] = tax['account_collected_id'] or line.account_id.id
                                 val['account_analytic_id'] = tax['account_analytic_collected_id']
                             else:
+                                val['invoice_id'] = invoice.id
                                 val['base_code_id'] = tax['ref_base_code_id']
                                 val['tax_code_id'] = tax['ref_tax_code_id']
                                 val['base_amount'] = cur_obj.compute(cr, uid, voucher.currency_id.id, company_currency, val['base'] * tax['ref_base_sign'], context={'date': voucher.date or time.strftime('%Y-%m-%d')}, round=False) * payment_ratio
@@ -621,15 +627,22 @@ class account_voucher_tax(common_voucher, osv.osv):
                                 val['account_id'] = tax['account_paid_id'] or line.account_id.id
                                 val['account_analytic_id'] = tax['account_analytic_paid_id']
 
-                            key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
-                            if not key in tax_grouped:
+                            if is_taxinv:
+                                key = (invoice.id)  # Sum all suspended tax for an invoice
+                            else:
+                                key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
+
+                            if not (key in tax_grouped):
                                 tax_grouped[key] = val
                             else:
+                                tax_grouped[key]['invoice_id'] = invoice.id  # Speically for taxinv
                                 tax_grouped[key]['amount'] += val['amount']
                                 tax_grouped[key]['base'] += val['base']
                                 tax_grouped[key]['base_amount'] += val['base_amount']
                                 tax_grouped[key]['tax_amount'] += val['tax_amount']
                                 tax_grouped[key]['tax_currency_gain'] += val['tax_currency_gain']
+                            if is_taxinv:
+                                continue
 
                             # Second: Do the Dr: with Suspend Account
                             if voucher.type in ('receipt', 'payment'):
@@ -650,7 +663,7 @@ class account_voucher_tax(common_voucher, osv.osv):
                                 vals['account_analytic_id'] = tax['account_analytic_paid_id']
 
                             key = (vals['tax_code_id'], vals['base_code_id'], vals['account_id'], vals['account_analytic_id'])
-                            if not key in tax_grouped:
+                            if not (key in tax_grouped):
                                 tax_grouped[key] = vals
                             else:
                                 tax_grouped[key]['amount'] += vals['amount']
