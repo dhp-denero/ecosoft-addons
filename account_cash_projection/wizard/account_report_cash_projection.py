@@ -56,10 +56,8 @@ class account_cash_projection_balance(osv.osv_memory):
         'cash_out_op': fields.many2many('account.account', 'account_cash_projection_balance_cash_out_rel', 'cash_id', 'account_id', 'Cash Outflow Accounts (Operating)', required=True, domain=[('type', '=', 'payable')]),
         
         'cash_in_finance': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_f_rel', 'cash_id', 'account_id', 'Cash Accounts (Financing)', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
-#        'cash_out_finance': fields.many2many('account.account', 'account_cash_projection_balance_cash_out_f_rel', 'cash_id', 'account_id', 'Cash Inflow Accounts (Financing)', required=False, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
 
         'cash_in_invest': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_invest_rel', 'cash_id', 'account_id', 'Cash Accounts (Investing)', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
-#        'cash_out_invest': fields.many2many('account.account', 'account_cash_projection_balance_cash_out_invest_rel', 'cash_id', 'account_id', 'Cash Inflow Accounts (Investing)', required=False, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
 
         'cash_in_bank': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_bank_rel', 'cash_id', 'account_id', 'Bank Accounts', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'other')]),
         
@@ -73,7 +71,6 @@ class account_cash_projection_balance(osv.osv_memory):
     _defaults = {
         'period_length': 1,
         'no_columns':30,
-#        'date_from': lambda *a: time.strftime('%Y-%m-%d'),
         'date_from': get_date,
         'direction_selection': 'future',
         'result_selection':'customer_supplier',
@@ -170,7 +167,6 @@ class account_cash_projection_balance(osv.osv_memory):
         sheet.col(0).width = 256*40
         row = self.render_header(sheet, first_row=5, style=D_header_style)
         
-        
         sheet.write(row, 0, 'Cash Flow From Operating Activities', T_header_style)
         row += 2
         sheet.write(row, 0, 'Cash Inflow Accounts', T_header_style)
@@ -180,8 +176,7 @@ class account_cash_projection_balance(osv.osv_memory):
         row = self.output_vals(sheet, res_payable, type='out', op_type='oper', row = row+1, style=V_style)
         row += 2
         sheet.write(row, 0, 'Net Cash Flow (Operation)', T1_header_style)
-        col = 1
-        sheet.write(row, col, self.netoper['netdue'], V_style)
+        col = 0
         for val in range(self.no_columns)[::-1]:
             col += 1
             sheet.write(row, col, self.netoper[val], V_style)
@@ -197,8 +192,7 @@ class account_cash_projection_balance(osv.osv_memory):
         row = self.output_vals(sheet, res_out_finanace, type='out', op_type='fin', row = row+1, style=V_style)
         row += 2
         sheet.write(row, 0, 'Net Cash Flow (Financing)', T1_header_style)
-        col = 1
-        sheet.write(row, col, self.netfin['netdue'], V_style)
+        col = 0
         for val in range(self.no_columns)[::-1]:
             col += 1
             sheet.write(row, col, self.netfin[val], V_style)
@@ -215,23 +209,27 @@ class account_cash_projection_balance(osv.osv_memory):
         row = self.output_vals(sheet, res_out_invest, type='out', op_type='inv', row = row+1, style=V_style)
         row += 2
         sheet.write(row, 0, 'Net Cash Flow (Investing)', T1_header_style)
-        col = 1
-        sheet.write(row, col, self.netinv['netdue'], V_style)
+        col = 0
         for val in range(self.no_columns)[::-1]:
             col += 1
             sheet.write(row, col, self.netinv[val], V_style)
         sheet.write(row, col+1, self.netinv['nettotal'], V_style)
 
+
+        #this is total of all activities.
+        row = row + 1
         row = row + 1
         col= 0
-        sheet.write(row, col, 'Total All Activities', T1_header_style)
-        col = 1
-        sheet.write(row, col, self.netcash['netdue'], V_style)
+        T3_header_style = format_common.font_style(position='left', bold=1, border=1, fontos='black', font_height=180, color='grey')
+        sheet.write(row, col, 'Net Increase / (Decrease) In Cash', T3_header_style)
+        col = 0
         for val in range(self.no_columns)[::-1]:
             col += 1
             sheet.write(row, col, self.netcash[val], V_style)
         sheet.write(row, col+1, self.netcash['nettotal'], V_style)
-        
+
+
+#---------------------------------------------------------------------------------------
         # Start logic to get init balance for date - 1
         obj_move = self.pool.get('account.move.line')
         d = (datetime.strptime(data['form']['date_from'], "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")#The starting Cash is balance from selected bank accounts, 1 day before date's cash flow
@@ -254,30 +252,37 @@ class account_cash_projection_balance(osv.osv_memory):
         if t:
             for amount in t:
                 init_balance += amount[1]
-        row = row + 4
-        col= 0
-        sheet.write(row, col, 'Starting Cash', T1_header_style)
-        col = 1
-        sheet.write(row, col, init_balance, V_style)
 
-        
+        T2_header_style = format_common.font_style(position='left', bold=1, border=1, fontos='black', font_height=180, color='grey')
+        row = row + 1
         row = row + 1
         col= 0
-        sheet.write(row, col, 'Net Cash Flow', T1_header_style)
-        col = 1
-        sheet.write(row, col, self.netcash['nettotal'], V_style)
-        
+        sheet.write(row, col, 'Starting Cash', T2_header_style)
         row = row + 1
-        col= 0
-        sheet.write(row, col, 'Ending Cash', T1_header_style)
+        sheet.write(row, col, 'Net Increase / (Decrease) In Cash', T2_header_style)
+        row = row + 1
+        sheet.write(row, col, 'Ending Cash', T2_header_style)
         col = 1
-        sheet.write(row, col, init_balance + self.netcash['nettotal'], V_style)
-        
+        row = row - 2
+        sheet.write(row, col, init_balance, V_style)
+        row = row + 1
+        sheet.write(row, col, self.netcash['netdue'], V_style)
+        row = row + 1
+        sheet.write(row, col, init_balance+self.netcash['netdue'], V_style)
+        for val in range(self.no_columns)[::-1]:
+            row = row - 2
+            col += 1
+            sheet.write(row, col, init_balance, V_style)
+            row = row + 1
+            sheet.write(row, col, self.netcash[val], V_style)
+            row = row + 1
+            sheet.write(row, col, init_balance+self.netcash[val], V_style)
+            init_balance = init_balance+self.netcash[val]
+
         stream = cStringIO.StringIO()
         workbook.save(stream)
         cr.execute(""" DELETE FROM output """)
         attach_id = self.pool.get('output').create(cr, uid, {'name':'Cash Projection Report.xls', 'xls_output': base64.encodestring(stream.getvalue())})
-        
         return {
                 'name': _('Notification'),
                 'context': context,
@@ -297,9 +302,8 @@ class account_cash_projection_balance(osv.osv_memory):
         style1 = format_common.font_style(position='left', fontos='black', font_height=180)
         for main in output_res:
             ws.write(row, col, main['name'], style1)
-            col += 1
-            ws.write(row, col, main['direction'], style)
             due_total += main['direction']
+            main.has_key('direction') and main.pop('direction')
             for val in range(self.no_columns)[::-1]:
                 col += 1
                 daywise_total[val] += main[str(val)]
@@ -317,64 +321,37 @@ class account_cash_projection_balance(osv.osv_memory):
         row += 1
         head_style = format_common.font_style(position='center', bold=1, border=1, fontos='black', font_height=180, color='grey')
         ws.write(row, col, label, head_style)
-        col += 1
-        ws.write(row, col, due_total, style)
         self.netcash['netdue'] += due_total
-        if type == 'out':
-            if op_type == 'oper':
-                self.netoper['netdue'] -= due_total
-            if op_type == 'fin':
-                self.netfin['netdue'] -= due_total
-            if op_type == 'inv':
-                self.netinv['netdue'] -= due_total
-        else:
-            if op_type == 'oper':
-                self.netoper['netdue'] += due_total
-            if op_type == 'fin':
-                self.netfin['netdue'] += due_total
-            if op_type == 'inv':
+        if op_type == 'oper':
+            self.netoper['netdue'] += due_total
+        if op_type == 'fin':
+            self.netfin['netdue'] += due_total
+        if op_type == 'inv':
                 self.netinv['netdue'] += due_total
         for val in range(self.no_columns)[::-1]:
             col += 1
             ws.write(row, col, daywise_total[val], style)
             self.netcash[val] += daywise_total[val]
-            if type == 'out':
-                if op_type == 'oper':
-                    self.netoper[val] -= daywise_total[val]
-                if op_type == 'fin':
-                    self.netfin[val] -= daywise_total[val]
-                if op_type == 'inv':
-                    self.netinv[val] -= daywise_total[val]
-            else:
-                if op_type == 'oper':
-                    self.netoper[val] += daywise_total[val]
-                if op_type == 'fin':
-                    self.netfin[val] += daywise_total[val]
-                if op_type == 'inv':
-                    self.netinv[val] += daywise_total[val]
+            if op_type == 'oper':
+                self.netoper[val] += daywise_total[val]
+            if op_type == 'fin':
+                self.netfin[val] += daywise_total[val]
+            if op_type == 'inv':
+                self.netinv[val] += daywise_total[val]
         col += 1
         ws.write(row, col, final_total, style)
         self.netcash['nettotal'] += final_total
-        if type == 'out':
-            if op_type == 'oper':
-                self.netoper['nettotal'] -= final_total
-            if op_type == 'fin':
-                self.netfin['nettotal'] -= final_total
-            if op_type == 'inv':
-                self.netinv['nettotal'] -= final_total
-        else:
-            if op_type == 'oper':
-                self.netoper['nettotal'] += final_total
-            if op_type == 'fin':
-                self.netfin['nettotal'] += final_total
-            if op_type == 'inv':
-                self.netinv['nettotal'] += final_total
+        if op_type == 'oper':
+            self.netoper['nettotal'] += final_total
+        if op_type == 'fin':
+            self.netfin['nettotal'] += final_total
+        if op_type == 'inv':
+            self.netinv['nettotal'] += final_total
         return row
         
     def render_header(self, ws, first_row=0, style=False):
         ws.write(first_row, 0, 'Date/Day Number', style)
-        ws.write(first_row, 1, 'Due', style)
-        col = 2
+        col = 1
         for hdr in range(self.no_columns)[::-1]:
             hdr_real = self.res[str(hdr)]['start']
             if 'stop' in self.res[str(hdr)] and self.res[str(hdr)]['stop']:

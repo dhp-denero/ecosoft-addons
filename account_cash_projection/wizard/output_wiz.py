@@ -27,8 +27,8 @@ class output(osv.osv):
     _description = 'Wizard to store the Excel output'
     
     _columns = {
-        'name':fields.char('Name',size=256),
-        'xls_output': fields.binary('Excel output',readonly=True),
+        'name':fields.char('Name', size=256),
+        'xls_output': fields.binary('Report Cash Projection', readonly=True),
         }
     
 output()  
