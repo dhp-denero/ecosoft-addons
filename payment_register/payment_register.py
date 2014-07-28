@@ -391,10 +391,16 @@ class payment_register(osv.osv):
                             })
         return res
 
-    def onchange_amount(self, cr, uid, ids, amount, amount_payin, exchange_rate_payin, context=None):
-        diff = (amount or 0.0) - (amount_payin or 0.0)
-        res = {'value': {'writeoff_amount': diff,
-                         'writeoff_amount_local': diff * exchange_rate_payin}}
+    def onchange_amount(self, cr, uid, ids, field, amount, amount_payin, writeoff_amount, exchange_rate_payin, context=None):
+        res = {'value': {}}
+        if field in ('amount', 'amount_payin'):
+            diff = (amount or 0.0) - (amount_payin or 0.0)
+            res['value']['writeoff_amount'] = round(diff, 2)
+            res['value']['writeoff_amount_local'] = round(diff * exchange_rate_payin, 2)
+        elif field == 'writeoff_amount':
+            payin = (amount or 0.0) - (writeoff_amount or 0.0)
+            res['value']['amount_payin'] = round(payin, 2)
+            res['value']['writeoff_amount_local'] = round(writeoff_amount * exchange_rate_payin, 2)
         return res
 
     def _unpost_register(self, cr, uid, ids, context=None):

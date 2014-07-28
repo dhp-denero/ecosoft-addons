@@ -97,17 +97,17 @@
 	                         <field name="type"/>
 	                         <field name="check_no"/>
 	                         <field name="date_due"/>
-	                         <field name="amount" requried="1"  on_change="onchange_amount(amount, amount_payin, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+	                         <field name="amount" requried="1"  on_change="onchange_amount('amount', amount, amount_payin, writeoff_amount, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 	                    </group>
                         <group name="pay.register" string="Pay-in Detail">
                         	 <field name="date" on_change="onchange_journal_date(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context)"/>
 	                         <field name="journal_id" domain="['|',('type','=','bank'),('type','=','cash')]" on_change="onchange_journal_date(journal_id, original_pay_amount, original_pay_currency_id, company_id, amount, amount_payin, date, context)" />
                            	 <field name="account_id" invisible="1" readonly="0"/>	                         
                              <field name="currency_id" invisible="1" readonly="0"/>
-                             <field name="amount_payin" required="1" on_change="onchange_amount(amount, amount_payin, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>      
+                             <field name="amount_payin" required="1" on_change="onchange_amount('amount_payin', amount, amount_payin, writeoff_amount, exchange_rate_payin, context)" widget="monetary" options="{'currency_field': 'currency_id'}"/>      
 	                    </group>    
                         <group string="Difference">
-                            <field name="writeoff_amount" widget="monetary"  options="{'currency_field': 'currency_id'}"/>
+                            <field name="writeoff_amount" on_change="onchange_amount('writeoff_amount', amount, amount_payin, writeoff_amount, exchange_rate_payin, context)" widget="monetary"  options="{'currency_field': 'currency_id'}"/>
                             <field name="writeoff_amount_local" widget="monetary"  options="{'currency_field': 'company_currency_id'}" invisible="1"/>
                             <field name="payment_option" required="1" attrs="{'invisible':[('writeoff_amount','=',0)], 'required':[('writeoff_amount','&gt;',0)]}"/>
                             <field name="writeoff_acc_id"
