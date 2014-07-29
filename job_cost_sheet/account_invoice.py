@@ -33,6 +33,8 @@ class account_invoice(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         # if has ref_sale_order_id, write it here.
         res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
+        if not isinstance(ids, list):
+            ids = [ids]
         for invoice in self.browse(cr, uid, ids, context=context):
             purchase = invoice.purchase_order_ids and invoice.purchase_order_ids[0] or False
             if purchase and purchase.ref_sale_order_id:
