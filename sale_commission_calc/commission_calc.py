@@ -217,12 +217,12 @@ class commission_worksheet(osv.osv):
                 if product.rate_step_ids:
                     rate_steps = [(x.amount_over, x.percent_commission) for x in product.rate_step_ids]
                     rate_steps = sorted(rate_steps, reverse=True)
-                for rate_step in rate_steps:
-                    if uom_price_unit >= rate_step[0]:
-                        percent_commission = rate_step[1]
-                        break
-                    else:
-                        break
+                    for rate_step in rate_steps:
+                        if uom_price_unit >= rate_step[0]:
+                            percent_commission = rate_step[1]
+                            break
+                        else:
+                            break
                 # --
                 commission_rate = percent_commission and percent_commission / 100 or 0.0
                 if commission_rate:
