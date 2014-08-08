@@ -34,6 +34,14 @@ User can then enter the base and tax amount exactly as what received by supplier
 
 Note: Anything from this module will merely relate to reporting purposes (report to revenue department).
 
+Note 2:
+=======
+
+On 8 August 14, N&L conclude that this module is not applicable. By using standard, we can adjust tax and account can be posted already.
+For base amount, user need to do manual adjustment in line price him/herself.
+
+In summary, simply use standard.
+
     """,
     'category': 'Accounting',
     'website': 'http://www.ecosoft.co.th',
