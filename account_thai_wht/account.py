@@ -31,6 +31,9 @@ class account_tax(osv.osv):
         'account_suspend_paid_id': fields.many2one('account.account', 'Refund Suspend Tax Account', help="For selected product/service, this account will be used during invoicing as suspend account of Refund Tax Account"),
         'is_suspend_tax': fields.boolean('Suspend Tax', help='This is a suspended tax account. The tax point will be deferred to the time of payment'),
     }
+    _defaults = {
+        'is_suspend_tax': False
+    }
 
     # This is a complete overwrite method
     def _unit_compute(self, cr, uid, taxes, price_unit, product=None, partner=None, quantity=0):

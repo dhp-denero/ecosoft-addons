@@ -512,6 +512,7 @@ class account_voucher_tax(common_voucher, osv.osv):
         cur = voucher.currency_id or voucher.journal_id.company_id.currency_id
         company_currency = voucher.company_id.currency_id.id
         # Special case for account_voucher_taxinv, get only suspended tax, based on inovice
+        # kittiu: change to use exactly as tax table
         is_taxinv = 'is_taxinv' in context and context.get('is_taxinv', False) or False
         # --
         for voucher_line in voucher.line_ids:
@@ -627,10 +628,11 @@ class account_voucher_tax(common_voucher, osv.osv):
                                 val['account_id'] = tax['account_paid_id'] or line.account_id.id
                                 val['account_analytic_id'] = tax['account_analytic_paid_id']
 
-                            if is_taxinv:
-                                key = (invoice.id)  # Sum all suspended tax for an invoice
-                            else:
-                                key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
+#                             if is_taxinv:
+#                                 key = (invoice.id)  # Sum all suspended tax for an invoice
+#                             else:
+#                                 key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
+                            key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
 
                             if not (key in tax_grouped):
                                 tax_grouped[key] = val
