@@ -38,6 +38,7 @@ In this module, a new Vat Info tab is introduced. It will display deferred tax i
     'images': [],
     'depends': ['account_voucher',
                 'account_thai_wht',
+                'advance_and_additional_discount',
                 'web_m2x_options'],
     'demo': [],
     'data': [
