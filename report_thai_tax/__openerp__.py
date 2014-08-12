@@ -33,6 +33,7 @@
                 'advance_and_additional_discount',
                 'account_invoice_vatinfo',
                 'hr_expense_vatinfo',
+                'account_voucher_taxinv',
                 ],
     'init_xml': [],
     'update_xml': [
