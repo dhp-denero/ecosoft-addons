@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_thai_tax_output" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
 	<property name="ireport.zoom" value="2.3579476910000112"/>
-	<property name="ireport.x" value="69"/>
-	<property name="ireport.y" value="188"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
 	<style name="table" lineSpacing="Single">
 		<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="2">
 			<pen lineWidth="1.0" lineColor="#000000"/>
@@ -100,21 +100,20 @@ union
 (
 select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 partner.name as partner_name, partner.vat, partner.branch,
-av.date as date_invoice, av.id as doc_id, number as doc_number, reference as supplier_doc_number,
-CASE WHEN av.type in ('sale','receipt') THEN avt.amount ELSE -avt.amount END as tax_amount,
-CASE WHEN av.type in ('sale','receipt') THEN avt.base ELSE -avt.base END as tax_amount
-from account_voucher_tax avt
+av.date as date_invoice, av.id as doc_id, av.number as doc_number, reference as supplier_doc_number,
+CASE WHEN av.type in ('sale','receipt') THEN avt.tax_amount ELSE -avt.tax_amount END as tax_amount,
+CASE WHEN av.type in ('sale','receipt') THEN avt.base_amount ELSE -avt.base_amount END as tax_amount
+from account_voucher_taxinv avt
 join account_voucher av on av.id = avt.voucher_id and av.state in ('posted')
 join res_company rc on rc.id = av.company_id
 join res_partner rp on rp.id = rc.partner_id
 join account_period ap on ap.id = av.period_id
 join account_fiscalyear af on af.id = ap.fiscalyear_id
 join res_partner partner on partner.id = av.partner_id
-where av.company_id = $P{company_id} and av.period_id = $P{period_id} and avt.tax_id = $P{tax_id}
--- Only non-suspend account_id
-	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
-	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
-and avt.amount > 0)
+where av.company_id = $P{company_id} and av.period_id = $P{period_id}
+-- Only suspend tax
+	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
+and av.is_taxinv_publish = true and avt.tax_amount > 0)
 
 ------------------------------------
 -- union Cancelled Payment Tax -----
@@ -123,19 +122,18 @@ union
 (
 select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 'CANCELLED' as partner_name, '-' as vat, '-' as branch,
-av.date as date_invoice, av.id as doc_id, number as doc_number, reference as supplier_doc_number, 0.0 as tax_amount, 0.0 as base_amount
-from account_voucher_tax avt
+av.date as date_invoice, av.id as doc_id, av.number as doc_number, reference as supplier_doc_number, 0.0 as tax_amount, 0.0 as base_amount
+from account_voucher_taxinv avt
 join account_voucher av on av.id = avt.voucher_id and av.state in ('cancel')
 join res_company rc on rc.id = av.company_id
 join res_partner rp on rp.id = rc.partner_id
 join account_period ap on ap.id = av.period_id
 join account_fiscalyear af on af.id = ap.fiscalyear_id
 join res_partner partner on partner.id = av.partner_id
-where av.company_id = $P{company_id} and av.period_id = $P{period_id} and avt.tax_id = $P{tax_id}
--- Only non-suspend account_id
-	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
-	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
-and avt.amount > 0)
+where av.company_id = $P{company_id} and av.period_id = $P{period_id}
+-- Only suspend tax
+	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
+and av.is_taxinv_publish = true and avt.tax_amount > 0)
 ----------------------------------------
 -- union Cancelled Invoice (Sales) -----
 ----------------------------------------

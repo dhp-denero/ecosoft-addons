@@ -35,7 +35,7 @@ class report_thai_tax_wizard(osv.osv_memory):
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),
         'period_id': fields.many2one('account.period', 'Period', required=True),
-        'tax_id': fields.many2one('account.tax', 'Tax', domain=[('type_tax_use', 'in', ('sale', 'purchase')), ('is_wht', '=', False), ], required=True),
+        'tax_id': fields.many2one('account.tax', 'Tax', domain=[('type_tax_use', 'in', ('sale', 'purchase')), ('is_wht', '=', False), ('is_suspend_tax', '=', False)], required=True),
         'base_code_id': fields.many2one('account.tax.code', 'Base Code', domain=[('id','=', False)], required=True),
         'tax_code_id': fields.many2one('account.tax.code', 'Tax Code', required=True), 
         'type_tax_use': fields.selection([('sale','Sale'),('purchase','Purchase'),('all','All')], 'Tax Application', required=True)
@@ -57,9 +57,9 @@ class report_thai_tax_wizard(osv.osv_memory):
             data['form']['tax_code_id'] = wiz_obj['tax_code_id'][0]
             data['form']['type_tax_use'] = wiz_obj['type_tax_use']
             return {
-                    'type': 'ir.actions.report.xml',
-                    'report_name': 'report_thai_tax',
-                    'datas': data,
+                'type': 'ir.actions.report.xml',
+                'report_name': 'report_thai_tax',
+                'datas': data,
             }
 
 report_thai_tax_wizard()
