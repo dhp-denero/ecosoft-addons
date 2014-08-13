@@ -93,15 +93,15 @@ class account_voucher(osv.osv):
         self.button_reset_taxinv(cr, uid, ids, context=context)
         return True
 
-    # For backward compatibility
-    def init(self, cr):
-        # Check where there are any existing records in account_voucher_taxinv
-        cr.execute("select count(*) from account_voucher_taxinv")
-        res = cr.fetchone()
-        if not res[0]:
-            cr.execute("select id from account_voucher where state in ('proforma', 'posted')")
-            voucher_ids = [x['id'] for x in cr.dictfetchall()]
-            self.button_reset_taxinv(cr, 1, voucher_ids)
+#     # For backward compatibility
+#     def init(self, cr):
+#         # Check where there are any existing records in account_voucher_taxinv
+#         cr.execute("select count(*) from account_voucher_taxinv")
+#         res = cr.fetchone()
+#         if not res[0]:
+#             cr.execute("select id from account_voucher where state in ('proforma', 'posted')")
+#             voucher_ids = [x['id'] for x in cr.dictfetchall()]
+#             self.button_reset_taxinv(cr, 1, voucher_ids)
 
 account_voucher()
 

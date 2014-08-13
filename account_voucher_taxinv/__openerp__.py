@@ -36,13 +36,16 @@ In this module, a new Vat Info tab is introduced. It will display deferred tax i
     'category': 'Accounting',
     'website': 'http://www.ecosoft.co.th',
     'images': [],
-    'depends': ['account_voucher',
-                'account_thai_wht',
-                'advance_and_additional_discount',
-                'web_m2x_options'],
+    'depends': [
+        'account_voucher',
+        'account_thai_wht',
+        'advance_and_additional_discount',
+        'web_m2x_options'
+    ],
     'demo': [],
     'data': [
-        'account_voucher_view.xml'
+        'security/ir.model.access.csv',
+        'account_voucher_view.xml',
     ],
     'test': [
     ],
