@@ -129,6 +129,7 @@ class commission_worksheet(osv.osv):
     def _calculate_percent_fixed(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
+        context.update({'last_loop': False})
         commission_rate = rule.fix_percent / 100
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         length, i = len(invoices), 0
@@ -148,6 +149,7 @@ class commission_worksheet(osv.osv):
     def _calculate_percent_product_category(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
+        context.update({'last_loop': False})
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         length, i = len(invoices), 0
@@ -170,6 +172,7 @@ class commission_worksheet(osv.osv):
     def _calculate_percent_product(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
+        context.update({'last_loop': False})
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         length, i = len(invoices), 0
@@ -193,6 +196,7 @@ class commission_worksheet(osv.osv):
     def _calculate_percent_product_step(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
+        context.update({'last_loop': False})
         commission_rate = 0.0
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         product_uom_obj = self.pool.get('product.uom')
@@ -234,6 +238,7 @@ class commission_worksheet(osv.osv):
     def _calculate_percent_amount(self, cr, uid, rule, worksheet, invoices, context=None):
         if context is None:
             context = {}
+        context.update({'last_loop': False})
         worksheet_line_obj = self.pool.get('commission.worksheet.line')
         length, i = len(invoices), 0
         for invoice in invoices:
@@ -270,7 +275,7 @@ class commission_worksheet(osv.osv):
         res = {}
         if context is None:
             context = {}
-        if context.get('last_loop', False):
+        if ('last_loop' not in context) or context.get('last_loop', False):
             for worksheet in self.browse(cr, uid, ids, context=context):
                 res[worksheet.id] = {
                     'amount_draft': 0.0,
