@@ -23,6 +23,7 @@ import commission_calc
 import commission_rule
 import product
 import account_invoice
+import payment_register
 import wizard
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -130,6 +130,16 @@ class account_invoice(osv.osv):
             vals.update({'sale_team_ids': records})
         return super(account_invoice, self).create(cr, uid, vals, context=context)
 
+    # If invoice state changed, update commission line
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(account_invoice, self).write(cr, uid, ids, vals, context=context)
+        if 'state' in vals:
+            # Get commission line ids from these invoice ids
+            line_ids = self.pool.get('commission.worksheet.line').search(cr, uid, [('invoice_id', 'in', ids)])
+            if line_ids:
+                self.pool.get('commission.worksheet.line').update_commission_line_status(cr, uid, line_ids, context=context)
+        return res
+
 account_invoice()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
