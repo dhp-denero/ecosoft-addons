@@ -209,6 +209,7 @@ class commission_worksheet(osv.osv):
             # For each product line
             commission_amt = 0.0
             for line in invoice.invoice_line:
+                percent_commission = 0.0
                 # Getting steps commission
                 product = line.product_id
                 if not product:
