@@ -27,8 +27,9 @@ class output(osv.osv):
     _description = 'Wizard to store the Excel output'
     
     _columns = {
-        'name':fields.char('Name', size=256),
+        'name':fields.char('Name', size=64),
         'xls_output': fields.binary('Report Cash Projection', readonly=True),
         }
     
 output()  
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

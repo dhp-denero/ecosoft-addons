@@ -3,13 +3,13 @@
      <data>
 
         <record id="account_cash_balance_view" model="ir.ui.view">
-            <field name="name">Account Cash Projection</field>
+            <field name="name">Print Cash Projection</field>
             <field name="model">account.cash.projection</field>
             <!--<field name="inherit_id" ref="account_common_report_view" />-->
             <field name="arch" type="xml">
                 <form string="Report Options" version="7.0">
-                    <separator string="Account Cash Projection"/>
-                    <label string="Excel report to give cash projection based on operating activities, financial activities and Investing Activities"/>
+                    <separator string="Print Cash Projection"/>
+                    <label string="Cash projection report is a more detailed report of your cash flow of operating activities, financial activities and Investing Activities."/>
                     <group col="4">
                         <field name="chart_account_id" widget='selection' on_change="onchange_chart_id(chart_account_id, context)"/>
                         <field name="fiscalyear_id" invisible="1"/>
@@ -18,9 +18,6 @@
                         <field name="period_length"/>
                         <field name="no_columns"/>
                         <newline/>
-                        <field name="result_selection"  invisible="1"/>
-                        <field name="direction_selection"  invisible="1"/>
-                        
                         
                     </group>
                     <notebook tabpos="up" colspan="4">

@@ -88,3 +88,4 @@ def font_style(position='left',bold=0, fontos=0, font_height=200,border=0,color=
         style.pattern = badBG
 
     return style
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

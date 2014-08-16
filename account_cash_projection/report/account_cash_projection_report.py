@@ -53,16 +53,12 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         ctx.update({'fiscalyear': False, 'all_fiscalyear': True})
         self.query = obj_move._query_get(self.cr, self.uid, obj='l', context=ctx)
         
-        self.direction_selection = data['form'].get('direction_selection', 'past')
         self.target_move = data['form'].get('target_move', 'all')
         self.date_from = data['form'].get('date_from', time.strftime('%Y-%m-%d'))
         self.no_columns = data['form'].get('no_columns', 30)
-        if (data['form']['result_selection'] == 'customer' ):
-            self.ACCOUNT_TYPE = ['receivable']
-        elif (data['form']['result_selection'] == 'supplier'):
-            self.ACCOUNT_TYPE = ['payable']
-        else:
-            self.ACCOUNT_TYPE = ['payable','receivable']
+
+        self.ACCOUNT_TYPE = ['payable','receivable']
+        
         return super(cash_projection_report, self).set_context(objects, data, ids, report_type=report_type)
 
 # ====================================================Cash projection-Operating Activites Start logic=========================================================================
@@ -120,42 +116,23 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         for i in t:
             totals_accounts[i[0]] = i[1]
             
-        # This dictionary will store the future or past of all partners
         future_past_accounts = {}
-        if self.direction_selection == 'future':
-            self.cr.execute('SELECT l.account_id, SUM(l.debit-l.credit) \
-                        FROM account_move_line AS l, account_account, account_move am \
-                        WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
-                        AND (am.state IN %s)\
-                        AND (account_account.type IN %s)\
-                        AND (COALESCE(l.date_maturity, l.date) < %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
-        elif self.direction_selection == 'past': # Using elif so people could extend without this breaking
-            self.cr.execute('SELECT l.account_id, SUM(l.debit-l.credit) \
+        self.cr.execute('SELECT l.account_id, SUM(l.debit-l.credit) \
                     FROM account_move_line AS l, account_account, account_move am \
-                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id)\
-                        AND (am.state IN %s)\
-                        AND (account_account.type IN %s)\
-                        AND (COALESCE(l.date_maturity,l.date) > %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids), self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
+                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
+                    AND (am.state IN %s)\
+                    AND (account_account.type IN %s)\
+                    AND (COALESCE(l.date_maturity, l.date) < %s)\
+                    AND (l.account_id IN %s)\
+                    AND ((l.reconcile_id IS NULL)\
+                    OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
+                    AND '+ self.query + '\
+                    AND account_account.active\
+                AND (l.date <= %s)\
+                    GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
+        t = self.cr.fetchall()
+        for i in t:
+            future_past_accounts[i[0]] = i[1]
 
         history_accounts = []
         for i in range(self.no_columns):
@@ -193,22 +170,13 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         res_accounts = []
         for account in accounts:
             values_accounts = {}
-            ## If choise selection is in the future
-            if self.direction_selection == 'future':
-                # Query here is replaced by one query which gets the all the partners their 'before' value
-                before = False
-                if future_past_accounts.has_key(account['id']):
-                    before = [ future_past_accounts[account['id']] ]
-                self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
-                values_accounts['direction'] = before and before[0] or 0.0
-            elif self.direction_selection == 'past': # Changed this so people could in the future create new direction_selections
-                # Query here is replaced by one query which gets the all the partners their 'after' value
-                after = False
-                if future_past_accounts.has_key(account['id']): # Making sure this partner actually was found by the query
-                    after = [ future_past_accounts[account['id']] ]
 
-                self.total_account_account[6] = self.total_account_account[6] + (after and after[0] or 0.0)
-                values_accounts['direction'] = after and after[0] or 0.0
+            # Query here is replaced by one query which gets the all the partners their 'before' value
+            before = False
+            if future_past_accounts.has_key(account['id']):
+                before = [ future_past_accounts[account['id']] ]
+            self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
+            values_accounts['direction'] = before and before[0] or 0.0
 
             for i in range(self.no_columns):
                 during = False
@@ -291,42 +259,23 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         for i in t:
             totals_accounts[i[0]] = i[1]
             
-        # This dictionary will store the future or past of all partners
         future_past_accounts = {}
-        if self.direction_selection == 'future':
-            self.cr.execute('SELECT l.account_id, SUM(l.credit) \
-                        FROM account_move_line AS l, account_account, account_move am \
-                        WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
-                        AND (am.state IN %s)\
-                        AND (account_account.type NOT IN %s)\
-                        AND (COALESCE(l.date_maturity, l.date) < %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
-        elif self.direction_selection == 'past': # Using elif so people could extend without this breaking
-            self.cr.execute('SELECT l.account_id, SUM(l.credit) \
+        self.cr.execute('SELECT l.account_id, SUM(l.credit) \
                     FROM account_move_line AS l, account_account, account_move am \
-                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id)\
-                        AND (am.state IN %s)\
-                        AND (account_account.type NOT IN %s)\
-                        AND (COALESCE(l.date_maturity,l.date) > %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids), self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
+                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
+                    AND (am.state IN %s)\
+                    AND (account_account.type NOT IN %s)\
+                    AND (COALESCE(l.date_maturity, l.date) < %s)\
+                    AND (l.account_id IN %s)\
+                    AND ((l.reconcile_id IS NULL)\
+                    OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
+                    AND '+ self.query + '\
+                    AND account_account.active\
+                AND (l.date <= %s)\
+                    GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
+        t = self.cr.fetchall()
+        for i in t:
+            future_past_accounts[i[0]] = i[1]
 
         history_accounts = []
         for i in range(self.no_columns):
@@ -364,22 +313,12 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         res_accounts = []
         for account in accounts:
             values_accounts = {}
-            ## If choise selection is in the future
-            if self.direction_selection == 'future':
-                # Query here is replaced by one query which gets the all the partners their 'before' value
-                before = False
-                if future_past_accounts.has_key(account['id']):
-                    before = [ future_past_accounts[account['id']] ]
-                self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
-                values_accounts['direction'] = before and before[0] or 0.0
-            elif self.direction_selection == 'past': # Changed this so people could in the future create new direction_selections
-                # Query here is replaced by one query which gets the all the partners their 'after' value
-                after = False
-                if future_past_accounts.has_key(account['id']): # Making sure this partner actually was found by the query
-                    after = [ future_past_accounts[account['id']] ]
-
-                self.total_account_account[6] = self.total_account_account[6] + (after and after[0] or 0.0)
-                values_accounts['direction'] = after and after[0] or 0.0
+            # Query here is replaced by one query which gets the all the partners their 'before' value
+            before = False
+            if future_past_accounts.has_key(account['id']):
+                before = [ future_past_accounts[account['id']] ]
+            self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
+            values_accounts['direction'] = before and before[0] or 0.0
 
             for i in range(self.no_columns):
                 during = False
@@ -463,42 +402,23 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         for i in t:
             totals_accounts[i[0]] = i[1]
             
-        # This dictionary will store the future or past of all partners
         future_past_accounts = {}
-        if self.direction_selection == 'future':
-            self.cr.execute('SELECT l.account_id, SUM(0-l.debit) \
-                        FROM account_move_line AS l, account_account, account_move am \
-                        WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
-                        AND (am.state IN %s)\
-                        AND (account_account.type NOT IN %s)\
-                        AND (COALESCE(l.date_maturity, l.date) < %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
-        elif self.direction_selection == 'past': # Using elif so people could extend without this breaking
-            self.cr.execute('SELECT l.account_id, SUM(0-l.debit) \
+        self.cr.execute('SELECT l.account_id, SUM(0-l.debit) \
                     FROM account_move_line AS l, account_account, account_move am \
-                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id)\
-                        AND (am.state IN %s)\
-                        AND (account_account.type NOT IN %s)\
-                        AND (COALESCE(l.date_maturity,l.date) > %s)\
-                        AND (l.account_id IN %s)\
-                        AND ((l.reconcile_id IS NULL)\
-                        OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
-                        AND '+ self.query + '\
-                        AND account_account.active\
-                    AND (l.date <= %s)\
-                        GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids), self.date_from, self.date_from,))
-            t = self.cr.fetchall()
-            for i in t:
-                future_past_accounts[i[0]] = i[1]
+                    WHERE (l.account_id=account_account.id) AND (l.move_id=am.id) \
+                    AND (am.state IN %s)\
+                    AND (account_account.type NOT IN %s)\
+                    AND (COALESCE(l.date_maturity, l.date) < %s)\
+                    AND (l.account_id IN %s)\
+                    AND ((l.reconcile_id IS NULL)\
+                    OR (l.reconcile_id IN (SELECT recon.id FROM account_move_reconcile AS recon WHERE recon.create_date > %s )))\
+                    AND '+ self.query + '\
+                    AND account_account.active\
+                AND (l.date <= %s)\
+                    GROUP BY l.account_id', (tuple(move_state), tuple(self.ACCOUNT_TYPE), self.date_from, tuple(account_ids),self.date_from, self.date_from,))
+        t = self.cr.fetchall()
+        for i in t:
+            future_past_accounts[i[0]] = i[1]
 
         history_accounts = []
         for i in range(self.no_columns):
@@ -536,22 +456,13 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
         res_accounts = []
         for account in accounts:
             values_accounts = {}
-            ## If choise selection is in the future
-            if self.direction_selection == 'future':
-                # Query here is replaced by one query which gets the all the partners their 'before' value
-                before = False
-                if future_past_accounts.has_key(account['id']):
-                    before = [ future_past_accounts[account['id']] ]
-                self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
-                values_accounts['direction'] = before and before[0] or 0.0
-            elif self.direction_selection == 'past': # Changed this so people could in the future create new direction_selections
-                # Query here is replaced by one query which gets the all the partners their 'after' value
-                after = False
-                if future_past_accounts.has_key(account['id']): # Making sure this partner actually was found by the query
-                    after = [ future_past_accounts[account['id']] ]
 
-                self.total_account_account[6] = self.total_account_account[6] + (after and after[0] or 0.0)
-                values_accounts['direction'] = after and after[0] or 0.0
+            # Query here is replaced by one query which gets the all the partners their 'before' value
+            before = False
+            if future_past_accounts.has_key(account['id']):
+                before = [ future_past_accounts[account['id']] ]
+            self.total_account_account[6] = self.total_account_account[6] + (before and before[0] or 0.0)
+            values_accounts['direction'] = before and before[0] or 0.0
 
             for i in range(self.no_columns):
                 during = False
@@ -578,7 +489,5 @@ class cash_projection_report(report_sxw.rml_parse, common_report_header):
                 totals[str(i)] += float(r[str(i)] or 0.0)
         return res_accounts
 
-report_sxw.report_sxw('report.account.cash_projection_balance', 'account.account',
-        'addons/account_cash_projection/report/account_cash_projection_report.rml',parser=cash_projection_report, header="internal landscape")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

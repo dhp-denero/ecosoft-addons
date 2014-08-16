@@ -25,7 +25,6 @@ from datetime import datetime
 from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
-from openerp.osv import fields, osv
 from openerp.tools.translate import _
 from .. import format_common
 
@@ -34,8 +33,6 @@ import cStringIO
 import base64
 
 from osv import osv, fields
-
-
 from account_cash_projection.report import account_cash_projection_report
 
 class account_cash_projection_balance(osv.osv_memory):
@@ -46,22 +43,12 @@ class account_cash_projection_balance(osv.osv_memory):
     _columns = {
         'period_length':fields.integer('Period Length (days)', readonly=True),
         'no_columns':fields.integer('Number of Columns', readonly=False, required=True),
-        'result_selection': fields.selection([('customer_supplier','Receivable and Payable Accounts')],
-                                              "Accounts's", readonly=True),
-        'direction_selection': fields.selection([('future','Future')],
-                                                 'Analysis Direction', required=True, readonly=True),
         'journal_ids': fields.many2many('account.journal', 'account_cash_projection_balance_journal_rel', 'account_id', 'journal_id', 'Journals', required=True),
-        
         'cash_in_op': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_rel', 'cash_id', 'account_id', 'Cash Inflow Accounts (Operating)', required=True, domain=[('type', '=', 'receivable')]),
         'cash_out_op': fields.many2many('account.account', 'account_cash_projection_balance_cash_out_rel', 'cash_id', 'account_id', 'Cash Outflow Accounts (Operating)', required=True, domain=[('type', '=', 'payable')]),
-        
         'cash_in_finance': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_f_rel', 'cash_id', 'account_id', 'Cash Accounts (Financing)', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
-
         'cash_in_invest': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_invest_rel', 'cash_id', 'account_id', 'Cash Accounts (Investing)', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'closed')]),
-
         'cash_in_bank': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_bank_rel', 'cash_id', 'account_id', 'Bank Accounts', required=True, domain=[('type','<>','receivable'),('type','<>','payable'),('type','<>','view'), ('type', '<>', 'other')]),
-        
-        
     }
     
     def get_date(self, cr, uid, context):
@@ -72,8 +59,6 @@ class account_cash_projection_balance(osv.osv_memory):
         'period_length': 1,
         'no_columns':30,
         'date_from': get_date,
-        'direction_selection': 'future',
-        'result_selection':'customer_supplier',
     }
     def _print_report(self, cr, uid, ids, data, context=None):
         res = {}
@@ -81,7 +66,7 @@ class account_cash_projection_balance(osv.osv_memory):
             context = {}
 
         data = self.pre_print_report(cr, uid, ids, data, context=context)
-        data['form'].update(self.read(cr, uid, ids, ['cash_in_bank','no_columns','period_length', 'direction_selection','cash_in_op','cash_out_op','cash_in_finance','cash_in_invest'])[0])
+        data['form'].update(self.read(cr, uid, ids, ['cash_in_bank','no_columns','period_length','cash_in_op','cash_out_op','cash_in_finance','cash_in_invest'])[0])
 
         period_length = data['form']['period_length']
         if period_length<=0:
@@ -91,26 +76,17 @@ class account_cash_projection_balance(osv.osv_memory):
 
         start = datetime.strptime(data['form']['date_from'], "%Y-%m-%d")
         
-        self.start_date = data['form']['date_from']
         self.no_columns = data['form']['no_columns']
-        if data['form']['direction_selection'] == 'past':
-            for i in range(self.no_columns)[::-1]:
-                stop = start - relativedelta(days=period_length)
-                res[str(i)] = {
-                    'name': (i!=0 and (str((self.no_columns-(i+1)) * period_length) + '-' + str((self.no_columns-i) * period_length)) or ('+'+str((self.no_columns - 1) * period_length))),
-                    'stop': start.strftime('%Y-%m-%d'),
-                    'start': (i!=0 and stop.strftime('%Y-%m-%d') or False),
-                }
-                start = stop - relativedelta(days=1)
-        else:
-            for i in range(self.no_columns):
-                stop = start + relativedelta(days=period_length)
-                res[str(self.no_columns-(i+1))] = {
-                    'name': (i!=self.no_columns - 1 and str((i) * period_length)+'-' + str((i+1) * period_length) or ('+'+str((self.no_columns - 1) * period_length))),
-                    'start': start.strftime('%Y-%m-%d'),
-                    'stop': (i!=self.no_columns - 1 and stop.strftime('%Y-%m-%d') or False),
-                }
-                start = stop + relativedelta(days=1)
+
+        for i in range(self.no_columns):
+            stop = start + relativedelta(days=period_length)
+            res[str(self.no_columns-(i+1))] = {
+                'name': (i!=self.no_columns - 1 and str((i) * period_length)+'-' + str((i+1) * period_length) or ('+'+str((self.no_columns - 1) * period_length))),
+                'start': start.strftime('%Y-%m-%d'),
+                'stop': (i!=self.no_columns - 1 and stop.strftime('%Y-%m-%d') or False),
+            }
+            start = stop + relativedelta(days=1)
+        
         
         self.res = res
         data['form'].update(res)
@@ -124,18 +100,13 @@ class account_cash_projection_balance(osv.osv_memory):
         
         res_payable = {}
         res_receivable = {}
-        if data['form']['result_selection'] == 'customer':
-            res_receivable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['receivable'])
-        elif data['form']['result_selection'] == 'customer': 
-            res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'])
-        else:
-             res_receivable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['receivable'], account_ids=data['form']['cash_in_op'])
-             res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'], account_ids=data['form']['cash_out_op'])
-             res_in_finance = obj_gl._get_lines_accounts_inflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_finance'])
-             res_out_finanace = obj_gl._get_lines_accounts_outflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_finance'])
-             
-             res_in_invest = obj_gl._get_lines_accounts_inflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_invest'])
-             res_out_invest = obj_gl._get_lines_accounts_outflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_invest'])
+
+        res_receivable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['receivable'], account_ids=data['form']['cash_in_op'])
+        res_payable = obj_gl._get_lines_accounts_inflow(data['form'], account_type=['payable'], account_ids=data['form']['cash_out_op'])
+        res_in_finance = obj_gl._get_lines_accounts_inflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_finance'])
+        res_out_finanace = obj_gl._get_lines_accounts_outflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_finance'])
+        res_in_invest = obj_gl._get_lines_accounts_inflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_invest'])
+        res_out_invest = obj_gl._get_lines_accounts_outflow_finance(data['form'], account_type=['receivable','payable'], account_ids=data['form']['cash_in_invest'])
 
         workbook = xlwt.Workbook()
         sheet = workbook.add_sheet('Cash Projection Report')

@@ -31,12 +31,13 @@ Cash Projection Report
 
 Features
 --------
+This module allow user to print cash projection flow report.
+Menu: Accounting/Reporting/Generic Reporting/Partners/Print Cash Projection
     """,
     "category" : "Accounting & Finance",
     "sequence": 70,
     "update_xml" : [
         "wizard/account_report_cash_projection_view.xml",
-        "account_report.xml",
         "wizard/xls_output_wiz.xml"
     ],
     "auto_install": False,
@@ -44,4 +45,3 @@ Features
     "application": False,
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-
