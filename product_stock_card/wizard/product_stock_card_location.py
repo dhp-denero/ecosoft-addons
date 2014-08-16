@@ -65,7 +65,6 @@ class product_stock_card_location(osv.osv_memory):
                 domain += [('date', '>=', start.strftime('%Y-%m-%d'))]
             if stock_card_location[0]['to_date']:
                 stop = datetime.strptime(stock_card_location[0]['to_date'], "%Y-%m-%d %H:%M:%S")
-                stop = stop + relativedelta(days=1)
                 domain += [('date', '<=', stop.strftime('%Y-%m-%d'))]
 
         return {
