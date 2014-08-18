@@ -14,8 +14,11 @@
                         <field name="chart_account_id" widget='selection' on_change="onchange_chart_id(chart_account_id, context)"/>
                         <field name="fiscalyear_id" invisible="1"/>
                         <newline/>
+                        <field name="period_id" on_change="onchange_period(period_id, period_length)"/>
+                        <field name="period_length" on_change="onchange_period(period_id, period_length)"/>
+                        <newline/>
                         <field name="date_from"/>
-                        <field name="period_length"/>
+                        <field name="period_length_day"/>
                         <field name="no_columns"/>
                         <newline/>
                         

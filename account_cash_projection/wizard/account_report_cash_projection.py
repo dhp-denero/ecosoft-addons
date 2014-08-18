@@ -40,8 +40,18 @@ class account_cash_projection_balance(osv.osv_memory):
     _name = 'account.cash.projection'
     _description = 'Account Cash Projection Report'
 
+    def _get_period(self, cr, uid, context=None):
+        """Return default period value"""
+        ctx = dict(context or {}, account_period_prefer_normal=True)
+        period_ids = self.pool.get('account.period').find(cr, uid, context=ctx)
+        return period_ids and period_ids[0] or False
+
     _columns = {
-        'period_length':fields.integer('Period Length (days)', readonly=True),
+        'period_id': fields.many2one('account.period', 'Start Period', required=True),
+        'period_length': fields.selection([('day', 'Day'),
+                                        ('week', 'Week'),
+                                        ], 'Length', required=True),
+        'period_length_day':fields.integer('Length (days)', readonly=False),
         'no_columns':fields.integer('Number of Columns', readonly=False, required=True),
         'journal_ids': fields.many2many('account.journal', 'account_cash_projection_balance_journal_rel', 'account_id', 'journal_id', 'Journals', required=True),
         'cash_in_op': fields.many2many('account.account', 'account_cash_projection_balance_cash_in_rel', 'cash_id', 'account_id', 'Cash Inflow Accounts (Operating)', required=True, domain=[('type', '=', 'receivable')]),
@@ -56,20 +66,39 @@ class account_cash_projection_balance(osv.osv_memory):
         return d
 
     _defaults = {
-        'period_length': 1,
-        'no_columns':30,
+        'period_id': _get_period,
+        'period_length': 'day',
+        'period_length_day': 1,
+        'no_columns': 30,
         'date_from': get_date,
     }
+    
+    def onchange_period(self, cr, uid, ids, period_id, period_length, context=None):
+        v = {}
+        period = self.pool.get('account.period').browse(cr, uid, period_id, context=context)
+        if period.date_start:
+            v['date_from'] = period.date_start
+        if period_length == 'day':
+            start = datetime.strptime(period.date_start, "%Y-%m-%d")
+            stop = datetime.strptime(period.date_stop, "%Y-%m-%d")
+            diff = stop - start
+            v['no_columns'] = diff.days + 1
+            v['period_length_day'] = 1
+        elif period_length == 'week':
+            v['no_columns'] = 5
+            v['period_length_day'] = 7
+        return {'value': v}
+
     def _print_report(self, cr, uid, ids, data, context=None):
         res = {}
         if context is None:
             context = {}
 
         data = self.pre_print_report(cr, uid, ids, data, context=context)
-        data['form'].update(self.read(cr, uid, ids, ['cash_in_bank','no_columns','period_length','cash_in_op','cash_out_op','cash_in_finance','cash_in_invest'])[0])
+        data['form'].update(self.read(cr, uid, ids, ['cash_in_bank','no_columns','period_length_day','cash_in_op','cash_out_op','cash_in_finance','cash_in_invest'])[0])
 
-        period_length = data['form']['period_length']
-        if period_length<=0:
+        period_length_day = data['form']['period_length_day']
+        if period_length_day<=0:
             raise osv.except_osv(_('User Error!'), _('You must set a period length greater than 0.'))
         if not data['form']['date_from']:
             raise osv.except_osv(_('User Error!'), _('You must set a start date.'))
@@ -79,9 +108,9 @@ class account_cash_projection_balance(osv.osv_memory):
         self.no_columns = data['form']['no_columns']
 
         for i in range(self.no_columns):
-            stop = start + relativedelta(days=period_length)
+            stop = start + relativedelta(days=period_length_day)
             res[str(self.no_columns-(i+1))] = {
-                'name': (i!=self.no_columns - 1 and str((i) * period_length)+'-' + str((i+1) * period_length) or ('+'+str((self.no_columns - 1) * period_length))),
+                'name': (i!=self.no_columns - 1 and str((i) * period_length_day)+'-' + str((i+1) * period_length_day) or ('+'+str((self.no_columns - 1) * period_length_day))),
                 'start': start.strftime('%Y-%m-%d'),
                 'stop': (i!=self.no_columns - 1 and stop.strftime('%Y-%m-%d') or False),
             }
@@ -134,7 +163,7 @@ class account_cash_projection_balance(osv.osv_memory):
         self.netoper['netdue'] = 0
         self.netoper['nettotal'] = 0
         
-        sheet.write_merge(0, 0, 0, 6, 'Cash Projection Report\n Start Date:' + str(data['form']['date_from']) + '\n Period Length: '+ str(data['form']['period_length']), M_header_style)
+        sheet.write_merge(0, 0, 0, 6, 'Cash Projection Report\n Start Date:' + str(data['form']['date_from']) + '\n Period Length: '+ str(data['form']['period_length_day']), M_header_style)
         sheet.col(0).width = 256*40
         row = self.render_header(sheet, first_row=5, style=D_header_style)
         
