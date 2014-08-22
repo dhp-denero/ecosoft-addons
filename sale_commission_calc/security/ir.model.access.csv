@@ -17,4 +17,5 @@ access_sale_team_user,sale.team user,sale_commission_calc.model_sale_team,base.g
 access_account_invoice_team_user,account.invoice.team user,sale_commission_calc.model_account_invoice_team,base.group_user,1,1,1,1
 access_commission_rate_step_all_user,commission.rate.step all user,sale_commission_calc.model_commission_rate_step,base.group_user,1,0,0,0
 access_res_users_manager,res.users manager,base.model_res_users,sale_commission_calc.group_sale_commission_calc_manager,1,1,1,0
-access_commission_worksheet_line_all,commission.worksheet.line all,sale_commission_calc.model_commission_worksheet_line,base.group_user,1,1,1,1
+access_commission_worksheet_line_acct,commission.worksheet.line acct,sale_commission_calc.model_commission_worksheet_line,account.group_account_invoice,1,1,1,1
+access_commission_worksheet_acct,commission.worksheet acct,sale_commission_calc.model_commission_worksheet,account.group_account_invoice,1,1,1,1

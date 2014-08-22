@@ -76,8 +76,9 @@ class purchase_requisition_partner(osv.osv_memory):
         if active_ids:
             for requisition in self.pool.get('purchase.requisition').browse(cr, uid, active_ids, context=context):
                 for line in requisition.line_ids:
-                    for partner in line.product_id.seller_ids:
-                        partner_ids.append(partner.name.id)
+                    if line.product_id:
+                        for partner in line.product_id.seller_ids:
+                            partner_ids.append(partner.name.id)
 
             ttype = set(partner_ids)
 
@@ -102,8 +103,9 @@ class purchase_requisition_partner(osv.osv_memory):
         if active_ids and not all_supplier_flag:
             for requisition in self.pool.get('purchase.requisition').browse(cr, uid, active_ids, context=context):
                 for line in requisition.line_ids:
-                    for partner in line.product_id.seller_ids:
-                        partner_ids.append(partner.name.id)
+                    if line.product_id:
+                        for partner in line.product_id.seller_ids:
+                            partner_ids.append(partner.name.id)
             ttype = set(partner_ids)
 
             lv = list(ttype)
@@ -156,7 +158,16 @@ class purchase_requisition_partner(osv.osv_memory):
 
         supplier = res_partner.browse(cr, uid, supplier_id, context=context)
         line = self.pool.get('purchase.requisition.line').browse(cr, uid, pr_line['pr_line_ids'][0], context=context)
-        seller_price, qty, default_uom_po_id, date_planned = purchase_requisition._seller_details(cr, uid, line, supplier, context=context)
+        seller_price = False
+        qty = False
+        default_uom_po_id = False
+        date_planned = False
+        if line.product_id:
+            seller_price, qty, default_uom_po_id, date_planned = purchase_requisition._seller_details(cr, uid, line, supplier, context=context)
+        else:
+            qty = line.product_qty
+            default_uom_po_id = line.product_uom_id.id
+            date_planned = purchase_requisition._planned_date(self.pool.get('purchase.requisition').browse(cr, uid, pr_line['requisition_id']))
         val = {
             'order_id': purchase_id,
             'name': pr_line['name'],
@@ -225,7 +236,7 @@ class purchase_requisition_partner(osv.osv_memory):
                         if partner_id.id in filter(lambda x: x, [rfq.state != 'cancel' and rfq.partner_id.id or None for rfq in rec.purchase_ids]):
                             raise osv.except_osv(_('Warning!'), _('You have already one %s purchase order for this partner, you must cancel this purchase order to create a new quotation.') % rfq.state)
 
-                        default_uom_po_id = line.product_id.uom_po_id.id
+                        default_uom_po_id = line.product_id and line.product_id.uom_po_id.id or line.product_uom_id.id
                         qty = product_uom._compute_qty(cr, uid, line.product_uom_id.id, line.product_qty, default_uom_po_id)
                         if res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id]:
                             po_line = res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id]

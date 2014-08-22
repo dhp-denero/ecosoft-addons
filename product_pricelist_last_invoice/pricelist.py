@@ -345,9 +345,9 @@ class product_pricelist(osv.osv):
             for pricelist_id in pricelist_ids:
                 price = False
 
-                tmpl_id = products_dict[product_id].product_tmpl_id and products_dict[product_id].product_tmpl_id.id or False
+                tmpl_id = product_id and products_dict[product_id].product_tmpl_id and products_dict[product_id].product_tmpl_id.id or False
 
-                categ_id = products_dict[product_id].categ_id and products_dict[product_id].categ_id.id or False
+                categ_id = product_id and products_dict[product_id].categ_id and products_dict[product_id].categ_id.id or False
                 categ_ids = _create_parent_category_list(categ_id, [categ_id])
                 if categ_ids:
                     categ_where = '(categ_id IN (' + ','.join(map(str, categ_ids)) + '))'
