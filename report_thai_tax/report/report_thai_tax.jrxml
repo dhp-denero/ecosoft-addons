@@ -100,7 +100,7 @@ union
 (
 select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 partner.name as partner_name, partner.vat, partner.branch,
-av.date as date_invoice, av.id as doc_id, av.number as doc_number, reference as supplier_doc_number,
+av.date as date_invoice, av.id as doc_id, av.number as doc_number, avt.number as supplier_doc_number,
 CASE WHEN av.type in ('sale','receipt') THEN avt.tax_amount ELSE -avt.tax_amount END as tax_amount,
 CASE WHEN av.type in ('sale','receipt') THEN avt.base_amount ELSE -avt.base_amount END as tax_amount
 from account_voucher_taxinv avt
@@ -113,8 +113,6 @@ join res_partner partner on partner.id = av.partner_id
 where av.company_id = $P{company_id} and av.period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
-	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
-	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
 and av.is_taxinv_publish = true and avt.tax_amount > 0)
 
 ------------------------------------
@@ -124,7 +122,7 @@ union
 (
 select rc.name as company_name, rp.vat as tax, ap.name as period, af.name as fiscalyear,
 'CANCELLED' as partner_name, '-' as vat, '-' as branch,
-av.date as date_invoice, av.id as doc_id, av.number as doc_number, reference as supplier_doc_number, 0.0 as tax_amount, 0.0 as base_amount
+av.date as date_invoice, av.id as doc_id, av.number as doc_number, avt.number as supplier_doc_number, 0.0 as tax_amount, 0.0 as base_amount
 from account_voucher_taxinv avt
 join account_voucher av on av.id = avt.voucher_id and av.state in ('cancel')
 join res_company rc on rc.id = av.company_id
@@ -135,8 +133,6 @@ join res_partner partner on partner.id = av.partner_id
 where av.company_id = $P{company_id} and av.period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
-	and (avt.account_id in (select account_collected_id from account_tax tax where tax.tax_code_id = $P{tax_code_id})
-	or avt.account_id in (select account_paid_id from account_tax tax where tax.ref_tax_code_id = $P{tax_code_id}))
 and av.is_taxinv_publish = true and avt.tax_amount > 0)
 ----------------------------------------
 -- union Cancelled Invoice (Sales) -----
