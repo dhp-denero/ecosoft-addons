@@ -113,6 +113,7 @@ join res_partner partner on partner.id = av.partner_id
 where av.company_id = $P{company_id} and av.period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
+	and $P{tax_id} in (select id from account_tax where type_tax_use = 'purchase') -- input tax only
 and av.is_taxinv_publish = true and avt.tax_amount > 0)
 
 ------------------------------------
@@ -133,6 +134,7 @@ join res_partner partner on partner.id = av.partner_id
 where av.company_id = $P{company_id} and av.period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
+	and $P{tax_id} in (select id from account_tax where type_tax_use = 'purchase') -- input tax only
 and av.is_taxinv_publish = true and avt.tax_amount > 0)
 ----------------------------------------
 -- union Cancelled Invoice (Sales) -----
