@@ -432,18 +432,20 @@ class account_voucher_line(common_voucher, osv.osv):
 
     def onchange_amount(self, cr, uid, ids, partner_id, move_line_id, amount_original, amount, amount_unreconciled, context=None):
         vals = {}
+        prec = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
         amount, amount_wht = self._get_amount_wht(cr, uid, partner_id, move_line_id, amount_original, amount, advance_and_discount={}, context=context)
-        vals['amount_wht'] = -amount_wht
+        vals['amount_wht'] = -round(amount_wht, prec)
         vals['reconcile'] = (round(amount) == round(amount_unreconciled))
         return {'value': vals}
 
     def onchange_reconcile(self, cr, uid, ids, partner_id, move_line_id, amount_original, reconcile, amount, amount_unreconciled, context=None):
         vals = {}
+        prec = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
         if reconcile:
             amount = amount_unreconciled
             amount, amount_wht = self._get_amount_wht(cr, uid, partner_id, move_line_id, amount_original, amount, advance_and_discount={}, context=context)
-            vals['amount_wht'] = -amount_wht
-            vals['amount'] = amount
+            vals['amount_wht'] = -round(amount_wht, prec)
+            vals['amount'] = round(amount, prec)
         return {'value': vals}
 
 account_voucher_line()
