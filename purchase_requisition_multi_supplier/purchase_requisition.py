@@ -30,7 +30,7 @@ class purchase_requisition_line(osv.osv):
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         res = dict.fromkeys(ids, 'draft')
         for line in self.browse(cr, uid, ids, context=context):
-            for  po in line.po_line_ids:
+            for po in line.po_line_ids:
                 if po.state == 'draft' and res[line.id] != 'done':
                     res[line.id] = 'in_purchase'
                 else:
@@ -53,14 +53,14 @@ class purchase_requisition_line(osv.osv):
         'state': fields.function(_get_status, string='Status', readonly=True,
                                  type='selection',
                                  selection=[('draft', 'New'),
-                                        ('in_purchase', 'In Progress'),
-                                        ('done', 'Purchase Done'),
-                                        ('cancel', 'Cancelled')]),
+                                            ('in_purchase', 'In Progress'),
+                                            ('done', 'Purchase Done'),
+                                            ('cancel', 'Cancelled')]),
         'name': fields.text('Description', required=True),
     }
     _default = {
-       'selected_flag': True,
-       'po_line_ids': False,
+        'selected_flag': True,
+        'po_line_ids': False,
     }
 
     def copy(self, cr, uid, id, default=None, context=None):
@@ -69,8 +69,7 @@ class purchase_requisition_line(osv.osv):
         default.update({
             'po_line_ids': False,
         })
-        return super(purchase_requisition_line,
-                      self).copy(cr, uid, id, default=default, context=context)
+        return super(purchase_requisition_line, self).copy(cr, uid, id, default=default, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
         res = super(purchase_requisition_line,
@@ -91,8 +90,7 @@ class purchase_requisition_line(osv.osv):
         return res
 
     def default_get(self, cr, uid, fields, context=None):
-        return super(purchase_requisition_line,
-                        self).default_get(cr, uid, fields, context=context)
+        return super(purchase_requisition_line, self).default_get(cr, uid, fields, context=context)
 
     def onchange_product_id(self, cr, uid, ids, product_id, product_uom_id, context=None):
         res = super(purchase_requisition_line, self).onchange_product_id(cr, uid, ids, product_id, product_uom_id, context=context)
@@ -110,9 +108,33 @@ purchase_requisition_line()
 
 
 class purchase_requisition(osv.osv):
+
     _inherit = 'purchase.requisition'
+
+    def _get_progress_rate(self, cr, uid, ids, field, arg, context=None):
+        res = dict.fromkeys(ids, False)
+        for req in self.browse(cr, uid, ids, context=context):
+            cr.execute("""
+                select (sum(po_qty) / sum(pr_qty) * 100) percent from
+                (select pr.product_id, pr.product_qty pr_qty,
+                coalesce(case when po.product_qty > pr.product_qty then pr.product_qty else po.product_qty end, 0) po_qty from
+                (select prl.id pr_line_id, prl.product_id, prl.product_qty from purchase_requisition pr
+                join purchase_requisition_line prl on prl.requisition_id = pr.id
+                where pr.id = %s) pr
+                left outer join
+                (select pol.id po_line_id, pol.product_id, pol.product_qty
+                from purchase_order_line pol join purchase_order po on po.id = pol.order_id
+                where po.state not in ('cancel') and pol.id in
+                (select po_id from pr_rel_po a join purchase_requisition_line b on a.pr_id = b.id
+                where b.requisition_id = %s)) po
+                on pr.product_id = po.product_id) pr_po
+            """, (req.id, req.id))
+            res[req.id] = cr.fetchone()[0] or 0.0
+        return res
+
     _columns = {
         'all_selected': fields.boolean("All Select(s)"),
+        'progress_rate': fields.function(_get_progress_rate, string='Progress Rate', type='float'),
     }
     _default = {
         'all_selected': True,
@@ -147,8 +169,7 @@ class purchase_requisition(osv.osv):
         if not default:
             default = {}
         context.update({'copying': True})
-        return super(purchase_requisition,
-                      self).copy(cr, uid, id, default=default, context=context)
+        return super(purchase_requisition, self).copy(cr, uid, id, default=default, context=context)
 
     def action_createPO(self, cr, uid, ids, context=None):
         selected = False
