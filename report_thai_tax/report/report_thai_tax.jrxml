@@ -107,10 +107,10 @@ from account_voucher_taxinv avt
 join account_voucher av on av.id = avt.voucher_id and av.state in ('posted')
 join res_company rc on rc.id = av.company_id
 join res_partner rp on rp.id = rc.partner_id
-join account_period ap on ap.id = av.period_id
+join account_period ap on ap.id = av.taxinv_period_id
 join account_fiscalyear af on af.id = ap.fiscalyear_id
 join res_partner partner on partner.id = av.partner_id
-where av.company_id = $P{company_id} and av.period_id = $P{period_id}
+where av.company_id = $P{company_id} and av.taxinv_period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
 	and $P{tax_id} in (select id from account_tax where type_tax_use = 'purchase') -- input tax only
@@ -128,10 +128,10 @@ from account_voucher_taxinv avt
 join account_voucher av on av.id = avt.voucher_id and av.state in ('cancel')
 join res_company rc on rc.id = av.company_id
 join res_partner rp on rp.id = rc.partner_id
-join account_period ap on ap.id = av.period_id
+join account_period ap on ap.id = av.taxinv_period_id
 join account_fiscalyear af on af.id = ap.fiscalyear_id
 join res_partner partner on partner.id = av.partner_id
-where av.company_id = $P{company_id} and av.period_id = $P{period_id}
+where av.company_id = $P{company_id} and av.taxinv_period_id = $P{period_id}
 -- Only suspend tax
 	and avt.tax_id in (select id from account_tax where is_suspend_tax = true)
 	and $P{tax_id} in (select id from account_tax where type_tax_use = 'purchase') -- input tax only
