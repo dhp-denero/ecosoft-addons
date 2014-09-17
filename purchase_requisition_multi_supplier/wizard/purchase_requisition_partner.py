@@ -61,7 +61,7 @@ class purchase_requisition_partner(osv.osv_memory):
                  'all_supplier_flag': False,
     }
 
-    #Overriding from purchase_requisition_partner Class
+    # Overriding from purchase_requisition_partner Class
     def fields_view_get(self, cr, uid, view_id=None, view_type=False, context=None, toolbar=False, submenu=False):
         if context is None:
             context = {}
@@ -216,6 +216,10 @@ class purchase_requisition_partner(osv.osv_memory):
                 purchase_ids.append(purchase_id)
         return purchase_ids
 
+    def _check_partner_duplicate(self, cr, uid, partner_id, rec, context=None):
+        if partner_id in filter(lambda x: x, [rfq.state != 'cancel' and rfq.partner_id.id or None for rfq in rec.purchase_ids]):
+            raise osv.except_osv(_('Warning!'), _('You have already one %s purchase order for this partner, you must cancel this purchase order to create a new quotation.') % rfq.state)
+
     def _pr_grouping(self, cr, uid, pr_ids, supplier_id, context=None):
         res = PowerDict()
         product_uom = self.pool.get('product.uom')
@@ -231,11 +235,9 @@ class purchase_requisition_partner(osv.osv_memory):
 
                     if not suppliers:
                         raise osv.except_osv(_('Warning!'), _('Please select the supplier'))
-                    #assert suppliers, 'Supplier should be specified'
+                    # assert suppliers, 'Supplier should be specified'
                     for partner_id in suppliers:
-                        if partner_id.id in filter(lambda x: x, [rfq.state != 'cancel' and rfq.partner_id.id or None for rfq in rec.purchase_ids]):
-                            raise osv.except_osv(_('Warning!'), _('You have already one %s purchase order for this partner, you must cancel this purchase order to create a new quotation.') % rfq.state)
-
+                        self._check_partner_duplicate(cr, uid, partner_id.id, rec, context=context)
                         default_uom_po_id = line.product_id and line.product_id.uom_po_id.id or line.product_uom_id.id
                         qty = product_uom._compute_qty(cr, uid, line.product_uom_id.id, line.product_qty, default_uom_po_id)
                         if res[rec.id][partner_id.id][line.product_id.id][line.name][default_uom_po_id]:
