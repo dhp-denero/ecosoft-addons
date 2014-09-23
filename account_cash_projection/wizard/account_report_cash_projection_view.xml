@@ -3,12 +3,12 @@
      <data>
 
         <record id="account_cash_balance_view" model="ir.ui.view">
-            <field name="name">Print Cash Projection</field>
+            <field name="name">Cash Flow Projection</field>
             <field name="model">account.cash.projection</field>
             <!--<field name="inherit_id" ref="account_common_report_view" />-->
             <field name="arch" type="xml">
                 <form string="Report Options" version="7.0">
-                    <separator string="Print Cash Projection"/>
+                    <separator string="Cash Flow Projection"/>
                     <label string="Cash projection report is a more detailed report of your cash flow of operating activities, financial activities and Investing Activities."/>
                     <group col="4">
                         <field name="chart_account_id" widget='selection' on_change="onchange_chart_id(chart_account_id, context)"/>
@@ -51,7 +51,7 @@
         </record>
 
          <record id="action_account_cash_balance_view" model="ir.actions.act_window">
-             <field name="name">Print Cash Projection</field>
+             <field name="name">Cash Flow Projection</field>
              <field name="res_model">account.cash.projection</field>
              <field name="type">ir.actions.act_window</field>
              <field name="view_type">form</field>
@@ -61,10 +61,10 @@
        </record>
 
         <menuitem icon="STOCK_PRINT"
-            name="Print Cash Projection"
+            name="Cash Flow Projection"
             action="action_account_cash_balance_view"
             id="menu_cash_trial_balance"
-            parent="account.next_id_22"/>
-
+			sequence="120"        
+            parent="account.menu_finance_reports"/>
     </data>
 </openerp>
