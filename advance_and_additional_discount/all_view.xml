@@ -13,7 +13,7 @@
 					<xpath expr="/form/header/button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="attributes">
 						<attribute name="attrs">{'invisible': ['|', '&amp;', ('advance_type', '=', 'deposit'), ('amount_deposit', '&gt;', 0),
 															   '|', '&amp;', ('advance_type', '=', 'advance'), ('advance_percentage', '&gt;', 0),
-															   '|',('state', 'not in', ('progress','invoice_except', 'done')),('advance_type', '=', False),]}</attribute>
+															   '|',('state', 'not in', ('progress','invoice_except', 'done')),'&amp;',('advance_type', '=', False),('invoiced_rate', '>=', 100)]}</attribute>
 						<attribute name="context">{'advance_type':advance_type, 'retention': retention_percentage, 'num_invoice': num_invoice}</attribute>
 					</xpath>
 					<field name="amount_untaxed" position="after">
